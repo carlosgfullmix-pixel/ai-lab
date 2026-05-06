@@ -51,6 +51,22 @@ input{
   border-radius:8px;
   border:none;
 }
+
+/* PANEL RESULTADOS */
+#panelResultados{
+  display:none;
+  position:fixed;
+  right:20px;
+  top:20px;
+  width:280px;
+  padding:15px;
+  border-radius:12px;
+  background:rgba(0,0,0,0.7);
+  border:1px solid #22c55e;
+  backdrop-filter: blur(10px);
+  color:#e2e8f0;
+  z-index:999;
+}
 </style>
 </head>
 
@@ -58,15 +74,15 @@ input{
 
 <div class="hero">
   <h1>🧠 AI Scientific Lab</h1>
-  <p>No es un chat. Es un laboratorio de IA.</p>
+  <p>Laboratorio + Comunidad científica</p>
   <button onclick="scrollToApp()">Probar</button>
 </div>
 
 <div class="section" id="app">
 
   <div class="card">
-    <input id="email" placeholder="email">
-    <button onclick="login()">Login</button>
+    <input id="email" placeholder="email (o vacío = invitado)">
+    <button onclick="login()">Entrar</button>
   </div>
 
   <div class="card">
@@ -81,21 +97,16 @@ input{
 
   <div class="card" id="result"></div>
 
+  <div class="card">
+    <h3>🌍 Comunidad</h3>
+    <button onclick="loadCommunity()">Actualizar comunidad</button>
+    <div id="communityFeed"></div>
+  </div>
+
 </div>
 
 <!-- PANEL FIJO -->
-<div id="panelResultados" style="
-  position:fixed;
-  right:20px;
-  top:20px;
-  width:280px;
-  padding:15px;
-  border-radius:12px;
-  background:rgba(0,0,0,0.7);
-  border:1px solid #22c55e;
-  backdrop-filter: blur(10px);
-  color:#e2e8f0;
-">
+<div id="panelResultados">
 
   <h3>📊 Resultados</h3>
 
@@ -109,11 +120,15 @@ input{
     ➜ Continuar análisis
   </button>
 
+  <button onclick="publishLast()" style="width:100%;">
+    🌍 Publicar experimento
+  </button>
+
 </div>
 
 <script>
 
-let user = "";
+let currentUser = "guest";
 let lastResult = null;
 let chart;
 
@@ -129,8 +144,35 @@ function scrollToApp(){
 }
 
 function login(){
-  user = document.getElementById("email").value;
-  alert("ok");
+  const email = document.getElementById("email").value;
+  currentUser = email ? email : "guest";
+  alert("Usuario: " + currentUser);
+}
+
+function getHistory(){
+  const data = localStorage.getItem("lab_history");
+  return data ? JSON.parse(data) : {};
+}
+
+function saveHistory(h){
+  localStorage.setItem("lab_history", JSON.stringify(h));
+}
+
+function saveExperiment(problem, result){
+  let history = getHistory();
+
+  if(!history[currentUser]){
+    history[currentUser] = [];
+  }
+
+  history[currentUser].push({
+    problem,
+    result,
+    time: new Date().toISOString(),
+    published: false
+  });
+
+  saveHistory(history);
 }
 
 async function analyze(){
@@ -139,10 +181,14 @@ async function analyze(){
 
   document.getElementById("result").innerHTML = "Analizando...";
 
-  const res = await fetch("/analyze", {
+  if(!document.getElementById("panelResultados").style.display){
+    document.getElementById("panelResultados").style.display = "block";
+  }
+
+  const res = await fetch("/analyze",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({problem, user})
+    body:JSON.stringify({problem,currentUser})
   });
 
   const data = await res.json();
@@ -155,27 +201,18 @@ async function analyze(){
     error: data.error || "-"
   };
 
-  document.getElementById("result").innerHTML = `
-    <h3>Resultado</h3>
-    ${data.final}
-  `;
+  saveExperiment(problem, data.final);
 
-  // PANEL UPDATE
-  document.getElementById("panelModo").innerText =
-    "Modo: " + labState.mode;
+  document.getElementById("result").innerHTML =
+    `<h3>Resultado</h3>${data.final}`;
 
-  document.getElementById("panelFormula").innerText =
-    "Fórmula: " + labState.formula;
-
-  document.getElementById("panelError").innerText =
-    "Error: " + labState.error;
-
+  updatePanel();
   simulateChart();
 }
 
 async function refine(){
 
-  const res = await fetch("/refine", {
+  const res = await fetch("/refine",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({previous:lastResult})
@@ -187,19 +224,27 @@ async function refine(){
 
   labState.formula = data.refined;
 
-  document.getElementById("result").innerHTML += `
-    <h3>Refinado</h3>
-    ${data.refined}
-  `;
+  document.getElementById("result").innerHTML +=
+    `<h3>Refinado</h3>${data.refined}`;
+
+  updatePanel();
+}
+
+function updatePanel(){
+  document.getElementById("panelModo").innerText =
+    "Modo: " + labState.mode;
 
   document.getElementById("panelFormula").innerText =
     "Fórmula: " + labState.formula;
+
+  document.getElementById("panelError").innerText =
+    "Error: " + labState.error;
 }
 
 function simulateChart(){
 
-  let arr = [];
-  let e = 10;
+  let arr=[];
+  let e=10;
 
   for(let i=0;i<50;i++){
     e -= Math.random()*0.2;
@@ -208,23 +253,54 @@ function simulateChart(){
 
   if(chart) chart.destroy();
 
-  chart = new Chart(document.getElementById("chart"), {
+  chart = new Chart(document.getElementById("chart"),{
     type:"line",
     data:{
-      labels: arr.map((_,i)=>i),
-      datasets:[{
-        data:arr,
-        label:"Error"
-      }]
+      labels:arr.map((_,i)=>i),
+      datasets:[{data:arr,label:"Error"}]
     }
   });
 }
 
 function continuarAnalisis(){
   if(!lastResult) return;
-
   document.getElementById("problem").value = lastResult;
   analyze();
+}
+
+function publishLast(){
+
+  let history = getHistory();
+
+  if(!history[currentUser] || history[currentUser].length === 0) return;
+
+  history[currentUser][history[currentUser].length - 1].published = true;
+
+  saveHistory(history);
+
+  loadCommunity();
+}
+
+function loadCommunity(){
+
+  let history = getHistory();
+  let feed = [];
+
+  Object.keys(history).forEach(user=>{
+    history[user].forEach(item=>{
+      if(item.published){
+        feed.push(item);
+      }
+    });
+  });
+
+  document.getElementById("communityFeed").innerHTML =
+    feed.map(f=>`
+      <div class="card">
+        <b>${f.problem}</b><br>
+        ${f.result}
+      </div>
+    `).join("");
 }
 
 </script>
