@@ -1,40 +1,19 @@
-import express from "express";
-import cors from "cors";
-import OpenAI from "openai";
-
+const express = require("express");
 const app = express();
-app.use(cors());
+
+const PORT = process.env.PORT || 3000;
+
+// permitir JSON
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+// ruta de prueba
+app.get("/", (req, res) => {
+  res.send("Servidor OK 🚀");
 });
 
-app.post("/analyze", async (req,res)=>{
+// acá conectamos tu lógica después
+// app.use("/api", require("./routes"));
 
-  const { problem } = req.body;
-
-  try{
-
-    const response = await openai.responses.create({
-      model: "gpt-5.3",
-      input: `
-      Analizá este problema científicamente:
-
-      ${problem}
-
-      Generá una explicación clara y un posible modelo.
-      `
-    });
-
-    res.json({
-      result: response.output[0].content[0].text
-    });
-
-  }catch(e){
-    res.status(500).json({error:e.message});
-  }
-
+app.listen(PORT, () => {
+  console.log("Server running on " + PORT);
 });
-
-app.listen(3000, ()=>console.log("Servidor activo"));
