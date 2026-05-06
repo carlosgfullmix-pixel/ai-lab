@@ -119,6 +119,31 @@ function simulateChart(){
 }
 
 </script>
+<div id="panelResultados" style="
+  position:fixed;
+  right:20px;
+  top:20px;
+  width:280px;
+  padding:15px;
+  border-radius:12px;
+  background:rgba(0,0,0,0.7);
+  border:1px solid #22c55e;
+  backdrop-filter: blur(10px);
+  color:#e2e8f0;
+">
 
+  <h3>📊 Resultados</h3>
+
+  <div id="panelModo">Modo: -</div>
+  <div id="panelFormula">Fórmula: -</div>
+  <div id="panelError">Error: -</div>
+
+  <hr style="margin:10px 0;opacity:0.3">
+
+  <button onclick="continuarAnalisis()" style="width:100%;">
+    ➜ Continuar análisis
+  </button>
+
+</div>
 </body>
 </html>
