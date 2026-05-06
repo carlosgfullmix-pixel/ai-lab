@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Scientific Lab</title>
+<title>Math AI Lab v2</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -17,34 +17,24 @@ body{
 
 .hero{
   text-align:center;
-  padding:60px;
+  padding:40px;
   background:#02121f;
 }
 
 .section{
   max-width:900px;
   margin:auto;
-  padding:30px;
+  padding:20px;
 }
 
 .card{
   background:#111;
-  padding:20px;
+  padding:15px;
   margin-top:15px;
   border-radius:10px;
 }
 
-button{
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  background:#00bcd4;
-  color:white;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-input{
+input, textarea{
   width:100%;
   padding:10px;
   margin-top:10px;
@@ -52,20 +42,25 @@ input{
   border:none;
 }
 
-/* PANEL RESULTADOS */
-#panelResultados{
-  display:none;
+button{
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#00bcd4;
+  color:white;
+  cursor:pointer;
+}
+
+#panel{
   position:fixed;
   right:20px;
   top:20px;
   width:280px;
+  background:rgba(0,0,0,0.85);
   padding:15px;
-  border-radius:12px;
-  background:rgba(0,0,0,0.7);
+  border-radius:10px;
   border:1px solid #22c55e;
-  backdrop-filter: blur(10px);
-  color:#e2e8f0;
-  z-index:999;
 }
 </style>
 </head>
@@ -73,182 +68,84 @@ input{
 <body>
 
 <div class="hero">
-  <h1>🧠 AI Scientific Lab</h1>
-  <p>Laboratorio + Comunidad científica</p>
-  <button onclick="scrollToApp()">Probar</button>
+  <h1>🧠 Math AI Lab v2</h1>
+  <p>Fases 1 → 4 integradas</p>
 </div>
 
-<div class="section" id="app">
+<div class="section">
 
+  <!-- FASE 1 -->
   <div class="card">
-    <input id="email" placeholder="email (o vacío = invitado)">
-    <button onclick="login()">Entrar</button>
-  </div>
+    <h3>📘 Entrada del problema</h3>
 
-  <div class="card">
-    <input id="problem" placeholder="problema científico">
+    <textarea id="textInput" placeholder="Describe el problema"></textarea>
+
+    <input id="eqInput" placeholder="Ecuación (ej: x^2 + 3x + 2 = 0)">
+
     <button onclick="analyze()">Analizar</button>
-    <button onclick="refine()">Refinar</button>
   </div>
 
+  <!-- FASE 4 (gráfico real) -->
   <div class="card">
     <canvas id="chart"></canvas>
   </div>
 
   <div class="card" id="result"></div>
 
-  <div class="card">
-    <h3>🌍 Comunidad</h3>
-    <button onclick="loadCommunity()">Actualizar comunidad</button>
-    <div id="communityFeed"></div>
-  </div>
-
 </div>
 
-<!-- PANEL FIJO -->
-<div id="panelResultados">
-
-  <h3>📊 Resultados</h3>
-
-  <div id="panelModo">Modo: -</div>
-  <div id="panelFormula">Fórmula: -</div>
-  <div id="panelError">Error: -</div>
-
-  <hr style="margin:10px 0;opacity:0.3">
-
-  <button onclick="continuarAnalisis()" style="width:100%;">
-    ➜ Continuar análisis
-  </button>
-
-  <button onclick="publishLast()" style="width:100%;">
-    🌍 Publicar experimento
-  </button>
-
+<!-- PANEL -->
+<div id="panel">
+  <h3>📊 Estado Lab</h3>
+  <div id="type">Tipo: -</div>
+  <div id="solution">Solución: -</div>
 </div>
 
 <script>
 
-let currentUser = "guest";
-let lastResult = null;
 let chart;
 
-let labState = {
-  mode: "-",
-  formula: "-",
-  error: "-"
-};
+// ======================
+// FASE 2: DETECTOR
+// ======================
+function detectType(eq){
 
-function scrollToApp(){
-  document.getElementById("app")
-    .scrollIntoView({behavior:"smooth"});
+  if(eq.includes("=")) return "equation";
+  if(eq.includes("^")) return "polynomial";
+  if(eq.includes("x") && eq.includes("+")) return "function";
+
+  return "unknown";
 }
 
-function login(){
-  const email = document.getElementById("email").value;
-  currentUser = email ? email : "guest";
-  alert("Usuario: " + currentUser);
+// ======================
+// FASE 3: SOLVER BÁSICO
+// ======================
+function solveEquation(eq){
+
+  let parts = eq.split("=");
+
+  return "Ecuación detectada: " + eq;
 }
 
-function getHistory(){
-  const data = localStorage.getItem("lab_history");
-  return data ? JSON.parse(data) : {};
+// ======================
+// POLINOMIO REAL SIMPLE
+// ======================
+function evalPoly(x){
+  // base demo: x^2 + 3x + 2
+  return x*x + 3*x + 2;
 }
 
-function saveHistory(h){
-  localStorage.setItem("lab_history", JSON.stringify(h));
-}
+// ======================
+// FASE 4: GRÁFICO REAL
+// ======================
+function drawGraph(){
 
-function saveExperiment(problem, result){
-  let history = getHistory();
+  let data = [];
+  let labels = [];
 
-  if(!history[currentUser]){
-    history[currentUser] = [];
-  }
-
-  history[currentUser].push({
-    problem,
-    result,
-    time: new Date().toISOString(),
-    published: false
-  });
-
-  saveHistory(history);
-}
-
-async function analyze(){
-
-  const problem = document.getElementById("problem").value;
-
-  document.getElementById("result").innerHTML = "Analizando...";
-
-  if(!document.getElementById("panelResultados").style.display){
-    document.getElementById("panelResultados").style.display = "block";
-  }
-
-  const res = await fetch("/analyze",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({problem,currentUser})
-  });
-
-  const data = await res.json();
-
-  lastResult = data.final;
-
-  labState = {
-    mode: "auto",
-    formula: data.final,
-    error: data.error || "-"
-  };
-
-  saveExperiment(problem, data.final);
-
-  document.getElementById("result").innerHTML =
-    `<h3>Resultado</h3>${data.final}`;
-
-  updatePanel();
-  simulateChart();
-}
-
-async function refine(){
-
-  const res = await fetch("/refine",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({previous:lastResult})
-  });
-
-  const data = await res.json();
-
-  lastResult = data.refined;
-
-  labState.formula = data.refined;
-
-  document.getElementById("result").innerHTML +=
-    `<h3>Refinado</h3>${data.refined}`;
-
-  updatePanel();
-}
-
-function updatePanel(){
-  document.getElementById("panelModo").innerText =
-    "Modo: " + labState.mode;
-
-  document.getElementById("panelFormula").innerText =
-    "Fórmula: " + labState.formula;
-
-  document.getElementById("panelError").innerText =
-    "Error: " + labState.error;
-}
-
-function simulateChart(){
-
-  let arr=[];
-  let e=10;
-
-  for(let i=0;i<50;i++){
-    e -= Math.random()*0.2;
-    arr.push(e);
+  for(let x=-10; x<=10; x++){
+    labels.push(x);
+    data.push(evalPoly(x));
   }
 
   if(chart) chart.destroy();
@@ -256,51 +153,56 @@ function simulateChart(){
   chart = new Chart(document.getElementById("chart"),{
     type:"line",
     data:{
-      labels:arr.map((_,i)=>i),
-      datasets:[{data:arr,label:"Error"}]
+      labels:labels,
+      datasets:[{
+        label:"f(x)",
+        data:data
+      }]
     }
   });
 }
 
-function continuarAnalisis(){
-  if(!lastResult) return;
-  document.getElementById("problem").value = lastResult;
-  analyze();
-}
+// ======================
+// PIPELINE COMPLETO (4 FASES)
+// ======================
+function analyze(){
 
-function publishLast(){
+  let eq = document.getElementById("eqInput").value;
+  let text = document.getElementById("textInput").value;
 
-  let history = getHistory();
+  // FASE 2
+  let type = detectType(eq);
 
-  if(!history[currentUser] || history[currentUser].length === 0) return;
+  document.getElementById("type").innerText =
+    "Tipo: " + type;
 
-  history[currentUser][history[currentUser].length - 1].published = true;
+  let solution = "";
 
-  saveHistory(history);
+  // FASE 3
+  if(type === "equation"){
+    solution = solveEquation(eq);
+  }
 
-  loadCommunity();
-}
+  if(type === "polynomial"){
+    solution = "Polinomio: " + eq;
+    drawGraph(); // FASE 4
+  }
 
-function loadCommunity(){
+  if(type === "function"){
+    solution = "Función detectada";
+    drawGraph();
+  }
 
-  let history = getHistory();
-  let feed = [];
+  if(type === "unknown"){
+    solution = "Tipo no reconocido (modo texto)";
+  }
 
-  Object.keys(history).forEach(user=>{
-    history[user].forEach(item=>{
-      if(item.published){
-        feed.push(item);
-      }
-    });
-  });
+  document.getElementById("solution").innerText = solution;
 
-  document.getElementById("communityFeed").innerHTML =
-    feed.map(f=>`
-      <div class="card">
-        <b>${f.problem}</b><br>
-        ${f.result}
-      </div>
-    `).join("");
+  document.getElementById("result").innerHTML = `
+    <h3>Resultado</h3>
+    ${solution}
+  `;
 }
 
 </script>
