@@ -4,121 +4,86 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Scientific Lab</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#02070d;color:white;}
-.hero{text-align:center;padding:60px;background:#02121f;}
-.section{max-width:900px;margin:auto;padding:30px;}
-.card{background:#111;padding:20px;margin-top:15px;border-radius:10px;}
-button{padding:10px;border:none;border-radius:8px;background:#00bcd4;color:white;cursor:pointer;}
-input{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:none;}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#02070d;
+  color:white;
+}
+
+.hero{
+  text-align:center;
+  padding:60px;
+  background:#02121f;
+}
+
+.section{
+  max-width:900px;
+  margin:auto;
+  padding:30px;
+}
+
+.card{
+  background:#111;
+  padding:20px;
+  margin-top:15px;
+  border-radius:10px;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#00bcd4;
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:none;
+}
 </style>
 </head>
 
 <body>
 
 <div class="hero">
-<h1>🧠 AI Scientific Lab</h1>
-<p>No es un chat. Es un laboratorio de IA.</p>
-<button onclick="scrollToApp()">Probar</button>
+  <h1>🧠 AI Scientific Lab</h1>
+  <p>No es un chat. Es un laboratorio de IA.</p>
+  <button onclick="scrollToApp()">Probar</button>
 </div>
 
 <div class="section" id="app">
 
-<div class="card">
-<input id="email" placeholder="email">
-<button onclick="login()">Login</button>
+  <div class="card">
+    <input id="email" placeholder="email">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div class="card">
+    <input id="problem" placeholder="problema científico">
+    <button onclick="analyze()">Analizar</button>
+    <button onclick="refine()">Refinar</button>
+  </div>
+
+  <div class="card">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="card" id="result"></div>
+
 </div>
 
-<div class="card">
-<input id="problem" placeholder="problema científico">
-<button onclick="analyze()">Analizar</button>
-<button onclick="refine()">Refinar</button>
-</div>
-
-<div class="card">
-<canvas id="chart"></canvas>
-</div>
-
-<div class="card" id="result"></div>
-
-</div>
-
-<script>
-
-let user="";
-let lastResult="";
-let chart;
-
-function scrollToApp(){
- document.getElementById("app").scrollIntoView({behavior:"smooth"});
-}
-
-function login(){
- user=document.getElementById("email").value;
- alert("ok");
-}
-
-async function analyze(){
-
- const problem=document.getElementById("problem").value;
-
- document.getElementById("result").innerHTML="Analizando...";
-
- const res=await fetch("/analyze",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({problem,user})
- });
-
- const data=await res.json();
-
- lastResult=data.final;
-
- document.getElementById("result").innerHTML=`
- <h3>Resultado</h3>
- ${data.final}
- `;
-
- simulateChart();
-}
-
-async function refine(){
-
- const res=await fetch("/refine",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({previous:lastResult})
- });
-
- const data=await res.json();
-
- document.getElementById("result").innerHTML+=`
- <h3>Refinado</h3>
- ${data.refined}
- `;
-}
-
-function simulateChart(){
-
- let arr=[];
- let e=10;
-
- for(let i=0;i<50;i++){
-  e-=Math.random()*0.2;
-  arr.push(e);
- }
-
- if(chart) chart.destroy();
-
- chart=new Chart(document.getElementById("chart"),{
-  type:"line",
-  data:{labels:arr.map((_,i)=>i),datasets:[{data:arr,label:"Error"}]}
- });
-}
-
-</script>
+<!-- PANEL FIJO -->
 <div id="panelResultados" style="
   position:fixed;
   right:20px;
@@ -145,5 +110,124 @@ function simulateChart(){
   </button>
 
 </div>
+
+<script>
+
+let user = "";
+let lastResult = null;
+let chart;
+
+let labState = {
+  mode: "-",
+  formula: "-",
+  error: "-"
+};
+
+function scrollToApp(){
+  document.getElementById("app")
+    .scrollIntoView({behavior:"smooth"});
+}
+
+function login(){
+  user = document.getElementById("email").value;
+  alert("ok");
+}
+
+async function analyze(){
+
+  const problem = document.getElementById("problem").value;
+
+  document.getElementById("result").innerHTML = "Analizando...";
+
+  const res = await fetch("/analyze", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({problem, user})
+  });
+
+  const data = await res.json();
+
+  lastResult = data.final;
+
+  labState = {
+    mode: "auto",
+    formula: data.final,
+    error: data.error || "-"
+  };
+
+  document.getElementById("result").innerHTML = `
+    <h3>Resultado</h3>
+    ${data.final}
+  `;
+
+  // PANEL UPDATE
+  document.getElementById("panelModo").innerText =
+    "Modo: " + labState.mode;
+
+  document.getElementById("panelFormula").innerText =
+    "Fórmula: " + labState.formula;
+
+  document.getElementById("panelError").innerText =
+    "Error: " + labState.error;
+
+  simulateChart();
+}
+
+async function refine(){
+
+  const res = await fetch("/refine", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({previous:lastResult})
+  });
+
+  const data = await res.json();
+
+  lastResult = data.refined;
+
+  labState.formula = data.refined;
+
+  document.getElementById("result").innerHTML += `
+    <h3>Refinado</h3>
+    ${data.refined}
+  `;
+
+  document.getElementById("panelFormula").innerText =
+    "Fórmula: " + labState.formula;
+}
+
+function simulateChart(){
+
+  let arr = [];
+  let e = 10;
+
+  for(let i=0;i<50;i++){
+    e -= Math.random()*0.2;
+    arr.push(e);
+  }
+
+  if(chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
+    type:"line",
+    data:{
+      labels: arr.map((_,i)=>i),
+      datasets:[{
+        data:arr,
+        label:"Error"
+      }]
+    }
+  });
+}
+
+function continuarAnalisis(){
+  if(!lastResult) return;
+
+  document.getElementById("problem").value = lastResult;
+  analyze();
+}
+
+</script>
+
 </body>
 </html>
