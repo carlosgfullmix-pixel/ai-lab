@@ -517,17 +517,20 @@ function parseHumanMath(text){
 
   return t;
 }
+function run(){
 
-  function run(){
   let raw = document.getElementById("input").value;
 
-let eq = parseHumanMath(raw);
+  let eq = parseHumanMath(raw);
 
   let type = detect(eq);
 
   let out = "";
 
+  // ======================
   // SISTEMAS
+  // ======================
+
   if(type==="system"){
 
     clearChart();
@@ -541,7 +544,10 @@ let eq = parseHumanMath(raw);
     `;
   }
 
+  // ======================
   // LINEALES
+  // ======================
+
   else if(type==="linear"){
 
     clearChart();
@@ -554,7 +560,10 @@ let eq = parseHumanMath(raw);
     `;
   }
 
+  // ======================
   // CUADRÁTICAS
+  // ======================
+
   else if(type==="quadratic"){
 
     let r = quadratic(eq);
@@ -567,36 +576,38 @@ let eq = parseHumanMath(raw);
     `;
   }
 
+  // ======================
+  // CÁLCULO DIRECTO
+  // ======================
+
+  else if(
+    eq.includes("Math.sqrt") ||
+    eq.includes("Math.PI")
+  ){
+
+    clearChart();
+
+    let result;
+
+    try{
+      result = Function("return " + eq)();
+    }
+    catch{
+      result = "Error";
+    }
+
+    out = `
+      <b>Resultado:</b><br>
+      ${result}
+    `;
+  }
+
+  // ======================
   // FUNCIONES
+  // ======================
+
   else{
-// ======================
-// CÁLCULO DIRECTO
-// ======================
 
-else if(
-  eq.includes("Math.sqrt") ||
-  eq.includes("Math.PI") ||
-  eq.includes("Math.sin") ||
-  eq.includes("Math.cos") ||
-  eq.includes("Math.tan")
-){
-
-  clearChart();
-
-  let result;
-
-  try{
-    result = Function("return " + eq)();
-  }
-  catch{
-    result = "Error";
-  }
-
-  out = `
-    <b>Resultado:</b><br>
-    ${result}
-  `;
-}
     draw(eq);
 
     out = `
@@ -606,6 +617,7 @@ else if(
 
   document.getElementById("result").innerHTML = out;
 }
+
 
 </script>
 
