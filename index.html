@@ -221,11 +221,19 @@ function draw(eq){
 
   if(chart) chart.destroy();
 
+  let expr = eq.split("=")[0]; // 👈 CLAVE: solo lado izquierdo
+
   let data=[], labels=[];
 
   for(let x=-10;x<=10;x++){
     labels.push(x);
-    data.push(f(eq,x));
+
+    try{
+      let y = Function("x", "return " + expr)(x);
+      data.push(y);
+    }catch{
+      data.push(0);
+    }
   }
 
   chart = new Chart(document.getElementById("chart"),{
@@ -235,12 +243,12 @@ function draw(eq){
       datasets:[{
         label:"f(x)",
         data,
-        borderColor:"#00bcd4"
+        borderColor:"#00bcd4",
+        tension:0.3
       }]
     }
   });
 }
-
 // ======================
 // MAIN
 // ======================
