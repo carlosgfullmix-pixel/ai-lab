@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Math Engine v1 Stable</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
 body{
   margin:0;
   font-family:Arial;
@@ -17,8 +19,18 @@ body{
 
 .hero{
   text-align:center;
-  padding:25px;
+  padding:30px;
   background:#02121f;
+  border-bottom:1px solid #0ea5e9;
+}
+
+.hero h1{
+  margin:0;
+  font-size:40px;
+}
+
+.hero p{
+  opacity:0.8;
 }
 
 .container{
@@ -28,68 +40,146 @@ body{
 }
 
 .card{
-  background:#111;
-  padding:15px;
-  margin-top:15px;
-  border-radius:10px;
+  background:#111827;
+  padding:20px;
+  margin-top:20px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.08);
 }
 
 textarea{
   width:100%;
-  padding:10px;
-  border-radius:8px;
+  min-height:100px;
+  padding:15px;
   border:none;
+  border-radius:10px;
+  background:#0f172a;
+  color:white;
+  font-size:16px;
+  resize:vertical;
+  box-sizing:border-box;
 }
 
 button{
-  padding:10px;
-  margin-top:10px;
+  margin-top:15px;
+  padding:12px 20px;
   border:none;
-  border-radius:8px;
-  background:#00bcd4;
+  border-radius:10px;
+  background:#06b6d4;
   color:white;
+  font-size:16px;
   cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  transform:scale(1.02);
+  background:#0891b2;
 }
 
 #result{
-  margin-top:10px;
-  #chart{
+  font-size:20px;
+  line-height:1.6;
+}
+
+#chart{
   width:100%;
   height:400px;
 }
+
+.examples{
+  margin-top:15px;
 }
+
+.examples button{
+  margin-right:10px;
+  margin-top:10px;
+  background:#1e293b;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="hero">
-<h1>🧠 Math Engine v1</h1>
-<p>Lineales + Cuadráticas + Sistemas + Gráficos</p>
+  <h1>🧠 Math Engine v1</h1>
+  <p>Lineales + Cuadráticas + Sistemas + Funciones + Gráficos</p>
 </div>
 
 <div class="container">
 
-<div class="card">
-<textarea id="input" placeholder="Ej: x+5=14 o x^2+3x+2=0 o x+y=10, x-y=2"></textarea>
-<button onclick="run()">Resolver</button>
-</div>
+  <div class="card">
 
-<div class="card">
-<canvas id="chart"></canvas>
-</div>
+    <h2>✍️ Ingresar problema</h2>
 
-<div class="card" id="result">Resultado: -</div>
+    <textarea id="input" placeholder="Ej:
+x+5=14
+x^2+3*x+2=0
+x+y=10, x-y=2
+Math.sin(x)
+"></textarea>
+
+    <button onclick="run()">🚀 Resolver</button>
+
+    <div class="examples">
+
+      <button onclick="setExample('x+5=14')">
+        Lineal
+      </button>
+
+      <button onclick="setExample('x^2+3*x+2=0')">
+        Cuadrática
+      </button>
+
+      <button onclick="setExample('x+y=10, x-y=2')">
+        Sistema
+      </button>
+
+      <button onclick="setExample('Math.sin(x)')">
+        Seno
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>📈 Gráfico</h2>
+
+    <canvas id="chart"></canvas>
+
+  </div>
+
+  <div class="card">
+
+    <h2>📊 Resultado</h2>
+
+    <div id="result">
+      Esperando cálculo...
+    </div>
+
+  </div>
 
 </div>
 
 <script>
 
-let chart;
+let chart = null;
 
 // ======================
-// DETECTOR GENERAL
+// EJEMPLOS
 // ======================
+
+function setExample(v){
+  document.getElementById("input").value = v;
+}
+
+// ======================
+// DETECTOR
+// ======================
+
 function detect(eq){
 
   eq = eq.replaceAll(" ","");
@@ -98,24 +188,33 @@ function detect(eq){
     return "system";
   }
 
-  if(eq.includes("=") && !eq.includes("x^2")){
-    return "linear";
+  if(eq.includes("=") && eq.includes("x^2")){
+    return "quadratic";
   }
 
-  if(eq.includes("x^2")){
-    return "quadratic";
+  if(eq.includes("=")){
+    return "linear";
   }
 
   return "function";
 }
 
 // ======================
-// SISTEMA 2x2
-// x+y=a , x-y=b
-  clearChart();
-
-out = `x = ${s.x}<br>y = ${s.y}`;
+// LIMPIAR GRÁFICO
 // ======================
+
+function clearChart(){
+
+  if(chart){
+    chart.destroy();
+    chart = null;
+  }
+}
+
+// ======================
+// SISTEMAS
+// ======================
+
 function solveSystem(input){
 
   let lines = input.split(",");
@@ -133,8 +232,9 @@ function solveSystem(input){
 }
 
 // ======================
-// LINEAL
+// LINEALES
 // ======================
+
 function linear(eq){
 
   eq = eq.replaceAll(" ","");
@@ -165,12 +265,11 @@ function linear(eq){
 
   return (right - b) / a;
 }
-clearChart();
 
-out = "x = " + x;
 // ======================
-// CUADRÁTICA
+// CUADRÁTICAS
 // ======================
+
 function quadratic(eq){
 
   eq = eq.replaceAll(" ","");
@@ -181,7 +280,9 @@ function quadratic(eq){
 
   let parts = l.split("+");
 
-  let a=0,b=0,c=0;
+  let a = 0;
+  let b = 0;
+  let c = 0;
 
   for(let p of parts){
 
@@ -190,9 +291,11 @@ function quadratic(eq){
     if(p.includes("x^2")){
       a += coeff(p,"x^2");
     }
+
     else if(p.includes("x")){
       b += coeff(p,"x");
     }
+
     else{
       c += Number(p);
     }
@@ -200,7 +303,9 @@ function quadratic(eq){
 
   let d = b*b - 4*a*c;
 
-  if(d < 0) return [];
+  if(d < 0){
+    return [];
+  }
 
   return [
     (-b + Math.sqrt(d))/(2*a),
@@ -209,6 +314,9 @@ function quadratic(eq){
 }
 
 // ======================
+// COEFICIENTES
+// ======================
+
 function coeff(p,type){
 
   p = p.replaceAll("*","");
@@ -233,37 +341,17 @@ function coeff(p,type){
 
   return 0;
 }
-// ======================
-// FUNCIÓN
-// ======================
-function f(eq,x){
 
-  try{
-    let e = eq.split("=")[0];
-    e = e.replaceAll("x",`(${x})`);
-    return Function("return "+e)();
-  }catch{
-    return 0;
-  }
-}
-function clearChart(){
-
-  if(chart){
-    chart.destroy();
-    chart = null;
-  }
-}
 // ======================
 // GRÁFICO
 // ======================
+
 function draw(eq){
 
-  if(chart) chart.destroy();
+  clearChart();
 
-  // tomar solo lado izquierdo
   let expr = eq.split("=")[0];
 
-  // convertir potencia
   expr = expr.replaceAll("^","**");
 
   let data = [];
@@ -279,7 +367,7 @@ function draw(eq){
 
       data.push(y);
 
-    }catch(err){
+    }catch{
 
       data.push(null);
     }
@@ -300,6 +388,8 @@ function draw(eq){
 
     options:{
       responsive:true,
+      maintainAspectRatio:false,
+
       scales:{
         y:{
           beginAtZero:false
@@ -308,48 +398,67 @@ function draw(eq){
     }
   });
 }
+
 // ======================
 // MAIN
 // ======================
+
 function run(){
 
   let eq = document.getElementById("input").value;
 
   let type = detect(eq);
 
-  let out="";
+  let out = "";
 
-  // 🟢 SISTEMA
+  // SISTEMAS
   if(type==="system"){
+
+    clearChart();
 
     let s = solveSystem(eq);
 
-    out = `x = ${s.x}<br>y = ${s.y}`;
-
+    out = `
+      <b>Sistema resuelto:</b><br>
+      x = ${s.x}<br>
+      y = ${s.y}
+    `;
   }
 
-  // 🟢 LINEAL
+  // LINEALES
   else if(type==="linear"){
 
+    clearChart();
+
     let x = linear(eq);
-    out = "x = " + x;
+
+    out = `
+      <b>Ecuación lineal:</b><br>
+      x = ${x}
+    `;
   }
 
-  // 🟢 CUADRÁTICA
+  // CUADRÁTICAS
   else if(type==="quadratic"){
 
     let r = quadratic(eq);
 
-    out = "raíces: " + r.join(", ");
-
     draw(eq);
+
+    out = `
+      <b>Raíces:</b><br>
+      ${r.join(", ")}
+    `;
   }
 
-  // 🟢 FUNCIÓN
+  // FUNCIONES
   else{
 
     draw(eq);
-    out = "función graficada";
+
+    out = `
+      <b>Función graficada correctamente</b>
+    `;
   }
 
   document.getElementById("result").innerHTML = out;
