@@ -525,6 +525,9 @@ function derivative(expr){
 
   expr = expr.replaceAll(" ","");
 
+  // convertir ^ en **
+  expr = expr.replaceAll("^","**");
+
   // x
   if(expr === "x"){
     return "1";
@@ -560,7 +563,6 @@ function derivative(expr){
 
   return "No soportado aún";
 }
-
 // ======================
 // INTEGRALES
 // ======================
@@ -568,6 +570,9 @@ function derivative(expr){
 function integral(expr){
 
   expr = expr.replaceAll(" ","");
+
+  // convertir ^ en **
+  expr = expr.replaceAll("^","**");
 
   // x
   if(expr === "x"){
@@ -596,7 +601,6 @@ function integral(expr){
 
   return "No soportado aún";
 }
-
 // ======================
 // RUN
 // ======================
