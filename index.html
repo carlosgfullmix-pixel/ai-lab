@@ -542,44 +542,25 @@ function derivative(expr){
     }
 
     if(n-1 === 1){
-      return `${n}x`;
+      return `${n}*x`;
     }
 
-    return `${n}x^${n-1}`;
+    return `${n}*x**${n-1}`;
   }
 
-  // ax**n
-  let polyMatch = expr.match(/^(\d+)x\*\*(\d+)$/);
-
-  if(polyMatch){
-
-    let a = Number(polyMatch[1]);
-    let n = Number(polyMatch[2]);
-
-    let coef = a*n;
-
-    if(n-1 === 1){
-      return `${coef}x`;
-    }
-
-    return `${coef}x^${n-1}`;
-  }
-
-  // trigonométricas
+  // seno
   if(expr === "Math.sin(x)"){
     return "Math.cos(x)";
   }
 
+  // coseno
   if(expr === "Math.cos(x)"){
     return "-Math.sin(x)";
   }
 
-  if(expr === "Math.tan(x)"){
-    return "1/Math.cos(x)**2";
-  }
-
   return "No soportado aún";
 }
+
 // ======================
 // INTEGRALES
 // ======================
@@ -590,7 +571,7 @@ function integral(expr){
 
   // x
   if(expr === "x"){
-    return "x^2/2 + C";
+    return "x**2/2";
   }
 
   // x**n
@@ -600,96 +581,15 @@ function integral(expr){
 
     let n = Number(powerMatch[1]) + 1;
 
-    return `x^${n}/${n} + C`;
-  }
-
-  // ax**n
-  let polyMatch = expr.match(/^(\d+)x\*\*(\d+)$/);
-
-  if(polyMatch){
-
-    let a = Number(polyMatch[1]);
-    let n = Number(polyMatch[2]) + 1;
-
-    return `${a}x^${n}/${n} + C`;
-  }
-
-  // trigonométricas
-  if(expr === "Math.sin(x)"){
-    return "-Math.cos(x) + C";
-  }
-
-  if(expr === "Math.cos(x)"){
-    return "Math.sin(x) + C";
-  }
-
-  return "No soportado aún";
-}
-  // ======================
-// DERIVADAS
-// ======================
-
-function derivative(expr){
-
-  expr = expr.replaceAll(" ","");
-
-  if(expr === "x"){
-    return "1";
-  }
-
-  let powerMatch = expr.match(/^x\*\*(\d+)$/);
-
-  if(powerMatch){
-
-    let n = Number(powerMatch[1]);
-
-    if(n === 1){
-      return "1";
-    }
-
-    if(n-1 === 1){
-      return `${n}*x`;
-    }
-
-    return `${n}*x**${n-1}`;
-  }
-
-  if(expr === "Math.sin(x)"){
-    return "Math.cos(x)";
-  }
-
-  if(expr === "Math.cos(x)"){
-    return "-Math.sin(x)";
-  }
-
-  return "No soportado aún";
-}
-
-// ======================
-// INTEGRALES
-// ======================
-
-function integral(expr){
-
-  expr = expr.replaceAll(" ","");
-
-  if(expr === "x"){
-    return "x**2/2";
-  }
-
-  let powerMatch = expr.match(/^x\*\*(\d+)$/);
-
-  if(powerMatch){
-
-    let n = Number(powerMatch[1]) + 1;
-
     return `x**${n}/${n}`;
   }
 
+  // seno
   if(expr === "Math.sin(x)"){
     return "-Math.cos(x)";
   }
 
+  // coseno
   if(expr === "Math.cos(x)"){
     return "Math.sin(x)";
   }
@@ -708,7 +608,7 @@ function run(){
   let eq = parseHumanMath(raw);
 
   // ======================
-  // DERIVAR
+  // DERIVADAS
   // ======================
 
   if(raw.toLowerCase().startsWith("derivar ")){
@@ -734,7 +634,7 @@ function run(){
   }
 
   // ======================
-  // INTEGRAL
+  // INTEGRALES
   // ======================
 
   if(raw.toLowerCase().startsWith("integral ")){
@@ -763,7 +663,10 @@ function run(){
 
   let out = "";
 
+  // ======================
   // SISTEMAS
+  // ======================
+
   if(type==="system"){
 
     clearChart();
@@ -777,7 +680,10 @@ function run(){
     `;
   }
 
+  // ======================
   // LINEALES
+  // ======================
+
   else if(type==="linear"){
 
     clearChart();
@@ -790,7 +696,10 @@ function run(){
     `;
   }
 
+  // ======================
   // CUADRÁTICAS
+  // ======================
+
   else if(type==="quadratic"){
 
     let r = quadratic(eq);
@@ -803,7 +712,10 @@ function run(){
     `;
   }
 
+  // ======================
   // CÁLCULO DIRECTO
+  // ======================
+
   else if(
     eq.includes("Math.sqrt") ||
     eq.includes("Math.PI")
@@ -826,7 +738,10 @@ function run(){
     `;
   }
 
+  // ======================
   // FUNCIONES
+  // ======================
+
   else{
 
     draw(eq);
@@ -838,139 +753,3 @@ function run(){
 
   document.getElementById("result").innerHTML = out;
 }
-      <b>Derivada:</b><br>
-      ${result}
-    `;
-
-    return;
-  }
-
-  // ======================
-  // INTEGRAL
-  // ======================
-
-  if(raw.toLowerCase().startsWith("integral ")){
-
-    let expr = raw.substring(10);
-
-    expr = parseHumanMath(expr);
-
-    let result = integral(expr);
-
-    // quitar + C para graficar
-    let graphExpr = result
-      .replace(" + C","")
-      .replaceAll("^","**");
-
-    try{
-      draw(graphExpr);
-    }catch{
-      clearChart();
-    }
-
-    document.getElementById("result").innerHTML = `
-      <b>Integral:</b><br>
-      ${result}
-    `;
-
-    return;
-  }
-
-  let type = detect(eq);
-
-  let out = "";
-
-  // ======================
-  // SISTEMAS
-  // ======================
-
-  if(type==="system"){
-
-    clearChart();
-
-    let s = solveSystem(eq);
-
-    out = `
-      <b>Sistema resuelto:</b><br>
-      x = ${s.x}<br>
-      y = ${s.y}
-    `;
-  }
-
-  // ======================
-  // LINEALES
-  // ======================
-
-  else if(type==="linear"){
-
-    clearChart();
-
-    let x = linear(eq);
-
-    out = `
-      <b>Ecuación lineal:</b><br>
-      x = ${x}
-    `;
-  }
-
-  // ======================
-  // CUADRÁTICAS
-  // ======================
-
-  else if(type==="quadratic"){
-
-    let r = quadratic(eq);
-
-    draw(eq);
-
-    out = `
-      <b>Raíces:</b><br>
-      ${r.join(", ")}
-    `;
-  }
-
-  // ======================
-  // CÁLCULO DIRECTO
-  // ======================
-
-  else if(
-    eq.includes("Math.sqrt") ||
-    eq.includes("Math.PI")
-  ){
-
-    clearChart();
-
-    let result;
-
-    try{
-      result = Function("return " + eq)();
-    }
-    catch{
-      result = "Error";
-    }
-
-    out = `
-      <b>Resultado:</b><br>
-      ${result}
-    `;
-  }
-
-  // ======================
-  // FUNCIONES
-  // ======================
-
-  else{
-
-    draw(eq);
-
-    out = `
-      <b>Función graficada correctamente</b>
-    `;
-  }
-
-  document.getElementById("result").innerHTML = out;
-} 
-</script>
-
-</body>
-</html>
