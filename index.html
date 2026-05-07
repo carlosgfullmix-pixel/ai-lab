@@ -434,7 +434,36 @@ function draw(eq){
 // ======================
 // MAIN
 // ======================
+// ======================
+// PARSER HUMANO
+// ======================
 
+function parseHumanMath(text){
+
+  let t = text.toLowerCase();
+
+  // potencias
+  t = t.replaceAll("al cuadrado", "^2");
+  t = t.replaceAll("cuadrado", "^2");
+
+  t = t.replaceAll("al cubo", "^3");
+
+  // operaciones
+  t = t.replaceAll("más", "+");
+  t = t.replaceAll("menos", "-");
+  t = t.replaceAll("por", "*");
+  t = t.replaceAll("dividido", "/");
+
+  // trigonometría
+  t = t.replaceAll("seno de x", "Math.sin(x)");
+  t = t.replaceAll("coseno de x", "Math.cos(x)");
+  t = t.replaceAll("tangente de x", "Math.tan(x)");
+
+  // limpiar dobles espacios
+  t = t.replace(/\s+/g, "");
+
+  return t;
+}
 function run(){
 
   let eq = document.getElementById("input").value;
