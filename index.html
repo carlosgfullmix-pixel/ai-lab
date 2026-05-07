@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Engine v1</title>
+<title>Math Engine v1 Stable</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -17,7 +17,7 @@ body{
 
 .hero{
   text-align:center;
-  padding:30px;
+  padding:25px;
   background:#02121f;
 }
 
@@ -34,10 +34,9 @@ body{
   border-radius:10px;
 }
 
-input,textarea{
+textarea{
   width:100%;
   padding:10px;
-  margin-top:10px;
   border-radius:8px;
   border:none;
 }
@@ -52,19 +51,8 @@ button{
   cursor:pointer;
 }
 
-#panel{
-  position:fixed;
-  right:20px;
-  top:120px;
-  width:260px;
-  background:rgba(0,0,0,0.85);
-  padding:15px;
-  border-radius:10px;
-  border:1px solid #22c55e;
-}
-
-@media(max-width:768px){
-  #panel{position:relative;width:100%;}
+#result{
+  margin-top:10px;
 }
 </style>
 </head>
@@ -73,28 +61,22 @@ button{
 
 <div class="hero">
 <h1>🧠 Math Engine v1</h1>
-<p>Motor matemático real (Fase 1 + 2)</p>
+<p>Motor matemático estable (lineal + cuadrática + funciones)</p>
 </div>
 
 <div class="container">
 
 <div class="card">
-<textarea id="inputText" placeholder="Ej: resolver x+5=14 o x^2+3x+2=0"></textarea>
-<button onclick="run()">Ejecutar</button>
+<textarea id="input" placeholder="Ej: x+5=14 o x^2+3x+2=0 o x*x+2"></textarea>
+<button onclick="run()">Resolver</button>
 </div>
 
 <div class="card">
 <canvas id="chart"></canvas>
 </div>
 
-<div class="card" id="result"></div>
+<div class="card" id="result">Resultado: -</div>
 
-</div>
-
-<div id="panel">
-<h3>📊 Estado</h3>
-<div id="type">-</div>
-<div id="output">-</div>
 </div>
 
 <script>
@@ -102,11 +84,13 @@ button{
 let chart;
 
 // ======================
-// ROUTER
+// DETECTOR
 // ======================
-function detectType(eq){
+function detect(eq){
 
-  if(eq.includes("=") && eq.includes("x") && !eq.includes("x^2")){
+  eq = eq.replaceAll(" ","");
+
+  if(eq.includes("=") && !eq.includes("x^2")){
     return "linear";
   }
 
@@ -114,35 +98,35 @@ function detectType(eq){
     return "quadratic";
   }
 
-  if(eq.includes(",") && eq.includes("y")){
-    return "system";
-  }
-
   return "function";
 }
 
 // ======================
 // LINEAL
+// x + 5 = 14
 // ======================
-function solveLinear(eq){
+function linear(eq){
+
+  eq = eq.replaceAll(" ","");
 
   let [l,r] = eq.split("=");
 
-  let value = eval(r);
+  let right = eval(r);
 
-  l = l.replace("x","");
+  let match = l.match(/(-?\d*)x([+-]\d+)?/);
 
-  let a = l === "" ? 1 : Number(l);
+  let a = match?.[1] ? Number(match[1]) : 1;
+  let b = match?.[2] ? Number(match[2]) : 0;
 
-  let x = value / a;
+  let x = (right - b) / a;
 
-  return {x};
+  return x;
 }
 
 // ======================
 // CUADRÁTICA
 // ======================
-function solveQuadratic(eq){
+function quadratic(eq){
 
   eq = eq.replaceAll(" ","");
 
@@ -156,41 +140,27 @@ function solveQuadratic(eq){
 
   for(let p of parts){
 
-    if(p.includes("x^2")) a += coeff(p,"x^2");
-    else if(p.includes("x")) b += coeff(p,"x");
-    else c += Number(p);
+    if(!p) continue;
+
+    if(p.includes("x^2")){
+      a += coeff(p,"x^2");
+    }
+    else if(p.includes("x")){
+      b += coeff(p,"x");
+    }
+    else{
+      c += Number(p);
+    }
   }
 
   let d = b*b - 4*a*c;
 
-  let roots = [];
+  if(d < 0) return [];
 
-  if(d >= 0){
-    roots = [
-      (-b + Math.sqrt(d))/(2*a),
-      (-b - Math.sqrt(d))/(2*a)
-    ];
-  }
-
-  return {a,b,c,d,roots};
-}
-
-// ======================
-// SISTEMA 2x2
-// x+y=a
-// x-y=b
-// ======================
-function solveSystem(input){
-
-  let lines = input.split(",");
-
-  let a = eval(lines[0].split("=")[1]);
-  let b = eval(lines[1].split("=")[1]);
-
-  let x = (a + b)/2;
-  let y = (a - b)/2;
-
-  return {x,y};
+  return [
+    (-b + Math.sqrt(d))/(2*a),
+    (-b - Math.sqrt(d))/(2*a)
+  ];
 }
 
 // ======================
@@ -207,6 +177,8 @@ function coeff(p,type){
     if(p==="-x") return -1;
     return Number(p.replace("x",""));
   }
+
+  return 0;
 }
 
 // ======================
@@ -216,7 +188,8 @@ function f(eq,x){
 
   try{
     let e = eq.split("=")[0];
-    return eval(e.replaceAll("x",`(${x})`));
+    e = e.replaceAll("x",`(${x})`);
+    return Function("return "+e)();
   }catch{
     return 0;
   }
@@ -225,29 +198,26 @@ function f(eq,x){
 // ======================
 // GRÁFICO
 // ======================
-function draw(eq,roots){
+function draw(eq){
 
   if(chart) chart.destroy();
 
-  let data=[], labels=[], pts=[];
+  let data=[], labels=[];
 
   for(let x=-10;x<=10;x++){
     labels.push(x);
     data.push(f(eq,x));
   }
 
-  if(roots){
-    pts = roots.map(r=>({x:r,y:0}));
-  }
-
   chart = new Chart(document.getElementById("chart"),{
     type:"line",
     data:{
       labels,
-      datasets:[
-        {label:"f(x)",data,borderColor:"#00bcd4"},
-        {label:"raíces",data:pts,type:"scatter",pointRadius:6}
-      ]
+      datasets:[{
+        label:"f(x)",
+        data,
+        borderColor:"#00bcd4"
+      }]
     }
   });
 }
@@ -257,55 +227,36 @@ function draw(eq,roots){
 // ======================
 function run(){
 
-  let input = document.getElementById("inputText").value;
+  let eq = document.getElementById("input").value;
 
-  let type = detectType(input);
+  let type = detect(eq);
 
   let out="";
 
   if(type==="linear"){
 
-    let s = solveLinear(input);
+    let x = linear(eq);
 
-    out = `x = ${s.x}`;
-
-    document.getElementById("type").innerText="Lineal";
-    document.getElementById("output").innerText=s.x;
+    out = "x = " + x;
   }
 
   else if(type==="quadratic"){
 
-    let s = solveQuadratic(input);
+    let r = quadratic(eq);
 
-    out = `
-    a=${s.a} b=${s.b} c=${s.c}
-    Δ=${s.d}
-    raíces=${s.roots}
-    `;
+    out = "raíces: " + r.join(", ");
 
-    draw(input,s.roots);
-
-    document.getElementById("type").innerText="Cuadrática";
-    document.getElementById("output").innerText=s.roots;
-  }
-
-  else if(type==="system"){
-
-    let s = solveSystem(input);
-
-    out = `x=${s.x} y=${s.y}`;
-
-    document.getElementById("type").innerText="Sistema";
-    document.getElementById("output").innerText=out;
+    draw(eq);
   }
 
   else{
 
-    out="Función detectada";
-    draw(input,null);
+    draw(eq);
+
+    out = "función graficada";
   }
 
-  document.getElementById("result").innerHTML=out;
+  document.getElementById("result").innerHTML = out;
 }
 
 </script>
