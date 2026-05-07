@@ -61,13 +61,13 @@ button{
 
 <div class="hero">
 <h1>🧠 Math Engine v1</h1>
-<p>Motor matemático estable (lineal + cuadrática + funciones)</p>
+<p>Lineales + Cuadráticas + Sistemas + Gráficos</p>
 </div>
 
 <div class="container">
 
 <div class="card">
-<textarea id="input" placeholder="Ej: x+5=14 o x^2+3x+2=0 o x*x+2"></textarea>
+<textarea id="input" placeholder="Ej: x+5=14 o x^2+3x+2=0 o x+y=10, x-y=2"></textarea>
 <button onclick="run()">Resolver</button>
 </div>
 
@@ -84,11 +84,15 @@ button{
 let chart;
 
 // ======================
-// DETECTOR
+// DETECTOR GENERAL
 // ======================
 function detect(eq){
 
   eq = eq.replaceAll(" ","");
+
+  if(eq.includes(",") && eq.includes("=")){
+    return "system";
+  }
 
   if(eq.includes("=") && !eq.includes("x^2")){
     return "linear";
@@ -100,7 +104,11 @@ function detect(eq){
 
   return "function";
 }
-function isSystem(eq){
+
+// ======================
+// SISTEMA 2x2
+// x+y=a , x-y=b
+// ======================
 function solveSystem(input){
 
   let lines = input.split(",");
@@ -111,20 +119,14 @@ function solveSystem(input){
   let a = Number(eq1[1]);
   let b = Number(eq2[1]);
 
-  // asumimos:
-  // x + y = a
-  // x - y = b
-
   let x = (a + b) / 2;
   let y = (a - b) / 2;
 
   return {x,y};
 }
-  return eq.includes(",") && eq.includes("=");
-}
+
 // ======================
 // LINEAL
-// x + 5 = 14
 // ======================
 function linear(eq){
 
@@ -139,9 +141,7 @@ function linear(eq){
   let a = match?.[1] ? Number(match[1]) : 1;
   let b = match?.[2] ? Number(match[2]) : 0;
 
-  let x = (right - b) / a;
-
-  return x;
+  return (right - b) / a;
 }
 
 // ======================
@@ -198,8 +198,6 @@ function coeff(p,type){
     if(p==="-x") return -1;
     return Number(p.replace("x",""));
   }
-
-  return 0;
 }
 
 // ======================
@@ -247,31 +245,30 @@ function draw(eq){
 // MAIN
 // ======================
 function run(){
-if(isSystem(eq)){
 
-  let s = solveSystem(eq);
-
-  document.getElementById("result").innerHTML =
-    "x = " + s.x + "<br>y = " + s.y;
-
-  document.getElementById("type").innerText = "Sistema 2x2";
-  document.getElementById("output").innerText = "x=" + s.x + " y=" + s.y;
-
-  return;
-}
   let eq = document.getElementById("input").value;
 
   let type = detect(eq);
 
   let out="";
 
-  if(type==="linear"){
+  // 🟢 SISTEMA
+  if(type==="system"){
+
+    let s = solveSystem(eq);
+
+    out = `x = ${s.x}<br>y = ${s.y}`;
+
+  }
+
+  // 🟢 LINEAL
+  else if(type==="linear"){
 
     let x = linear(eq);
-
     out = "x = " + x;
   }
 
+  // 🟢 CUADRÁTICA
   else if(type==="quadratic"){
 
     let r = quadratic(eq);
@@ -281,10 +278,10 @@ if(isSystem(eq)){
     draw(eq);
   }
 
+  // 🟢 FUNCIÓN
   else{
 
     draw(eq);
-
     out = "función graficada";
   }
 
