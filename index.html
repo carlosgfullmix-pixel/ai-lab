@@ -357,30 +357,31 @@ function draw(eq){
   let data = [];
   let labels = [];
 
-  for(let x=-10; x<=10; x++){
+  // MUCHOS MÁS PUNTOS
+  for(let x=-10; x<=10; x+=0.1){
 
-    labels.push(x);
+    let y = null;
 
     try{
 
-let y = Function("x", "return " + expr)(x);
+      y = Function("x", "return " + expr)(x);
 
-// evitar NaN e infinitos
-if(!isFinite(y)){
-  y = null;
-}
+      // invalidar infinitos
+      if(!isFinite(y)){
+        y = null;
+      }
 
-// limitar valores enormes
-if(y > 1000) y = 1000;
-if(y < -1000) y = -1000;
-
-data.push(y);
-      
+      // cortar explosiones visuales
+      if(y > 50 || y < -50){
+        y = null;
+      }
 
     }catch{
-
-      data.push(null);
+      y = null;
     }
+
+    labels.push(Number(x.toFixed(2)));
+    data.push(y);
   }
 
   chart = new Chart(document.getElementById("chart"),{
@@ -392,17 +393,34 @@ data.push(y);
       datasets:[{
         label:"f(x)",
         data,
-        tension:0.3
+        tension:0.15,
+        pointRadius:0,
+        spanGaps:false
       }]
     },
 
     options:{
+
       responsive:true,
       maintainAspectRatio:false,
 
+      animation:false,
+
       scales:{
+
+        x:{
+          grid:{
+            color:"rgba(255,255,255,0.05)"
+          }
+        },
+
         y:{
-          beginAtZero:false
+          min:-10,
+          max:10,
+
+          grid:{
+            color:"rgba(255,255,255,0.05)"
+          }
         }
       }
     }
