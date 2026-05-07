@@ -526,53 +526,25 @@ function derivative(expr){
   expr = expr.replaceAll(" ","");
   expr = expr.replaceAll("^","**");
 
-  // x
   if(expr === "x"){
     return "1";
   }
 
-  // x**n
- let powerMatch = expr.match(/^1?\*?x\*\*(\d+)$/); 
-
+  let powerMatch = expr.match(/^x\*\*(\d+)$/);
   if(powerMatch){
-
     let n = Number(powerMatch[1]);
-
-    if(n === 1){
-      return "1";
-    }
-
-    if(n-1 === 1){
-      return `${n}*x`;
-    }
-
     return `${n}*x**${n-1}`;
   }
 
-  // a*x**n
   let polyMatch = expr.match(/^(\d+)\*x\*\*(\d+)$/);
-
   if(polyMatch){
-
     let a = Number(polyMatch[1]);
     let n = Number(polyMatch[2]);
-
-    let coef = a * n;
-
-    if(n-1 === 1){
-      return `${coef}*x`;
-    }
-
-    return `${coef}*x**${n-1}`;
+    return `${a*n}*x**${n-1}`;
   }
 
-  if(expr === "Math.sin(x)"){
-    return "Math.cos(x)";
-  }
-
-  if(expr === "Math.cos(x)"){
-    return "-Math.sin(x)";
-  }
+  if(expr === "Math.sin(x)") return "Math.cos(x)";
+  if(expr === "Math.cos(x)") return "-Math.sin(x)";
 
   return "No soportado aún";
 }
@@ -585,39 +557,25 @@ function integral(expr){
   expr = expr.replaceAll(" ","");
   expr = expr.replaceAll("^","**");
 
-  // x
   if(expr === "x"){
     return "x**2/2";
   }
 
-  // x**n
-  let powerMatch = expr.match(/^1?\*?x\*\*(\d+)$/);
-
+  let powerMatch = expr.match(/^x\*\*(\d+)$/);
   if(powerMatch){
-
     let n = Number(powerMatch[1]) + 1;
-
     return `x**${n}/${n}`;
   }
 
-  // a*x**n
   let polyMatch = expr.match(/^(\d+)\*x\*\*(\d+)$/);
-
   if(polyMatch){
-
     let a = Number(polyMatch[1]);
     let n = Number(polyMatch[2]) + 1;
-
     return `${a}*x**${n}/${n}`;
   }
 
-  if(expr === "Math.sin(x)"){
-    return "-Math.cos(x)";
-  }
-
-  if(expr === "Math.cos(x)"){
-    return "Math.sin(x)";
-  }
+  if(expr === "Math.sin(x)") return "-Math.cos(x)";
+  if(expr === "Math.cos(x)") return "Math.sin(x)";
 
   return "No soportado aún";
 }
