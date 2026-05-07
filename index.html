@@ -221,31 +221,51 @@ function draw(eq){
 
   if(chart) chart.destroy();
 
-  let expr = eq.split("=")[0]; // 👈 CLAVE: solo lado izquierdo
+  // tomar solo lado izquierdo
+  let expr = eq.split("=")[0];
 
-  let data=[], labels=[];
+  // convertir potencia
+  expr = expr.replaceAll("^","**");
 
-  for(let x=-10;x<=10;x++){
+  let data = [];
+  let labels = [];
+
+  for(let x=-10; x<=10; x++){
+
     labels.push(x);
 
     try{
+
       let y = Function("x", "return " + expr)(x);
+
       data.push(y);
-    }catch{
-      data.push(0);
+
+    }catch(err){
+
+      data.push(null);
     }
   }
 
   chart = new Chart(document.getElementById("chart"),{
+
     type:"line",
+
     data:{
       labels,
       datasets:[{
         label:"f(x)",
         data,
-        borderColor:"#00bcd4",
         tension:0.3
       }]
+    },
+
+    options:{
+      responsive:true,
+      scales:{
+        y:{
+          beginAtZero:false
+        }
+      }
     }
   });
 }
