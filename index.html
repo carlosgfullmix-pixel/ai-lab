@@ -594,7 +594,8 @@ function run(){
 
   let raw = document.getElementById("input").value;
 
-  let expr = raw;
+  let expr = parseHumanMath(raw);
+expr = expr.replaceAll("^","**");
 
   // ======================
   // DERIVADAS
