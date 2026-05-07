@@ -442,24 +442,31 @@ function parseHumanMath(text){
 
   let t = text.toLowerCase();
 
-  // potencias
+  // POTENCIAS
   t = t.replaceAll("al cuadrado", "^2");
   t = t.replaceAll("cuadrado", "^2");
-
   t = t.replaceAll("al cubo", "^3");
 
-  // operaciones
+  // OPERACIONES
   t = t.replaceAll("más", "+");
   t = t.replaceAll("menos", "-");
   t = t.replaceAll("por", "*");
   t = t.replaceAll("dividido", "/");
 
-  // trigonometría
+  // TRIGONOMETRÍA
   t = t.replaceAll("seno de x", "Math.sin(x)");
-  t = t.replaceAll("coseno de x", "Math.cos(x)");
-  t = t.replaceAll("tangente de x", "Math.tan(x)");
+  t = t.replaceAll("sin(x)", "Math.sin(x)");
 
-  // limpiar dobles espacios
+  t = t.replaceAll("coseno de x", "Math.cos(x)");
+  t = t.replaceAll("cos(x)", "Math.cos(x)");
+
+  t = t.replaceAll("tangente de x", "Math.tan(x)");
+  t = t.replaceAll("tan(x)", "Math.tan(x)");
+
+  // PI
+  t = t.replaceAll("pi", Math.PI);
+
+  // LIMPIEZA
   t = t.replace(/\s+/g, "");
 
   return t;
