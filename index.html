@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math AI Lab Core</title>
+<title>AI Math Lab v3</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -15,14 +15,12 @@ body{
   color:white;
 }
 
-/* HERO */
 .hero{
   text-align:center;
   padding:40px;
   background:#02121f;
 }
 
-/* LAYOUT */
 .section{
   max-width:900px;
   margin:auto;
@@ -36,7 +34,6 @@ body{
   border-radius:10px;
 }
 
-/* INPUTS */
 input, textarea{
   width:100%;
   padding:10px;
@@ -46,7 +43,6 @@ input, textarea{
   outline:none;
 }
 
-/* BOTONES */
 button{
   padding:10px;
   margin-top:10px;
@@ -69,27 +65,28 @@ button{
   border:1px solid #22c55e;
   z-index:999;
 }
+
+#result p{
+  margin:6px 0;
+  padding:6px;
+  background:rgba(255,255,255,0.05);
+  border-radius:6px;
+}
 </style>
 </head>
 
 <body>
 
-<!-- HERO -->
 <div class="hero">
-  <h1>🧠 Math AI Lab Core</h1>
-  <p>Motor matemático estable (base científica)</p>
+  <h1>🧠 AI Math Lab v3</h1>
+  <p>IA matemática con razonamiento + gráficos</p>
 </div>
 
-<!-- APP -->
 <div class="section">
 
   <div class="card">
-    <h3>📘 Entrada del problema</h3>
-
-    <textarea id="textInput" placeholder="Describe el problema (opcional)"></textarea>
-
-    <input id="eqInput" placeholder="Ej: x^2 + 3x + 2">
-
+    <textarea id="textInput" placeholder="Ej: resolver esta ecuación o graficar"></textarea>
+    <input id="eqInput" placeholder="Ej: x^2 + 3x + 2 = 0">
     <button onclick="analyze()">Analizar</button>
   </div>
 
@@ -103,8 +100,7 @@ button{
 
 <!-- PANEL -->
 <div id="panel">
-  <h3>📊 Estado</h3>
-
+  <h3>📊 Estado IA</h3>
   <div id="type">Tipo: -</div>
   <div id="solution">Resultado: -</div>
 </div>
@@ -114,91 +110,201 @@ button{
 let chart;
 
 // ======================
-// DETECTOR SIMPLE
+// IA: DETECTOR DE INTENCIÓN
 // ======================
-function detectType(eq){
+function detectIntent(text, eq){
 
-  if(!eq || eq.trim() === "") return "empty";
+  let input = (text + " " + eq).toLowerCase();
 
-  if(eq.includes("=")) return "equation";
+  if(input.includes("resolver")) return "solve";
+  if(input.includes("graficar") || input.includes("graph")) return "graph";
+  if(input.includes("explica")) return "explain";
 
-  if(eq.includes("^") || eq.includes("x")) return "polynomial";
+  if(eq.includes("x^2") && eq.includes("=")) return "quadratic";
 
-  return "function";
+  return "unknown";
 }
 
 // ======================
-// ANALIZADOR PRINCIPAL
+// SOLVER CUADRÁTICO
 // ======================
-function analyze(){
+function solveQuadratic(eq){
 
-  let eq = document.getElementById("eqInput").value;
+  eq = eq.replaceAll(" ", "");
 
-  if(!eq || eq.trim() === ""){
-    document.getElementById("result").innerHTML =
-      "⚠️ Ingresa una expresión matemática";
-    return;
+  let sides = eq.split("=");
+
+  let left = sides[0];
+
+  left = left.replace("-", "+-");
+
+  let parts = left.split("+");
+
+  let a=0,b=0,c=0;
+
+  for(let p of parts){
+
+    if(!p) continue;
+
+    if(p.includes("x^2")) a += parseCoeff(p);
+    else if(p.includes("x")) b += parseCoeff(p);
+    else c += Number(p);
   }
 
-  let type = detectType(eq);
+  let d = b*b - 4*a*c;
 
-  document.getElementById("type").innerText =
-    "Tipo: " + type;
+  let roots = [];
 
-  let solution = "";
-
-  if(type === "equation"){
-    solution = "Ecuación detectada: " + eq;
+  if(d >= 0){
+    roots.push((-b + Math.sqrt(d))/(2*a));
+    roots.push((-b - Math.sqrt(d))/(2*a));
   }
 
-  if(type === "polynomial" || type === "function"){
-    solution = "Función graficada: " + eq;
-    drawGraph(eq);
-  }
+  return {a,b,c,d,roots};
+}
 
-  document.getElementById("solution").innerText = solution;
+function parseCoeff(t){
 
-  document.getElementById("result").innerHTML = `
-    <h3>Resultado</h3>
-    ${solution}
-  `;
+  if(t==="x^2") return 1;
+  if(t==="-x^2") return -1;
+
+  if(t.includes("x^2")) return Number(t.replace("x^2",""));
+
+  if(t==="x") return 1;
+  if(t==="-x") return -1;
+
+  if(t.includes("x")) return Number(t.replace("x",""));
+
+  return Number(t);
 }
 
 // ======================
-// GRÁFICO REAL FUNCIONAL
+// FUNCIÓN MATEMÁTICA
 // ======================
-function drawGraph(eq){
+function f(eq,x){
+
+  eq = eq.replaceAll(" ","");
+
+  let expr = eq.split("=")[0];
+
+  expr = expr.replaceAll("x", `(${x})`);
+
+  try{
+    return eval(expr);
+  } catch {
+    return 0;
+  }
+}
+
+// ======================
+// GRÁFICO + RAÍCES
+// ======================
+function drawGraph(eq, roots){
 
   const ctx = document.getElementById("chart");
 
-  if(chart){
-    chart.destroy();
+  if(chart) chart.destroy();
+
+  let data=[], labels=[], points=[];
+
+  for(let x=-10;x<=10;x++){
+    labels.push(x);
+    data.push(f(eq,x));
   }
 
-  let data = [];
-  let labels = [];
-
-  for(let x=-10; x<=10; x++){
-    labels.push(x);
-
-    // función base estable (puedes mejorar luego)
-    let y = x*x + 3*x + 2;
-
-    data.push(y);
+  if(roots){
+    points = roots.map(r=>({x:r,y:0}));
   }
 
   chart = new Chart(ctx,{
     type:"line",
     data:{
       labels:labels,
-      datasets:[{
-        label:"f(x)",
-        data:data,
-        borderColor:"#00bcd4",
-        tension:0.3
-      }]
+      datasets:[
+        {
+          label:"f(x)",
+          data:data,
+          borderColor:"#00bcd4",
+          tension:0.3
+        },
+        {
+          label:"raíces",
+          data:points,
+          type:"scatter",
+          pointRadius:6,
+          pointBackgroundColor:"red"
+        }
+      ]
     }
   });
+}
+
+// ======================
+// EXPLICACIÓN PROFESOR
+// ======================
+function explain(a,b,c,roots,d){
+
+  return [
+    `📘 a=${a}, b=${b}, c=${c}`,
+    `📘 Δ = ${d}`,
+    d>0 ? "📘 Dos soluciones reales" :
+    d===0 ? "📘 Una solución doble" :
+    "📘 Soluciones complejas",
+    roots.length ? `📘 x1=${roots[0].toFixed(3)} x2=${roots[1].toFixed(3)}` : "Sin raíces reales"
+  ];
+}
+
+// ======================
+// IA CENTRAL
+// ======================
+function analyze(){
+
+  let text = document.getElementById("textInput").value;
+  let eq = document.getElementById("eqInput").value;
+
+  let intent = detectIntent(text,eq);
+
+  let result="";
+
+  if(intent==="solve" || intent==="quadratic"){
+
+    let solved = solveQuadratic(eq);
+
+    let steps = explain(
+      solved.a,
+      solved.b,
+      solved.c,
+      solved.roots,
+      solved.d
+    );
+
+    result = "<h3>🧠 Paso a paso</h3>" +
+      steps.map(s=>`<p>${s}</p>`).join("");
+
+    drawGraph(eq, solved.roots);
+
+    document.getElementById("type").innerText = "Cuadrática";
+    document.getElementById("solution").innerText =
+      solved.roots.length ? solved.roots.map(r=>r.toFixed(3)).join(", ") : "sin raíces";
+  }
+
+  else if(intent==="graph"){
+
+    result="📊 Graficando función";
+    drawGraph(eq,null);
+  }
+
+  else if(intent==="explain"){
+
+    result="📘 Este sistema resuelve ecuaciones cuadráticas y grafica funciones.";
+  }
+
+  else{
+
+    result="⚠️ No se entendió la instrucción";
+  }
+
+  document.getElementById("result").innerHTML = result;
 }
 
 </script>
