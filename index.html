@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math AI Lab v2</title>
+<title>Math AI Lab Core</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -15,12 +15,14 @@ body{
   color:white;
 }
 
+/* HERO */
 .hero{
   text-align:center;
   padding:40px;
   background:#02121f;
 }
 
+/* LAYOUT */
 .section{
   max-width:900px;
   margin:auto;
@@ -34,14 +36,17 @@ body{
   border-radius:10px;
 }
 
+/* INPUTS */
 input, textarea{
   width:100%;
   padding:10px;
   margin-top:10px;
   border-radius:8px;
   border:none;
+  outline:none;
 }
 
+/* BOTONES */
 button{
   padding:10px;
   margin-top:10px;
@@ -52,42 +57,44 @@ button{
   cursor:pointer;
 }
 
+/* PANEL FIJO */
 #panel{
   position:fixed;
   right:20px;
-  top:20px;
-  width:280px;
+  top:120px;
+  width:260px;
   background:rgba(0,0,0,0.85);
   padding:15px;
   border-radius:10px;
   border:1px solid #22c55e;
+  z-index:999;
 }
 </style>
 </head>
 
 <body>
 
+<!-- HERO -->
 <div class="hero">
-  <h1>🧠 Math AI Lab v2</h1>
-  <p>Fases 1 → 4 integradas</p>
+  <h1>🧠 Math AI Lab Core</h1>
+  <p>Motor matemático estable (base científica)</p>
 </div>
 
+<!-- APP -->
 <div class="section">
 
-  <!-- FASE 1 -->
   <div class="card">
     <h3>📘 Entrada del problema</h3>
 
-    <textarea id="textInput" placeholder="Describe el problema"></textarea>
+    <textarea id="textInput" placeholder="Describe el problema (opcional)"></textarea>
 
-    <input id="eqInput" placeholder="Ecuación (ej: x^2 + 3x + 2 = 0)">
+    <input id="eqInput" placeholder="Ej: x^2 + 3x + 2">
 
     <button onclick="analyze()">Analizar</button>
   </div>
 
-  <!-- FASE 4 (gráfico real) -->
   <div class="card">
-    <canvas id="chart"></canvas>
+    <canvas id="chart" width="400" height="200"></canvas>
   </div>
 
   <div class="card" id="result"></div>
@@ -96,9 +103,10 @@ button{
 
 <!-- PANEL -->
 <div id="panel">
-  <h3>📊 Estado Lab</h3>
+  <h3>📊 Estado</h3>
+
   <div id="type">Tipo: -</div>
-  <div id="solution">Solución: -</div>
+  <div id="solution">Resultado: -</div>
 </div>
 
 <script>
@@ -106,71 +114,32 @@ button{
 let chart;
 
 // ======================
-// FASE 2: DETECTOR
+// DETECTOR SIMPLE
 // ======================
 function detectType(eq){
 
+  if(!eq || eq.trim() === "") return "empty";
+
   if(eq.includes("=")) return "equation";
-  if(eq.includes("^")) return "polynomial";
-  if(eq.includes("x") && eq.includes("+")) return "function";
 
-  return "unknown";
+  if(eq.includes("^") || eq.includes("x")) return "polynomial";
+
+  return "function";
 }
 
 // ======================
-// FASE 3: SOLVER BÁSICO
-// ======================
-function solveEquation(eq){
-
-  let parts = eq.split("=");
-
-  return "Ecuación detectada: " + eq;
-}
-
-// ======================
-// POLINOMIO REAL SIMPLE
-// ======================
-function evalPoly(x){
-  // base demo: x^2 + 3x + 2
-  return x*x + 3*x + 2;
-}
-
-// ======================
-// FASE 4: GRÁFICO REAL
-// ======================
-function drawGraph(){
-
-  let data = [];
-  let labels = [];
-
-  for(let x=-10; x<=10; x++){
-    labels.push(x);
-    data.push(evalPoly(x));
-  }
-
-  if(chart) chart.destroy();
-
-  chart = new Chart(document.getElementById("chart"),{
-    type:"line",
-    data:{
-      labels:labels,
-      datasets:[{
-        label:"f(x)",
-        data:data
-      }]
-    }
-  });
-}
-
-// ======================
-// PIPELINE COMPLETO (4 FASES)
+// ANALIZADOR PRINCIPAL
 // ======================
 function analyze(){
 
   let eq = document.getElementById("eqInput").value;
-  let text = document.getElementById("textInput").value;
 
-  // FASE 2
+  if(!eq || eq.trim() === ""){
+    document.getElementById("result").innerHTML =
+      "⚠️ Ingresa una expresión matemática";
+    return;
+  }
+
   let type = detectType(eq);
 
   document.getElementById("type").innerText =
@@ -178,23 +147,13 @@ function analyze(){
 
   let solution = "";
 
-  // FASE 3
   if(type === "equation"){
-    solution = solveEquation(eq);
+    solution = "Ecuación detectada: " + eq;
   }
 
-  if(type === "polynomial"){
-    solution = "Polinomio: " + eq;
-    drawGraph(); // FASE 4
-  }
-
-  if(type === "function"){
-    solution = "Función detectada";
-    drawGraph();
-  }
-
-  if(type === "unknown"){
-    solution = "Tipo no reconocido (modo texto)";
+  if(type === "polynomial" || type === "function"){
+    solution = "Función graficada: " + eq;
+    drawGraph(eq);
   }
 
   document.getElementById("solution").innerText = solution;
@@ -203,6 +162,43 @@ function analyze(){
     <h3>Resultado</h3>
     ${solution}
   `;
+}
+
+// ======================
+// GRÁFICO REAL FUNCIONAL
+// ======================
+function drawGraph(eq){
+
+  const ctx = document.getElementById("chart");
+
+  if(chart){
+    chart.destroy();
+  }
+
+  let data = [];
+  let labels = [];
+
+  for(let x=-10; x<=10; x++){
+    labels.push(x);
+
+    // función base estable (puedes mejorar luego)
+    let y = x*x + 3*x + 2;
+
+    data.push(y);
+  }
+
+  chart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:labels,
+      datasets:[{
+        label:"f(x)",
+        data:data,
+        borderColor:"#00bcd4",
+        tension:0.3
+      }]
+    }
+  });
 }
 
 </script>
