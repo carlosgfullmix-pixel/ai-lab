@@ -4,349 +4,1121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Engine v1 Stable</title>
+<title>Math Engine v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 
+:root {
+–bg:       #04080f;
+–surface:  #0b1220;
+–card:     #0f1c2e;
+–border:   rgba(0,200,255,0.12);
+–accent:   #00c8ff;
+–accent2:  #00ffb0;
+–accent3:  #ff6b6b;
+–text:     #e2eaf4;
+–muted:    #5a7a9a;
+–mono:     ‘Space Mono’, monospace;
+–sans:     ‘DM Sans’, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-margin: 0;
-font-family: Arial;
-background: #02070d;
-color: white;
+background: var(–bg);
+color: var(–text);
+font-family: var(–sans);
+min-height: 100vh;
+overflow-x: hidden;
 }
 
-.hero {
-text-align: center;
-padding: 30px;
-background: #02121f;
-border-bottom: 1px solid #0ea5e9;
+/* BG grid */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+background-size: 40px 40px;
+pointer-events: none;
+z-index: 0;
 }
 
-.hero h1 {
-margin: 0;
-font-size: 40px;
+/* ============ HEADER ============ */
+header {
+position: relative;
+z-index: 1;
+padding: 36px 24px 28px;
+border-bottom: 1px solid var(–border);
+background: linear-gradient(180deg, rgba(0,200,255,0.05) 0%, transparent 100%);
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 12px;
 }
 
-.hero p {
-opacity: 0.8;
+.logo {
+display: flex;
+align-items: center;
+gap: 14px;
 }
 
-.container {
-max-width: 900px;
-margin: auto;
-padding: 20px;
-}
-
-.card {
-background: #111827;
-padding: 20px;
-margin-top: 20px;
-border-radius: 12px;
-border: 1px solid rgba(255,255,255,0.08);
-}
-
-textarea {
-width: 100%;
-min-height: 100px;
-padding: 15px;
-border: none;
+.logo-icon {
+width: 44px; height: 44px;
 border-radius: 10px;
-background: #0f172a;
-color: white;
-font-size: 16px;
-resize: vertical;
-box-sizing: border-box;
+background: linear-gradient(135deg, #00c8ff, #00ffb0);
+display: flex; align-items: center; justify-content: center;
+font-size: 22px;
+flex-shrink: 0;
 }
 
-button {
-margin-top: 15px;
-padding: 12px 20px;
-border: none;
-border-radius: 10px;
-background: #06b6d4;
+.logo h1 {
+font-family: var(–mono);
+font-size: 22px;
+letter-spacing: -0.5px;
 color: white;
-font-size: 16px;
+}
+
+.logo h1 span { color: var(–accent); }
+
+.logo p {
+font-size: 12px;
+color: var(–muted);
+margin-top: 2px;
+letter-spacing: 0.04em;
+}
+
+.badge {
+font-family: var(–mono);
+font-size: 11px;
+padding: 4px 10px;
+border-radius: 20px;
+border: 1px solid var(–accent);
+color: var(–accent);
+letter-spacing: 0.08em;
+}
+
+/* ============ TABS ============ */
+.tabs {
+position: relative;
+z-index: 1;
+display: flex;
+gap: 4px;
+padding: 16px 24px 0;
+border-bottom: 1px solid var(–border);
+overflow-x: auto;
+}
+
+.tab {
+padding: 10px 18px;
+border: none;
+background: transparent;
+color: var(–muted);
+font-family: var(–sans);
+font-size: 14px;
+font-weight: 500;
 cursor: pointer;
-transition: 0.2s;
+border-radius: 8px 8px 0 0;
+border-bottom: 2px solid transparent;
+transition: all 0.2s;
+white-space: nowrap;
 }
 
-button:hover {
-transform: scale(1.02);
-background: #0891b2;
+.tab:hover { color: var(–text); background: rgba(255,255,255,0.04); }
+
+.tab.active {
+color: var(–accent);
+border-bottom-color: var(–accent);
+background: rgba(0,200,255,0.06);
 }
 
-#result {
+/* ============ LAYOUT ============ */
+.layout {
+position: relative;
+z-index: 1;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 0;
+max-width: 1400px;
+margin: 0 auto;
+min-height: calc(100vh - 140px);
+}
+
+.panel {
+padding: 24px;
+border-right: 1px solid var(–border);
+}
+
+.panel:last-child { border-right: none; }
+
+/* ============ PAGES ============ */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ============ CARDS ============ */
+.card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 14px;
+padding: 20px;
+margin-bottom: 16px;
+}
+
+.card-title {
+font-family: var(–mono);
+font-size: 11px;
+letter-spacing: 0.1em;
+color: var(–accent);
+text-transform: uppercase;
+margin-bottom: 14px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.card-title::before {
+content: ‘’;
+width: 3px; height: 14px;
+background: var(–accent);
+border-radius: 2px;
+}
+
+/* ============ INPUT ============ */
+textarea, input[type=text] {
+width: 100%;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+color: var(–text);
+font-family: var(–mono);
+font-size: 15px;
+padding: 14px 16px;
+resize: vertical;
+transition: border-color 0.2s;
+outline: none;
+}
+
+textarea { min-height: 90px; }
+
+textarea:focus, input[type=text]:focus {
+border-color: var(–accent);
+box-shadow: 0 0 0 3px rgba(0,200,255,0.08);
+}
+
+/* ============ BUTTONS ============ */
+.btn {
+padding: 11px 22px;
+border: none;
+border-radius: 9px;
+font-family: var(–sans);
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.18s;
+display: inline-flex;
+align-items: center;
+gap: 7px;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, var(–accent), #0099cc);
+color: #000;
+}
+
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,200,255,0.3); }
+
+.btn-ghost {
+background: rgba(255,255,255,0.05);
+color: var(–muted);
+border: 1px solid var(–border);
+}
+
+.btn-ghost:hover { background: rgba(255,255,255,0.09); color: var(–text); }
+
+.btn-sm { padding: 7px 13px; font-size: 12px; }
+
+.btn-danger {
+background: rgba(255,107,107,0.12);
+color: var(–accent3);
+border: 1px solid rgba(255,107,107,0.2);
+}
+
+.btn-danger:hover { background: rgba(255,107,107,0.2); }
+
+.btn-row {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-top: 14px;
+}
+
+/* ============ RESULT BOX ============ */
+.result-box {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 16px;
+font-family: var(–mono);
+font-size: 15px;
+line-height: 1.8;
+min-height: 60px;
+position: relative;
+}
+
+.result-box.success { border-color: rgba(0,255,176,0.3); }
+.result-box.error   { border-color: rgba(255,107,107,0.3); color: var(–accent3); }
+
+.copy-btn {
+position: absolute;
+top: 10px; right: 10px;
+padding: 4px 10px;
+font-size: 11px;
+border-radius: 6px;
+background: rgba(0,200,255,0.1);
+color: var(–accent);
+border: 1px solid rgba(0,200,255,0.2);
+cursor: pointer;
+font-family: var(–mono);
+transition: all 0.15s;
+}
+
+.copy-btn:hover { background: rgba(0,200,255,0.2); }
+
+/* ============ STEPS ============ */
+.steps {
+margin-top: 14px;
+}
+
+.step {
+display: flex;
+gap: 12px;
+align-items: flex-start;
+padding: 10px 0;
+border-bottom: 1px solid var(–border);
+font-size: 14px;
+line-height: 1.6;
+color: var(–muted);
+animation: fadeIn 0.3s ease both;
+}
+
+.step:last-child { border-bottom: none; }
+
+.step-num {
+min-width: 24px; height: 24px;
+border-radius: 50%;
+background: rgba(0,200,255,0.1);
+border: 1px solid rgba(0,200,255,0.2);
+color: var(–accent);
+font-family: var(–mono);
+font-size: 11px;
+display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
+margin-top: 1px;
+}
+
+.step span { color: var(–text); }
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(6px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ CHART ============ */
+.chart-wrap {
+position: relative;
+height: 340px;
+width: 100%;
+}
+
+.chart-controls {
+display: flex;
+gap: 8px;
+margin-bottom: 12px;
+flex-wrap: wrap;
+align-items: center;
+}
+
+.chart-controls label {
+font-size: 12px;
+color: var(–muted);
+font-family: var(–mono);
+}
+
+.chart-controls input[type=number] {
+width: 64px;
+padding: 6px 8px;
+font-size: 13px;
+min-height: unset;
+}
+
+.legend-item {
+display: flex;
+align-items: center;
+gap: 6px;
+font-size: 12px;
+font-family: var(–mono);
+}
+
+.legend-dot {
+width: 10px; height: 10px;
+border-radius: 50%;
+}
+
+/* ============ HISTORY ============ */
+.history-list {
+display: flex;
+flex-direction: column;
+gap: 8px;
+max-height: 420px;
+overflow-y: auto;
+}
+
+.history-item {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 12px 14px;
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 12px;
+cursor: pointer;
+transition: border-color 0.2s;
+animation: fadeIn 0.25s ease both;
+}
+
+.history-item:hover { border-color: rgba(0,200,255,0.3); }
+
+.history-input {
+font-family: var(–mono);
+font-size: 13px;
+color: var(–accent);
+}
+
+.history-result {
+font-size: 12px;
+color: var(–muted);
+margin-top: 3px;
+}
+
+.history-time {
+font-size: 11px;
+color: var(–muted);
+white-space: nowrap;
+font-family: var(–mono);
+}
+
+/* ============ MATRIX ============ */
+.matrix-grid {
+display: inline-grid;
+gap: 6px;
+margin: 8px 0;
+}
+
+.matrix-grid input {
+width: 64px;
+text-align: center;
+padding: 8px;
+font-size: 15px;
+}
+
+.matrix-bracket {
+display: flex;
+align-items: center;
+gap: 4px;
+}
+
+.bracket-left, .bracket-right {
+font-size: 60px;
+font-weight: 100;
+color: var(–accent);
+line-height: 1;
+user-select: none;
+}
+
+.matrix-result-table {
+border-collapse: collapse;
+font-family: var(–mono);
+font-size: 14px;
+margin-top: 10px;
+}
+
+.matrix-result-table td {
+padding: 6px 14px;
+border: 1px solid var(–border);
+text-align: center;
+color: var(–accent2);
+}
+
+/* ============ STATS ============ */
+.stat-chips {
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+margin-top: 12px;
+}
+
+.stat-chip {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 10px 16px;
+display: flex;
+flex-direction: column;
+gap: 3px;
+}
+
+.stat-chip .label {
+font-size: 11px;
+color: var(–muted);
+font-family: var(–mono);
+text-transform: uppercase;
+letter-spacing: 0.06em;
+}
+
+.stat-chip .value {
 font-size: 20px;
+font-family: var(–mono);
+color: var(–accent2);
+font-weight: 700;
+}
+
+/* ============ COMPLEX ============ */
+.complex-result {
+font-family: var(–mono);
+font-size: 18px;
+color: var(–accent);
+}
+
+.complex-result .imag { color: var(–accent2); }
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(–border); border-radius: 4px; }
+
+/* ============ MISC ============ */
+.divider {
+height: 1px;
+background: var(–border);
+margin: 16px 0;
+}
+
+.tag {
+display: inline-block;
+padding: 3px 9px;
+border-radius: 6px;
+font-size: 11px;
+font-family: var(–mono);
+background: rgba(0,200,255,0.1);
+color: var(–accent);
+border: 1px solid rgba(0,200,255,0.15);
+margin: 2px;
+cursor: pointer;
+transition: all 0.15s;
+}
+
+.tag:hover { background: rgba(0,200,255,0.2); transform: scale(1.04); }
+
+.hint {
+font-size: 12px;
+color: var(–muted);
+margin-top: 8px;
 line-height: 1.6;
 }
 
-#chart {
-width: 100% !important;
-height: 100% !important;
+.empty-state {
+text-align: center;
+padding: 40px 20px;
+color: var(–muted);
+font-size: 14px;
 }
 
-.examples {
-margin-top: 15px;
-}
+.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
 
-.examples button {
-margin-right: 10px;
-margin-top: 10px;
-background: #1e293b;
+/* ============ RESPONSIVE ============ */
+@media (max-width: 800px) {
+.layout { grid-template-columns: 1fr; }
+.panel { border-right: none; border-bottom: 1px solid var(–border); }
 }
 
 </style>
 </head>
-
 <body>
 
-<div class="hero">
-  <h1>🧠 Math Engine v1</h1>
-  <p>Lineales + Cuadráticas + Sistemas + Funciones + Gráficos</p>
+<!-- HEADER -->
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">∑</div>
+    <div>
+      <h1>Math<span>Engine</span></h1>
+      <p>Motor matemático completo</p>
+    </div>
+  </div>
+  <span class="badge">v2.0 STABLE</span>
+</header>
+
+<!-- TABS -->
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('calc')">🧮 Calculadora</button>
+  <button class="tab" onclick="switchTab('graph')">📈 Gráficos</button>
+  <button class="tab" onclick="switchTab('matrix')">🔢 Matrices</button>
+  <button class="tab" onclick="switchTab('stats')">📊 Estadística</button>
+  <button class="tab" onclick="switchTab('history')">🕓 Historial</button>
 </div>
 
-<div class="container">
+<!-- LAYOUT -->
 
-  <div class="card">
-    <h2>✍️ Ingresar problema</h2>
-    <textarea id="input" placeholder="Ej:
-x+5=14
-x^2+3*x+2=0
-x+y=10, x-y=2
-Math.sin(x)
+<div class="layout">
+
+<!-- ======== LEFT PANEL ======== -->
+
+<div class="panel">
+
+  <!-- CALCULADORA -->
+
+  <div id="page-calc" class="page active">
+    <div class="card">
+      <div class="card-title">Expresión</div>
+      <textarea id="calc-input" placeholder="Ejemplos:
+x^2 + 3*x + 2 = 0
+x + y = 10, x - y = 2
 derivar x^3
-integral x^2
-"></textarea>
+integral 2*x^2
+seno de x
+raiz(144)
+3 * pi"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runCalc()">▶ Resolver</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearCalc()">✕ Limpiar</button>
+      </div>
+    </div>
 
 ```
-<button onclick="run()">🚀 Resolver</button>
-
-<div class="examples">
-  <button onclick="setExample('x+5=14')">Lineal</button>
-  <button onclick="setExample('x^2+3*x+2=0')">Cuadrática</button>
-  <button onclick="setExample('x+y=10, x-y=2')">Sistema</button>
-  <button onclick="setExample('Math.sin(x)')">Seno</button>
-  <button onclick="setExample('derivar x^3')">Derivada</button>
-  <button onclick="setExample('integral x^2')">Integral</button>
+<div class="card">
+  <div class="card-title">Ejemplos rápidos</div>
+  <div>
+    <span class="tag" onclick="setCalc('x + 5 = 14')">Lineal</span>
+    <span class="tag" onclick="setCalc('x^2 + 3*x + 2 = 0')">Cuadrática</span>
+    <span class="tag" onclick="setCalc('x + y = 10, x - y = 2')">Sistema</span>
+    <span class="tag" onclick="setCalc('derivar x^3')">Derivada</span>
+    <span class="tag" onclick="setCalc('integral 2*x^2')">Integral</span>
+    <span class="tag" onclick="setCalc('seno de x')">sin(x)</span>
+    <span class="tag" onclick="setCalc('Math.sqrt(2) * pi')">√2·π</span>
+    <span class="tag" onclick="setCalc('x^4 - 5*x^2 + 4 = 0')">Bicuadrada</span>
+    <span class="tag" onclick="setCalc('2*x + 3*y = 12, x - y = 1')">Sistema 2</span>
+    <span class="tag" onclick="setCalc('derivar Math.sin(x)')">d/dx sin</span>
+    <span class="tag" onclick="setCalc('integral Math.cos(x)')">∫cos</span>
+    <span class="tag" onclick="setCalc('raiz(256)')">√256</span>
+  </div>
 </div>
 ```
 
   </div>
 
-  <div class="card">
-    <h2>📈 Gráfico</h2>
-    <div style="position:relative; height:400px; width:100%;">
-      <canvas id="chart"></canvas>
+  <!-- GRÁFICOS -->
+
+  <div id="page-graph" class="page">
+    <div class="card">
+      <div class="card-title">Funciones a graficar</div>
+      <div id="fn-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addFnRow()">＋ Agregar función</button>
+      <div class="divider"></div>
+      <div class="chart-controls">
+        <label>X min</label>
+        <input type="number" id="xmin" value="-10">
+        <label>X max</label>
+        <input type="number" id="xmax" value="10">
+        <label>Y min</label>
+        <input type="number" id="ymin" value="-10">
+        <label>Y max</label>
+        <input type="number" id="ymax" value="10">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runGraph()">▶ Graficar</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetGraphRange()">↺ Rango</button>
+      </div>
+    </div>
+
+```
+<div class="card">
+  <div class="card-title">Ejemplos</div>
+  <span class="tag" onclick="setGraphExample('Math.sin(x)')">sin(x)</span>
+  <span class="tag" onclick="setGraphExample('Math.cos(x)')">cos(x)</span>
+  <span class="tag" onclick="setGraphExample('x**2')">x²</span>
+  <span class="tag" onclick="setGraphExample('x**3 - 3*x')">x³-3x</span>
+  <span class="tag" onclick="setGraphExample('Math.tan(x)')">tan(x)</span>
+  <span class="tag" onclick="setGraphExample('1/x')">1/x</span>
+  <span class="tag" onclick="setGraphExample('Math.sqrt(Math.abs(x))')">√|x|</span>
+  <span class="tag" onclick="setGraphExample('Math.exp(-x*x/2)')">Gauss</span>
+</div>
+```
+
+  </div>
+
+  <!-- MATRICES -->
+
+  <div id="page-matrix" class="page">
+    <div class="card">
+      <div class="card-title">Tamaño</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select id="mat-size" onchange="buildMatrices()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;outline:none;">
+          <option value="2">2×2</option>
+          <option value="3" selected>3×3</option>
+        </select>
+        <select id="mat-op" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;outline:none;">
+          <option value="det">Determinante de A</option>
+          <option value="sum">A + B</option>
+          <option value="mul">A × B</option>
+          <option value="inv">Inversa de A</option>
+          <option value="trans">Transpuesta de A</option>
+        </select>
+      </div>
+    </div>
+
+```
+<div class="card">
+  <div class="card-title">Matriz A</div>
+  <div class="matrix-bracket">
+    <span class="bracket-left">[</span>
+    <div id="mat-a" class="matrix-grid"></div>
+    <span class="bracket-right">]</span>
+  </div>
+</div>
+
+<div class="card" id="mat-b-card">
+  <div class="card-title">Matriz B</div>
+  <div class="matrix-bracket">
+    <span class="bracket-left">[</span>
+    <div id="mat-b" class="matrix-grid"></div>
+    <span class="bracket-right">]</span>
+  </div>
+</div>
+
+<button class="btn btn-primary" onclick="runMatrix()">▶ Calcular</button>
+```
+
+  </div>
+
+  <!-- ESTADÍSTICA -->
+
+  <div id="page-stats" class="page">
+    <div class="card">
+      <div class="card-title">Datos</div>
+      <textarea id="stats-input" placeholder="Ingresar números separados por coma o espacio:
+12, 45, 7, 89, 23, 56, 34, 78, 11, 90"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runStats()">▶ Calcular</button>
+        <button class="btn btn-ghost btn-sm" onclick="setStatsExample()">Ejemplo</button>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>📊 Resultado</h2>
-    <div id="result">Esperando cálculo...</div>
+  <!-- HISTORIAL -->
+
+  <div id="page-history" class="page">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0">Historial de cálculos</div>
+        <button class="btn btn-danger btn-sm" onclick="clearHistory()">✕ Limpiar</button>
+      </div>
+      <div id="history-list">
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <div>Aún no hay cálculos en el historial</div>
+        </div>
+      </div>
+    </div>
   </div>
 
+</div><!-- end left panel -->
+
+<!-- ======== RIGHT PANEL ======== -->
+
+<div class="panel">
+
+  <!-- RESULTADO CALC -->
+
+  <div id="right-calc" class="page active">
+    <div class="card">
+      <div class="card-title">Resultado</div>
+      <div class="result-box" id="calc-result">
+        Esperando cálculo...
+        <button class="copy-btn" onclick="copyResult()" style="display:none" id="copy-btn">Copiar</button>
+      </div>
+    </div>
+
+```
+<div class="card" id="steps-card" style="display:none">
+  <div class="card-title">Pasos</div>
+  <div class="steps" id="calc-steps"></div>
 </div>
+
+<div class="card" id="calc-chart-card" style="display:none">
+  <div class="card-title">Gráfico</div>
+  <div class="chart-wrap">
+    <canvas id="calc-chart"></canvas>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- RESULTADO GRAPH -->
+
+  <div id="right-graph" class="page">
+    <div class="card">
+      <div class="card-title">Gráfico</div>
+      <div id="graph-legend" class="stat-chips" style="margin-bottom:12px;"></div>
+      <div class="chart-wrap">
+        <canvas id="multi-chart"></canvas>
+      </div>
+      <div class="hint" id="graph-coords" style="margin-top:10px;font-family:var(--mono);"></div>
+    </div>
+  </div>
+
+  <!-- RESULTADO MATRIX -->
+
+  <div id="right-matrix" class="page">
+    <div class="card">
+      <div class="card-title">Resultado</div>
+      <div class="result-box" id="matrix-result">Ingresá los datos y presioná Calcular</div>
+    </div>
+    <div class="card" id="matrix-steps-card" style="display:none">
+      <div class="card-title">Pasos</div>
+      <div class="steps" id="matrix-steps"></div>
+    </div>
+  </div>
+
+  <!-- RESULTADO STATS -->
+
+  <div id="right-stats" class="page">
+    <div class="card">
+      <div class="card-title">Resultados estadísticos</div>
+      <div id="stat-chips" class="stat-chips">
+        <div class="empty-state" style="width:100%">
+          <div class="icon">📊</div>
+          <div>Ingresá datos para ver estadísticas</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="stats-chart-card" style="display:none">
+      <div class="card-title">Distribución</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="stats-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL RIGHT -->
+
+  <div id="right-history" class="page">
+    <div class="card">
+      <div class="empty-state">
+        <div class="icon">🕓</div>
+        <div>Hacé clic en un cálculo del historial para cargarlo</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end right panel -->
+</div><!-- end layout -->
 
 <script>
 
-let chartInstance = null;
+// ======================================================
+// STATE
+// ======================================================
 
-// ======================
-// EJEMPLOS
-// ======================
+let calcChart = null;
+let multiChart = null;
+let statsChart = null;
+let history = [];
+const COLORS = ['#00c8ff','#00ffb0','#ff6b6b','#ffd966','#c084fc','#fb923c'];
 
-function setExample(v) {
-  document.getElementById("input").value = v;
+// ======================================================
+// TABS
+// ======================================================
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+  const tabs = ['calc','graph','matrix','stats','history'];
+  const idx = tabs.indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('right-' + name).classList.add('active');
 }
 
-// ======================
+// ======================================================
+// PARSER HUMANO
+// ======================================================
+
+function parseHumanMath(text) {
+  let t = text;
+  let lower = t.toLowerCase();
+
+  if (lower.includes("seno de x"))     return "Math.sin(x)";
+  if (lower.includes("coseno de x"))   return "Math.cos(x)";
+  if (lower.includes("tangente de x")) return "Math.tan(x)";
+
+  t = t.replaceAll("al cuadrado", "**2");
+  t = t.replaceAll("cuadrado",    "**2");
+  t = t.replaceAll("al cubo",     "**3");
+  t = t.replaceAll("más",         "+");
+  t = t.replaceAll("menos",       "-");
+  t = t.replaceAll("por",         "*");
+  t = t.replaceAll("dividido",    "/");
+
+  t = t.replaceAll("^", "**");
+  t = t.replace(/(\d)(x)/g, "$1*$2");
+
+  if (!t.includes("Math.sin")) t = t.replaceAll("sin(x)", "Math.sin(x)");
+  if (!t.includes("Math.cos")) t = t.replaceAll("cos(x)", "Math.cos(x)");
+  if (!t.includes("Math.tan")) t = t.replaceAll("tan(x)", "Math.tan(x)");
+
+  t = t.replaceAll("raiz(",  "Math.sqrt(");
+  t = t.replaceAll("√(",     "Math.sqrt(");
+  t = t.replaceAll("pi",     "Math.PI");
+  t = t.replaceAll("e",      "Math.E");
+  t = t.replace(/\s+/g, "");
+
+  return t;
+}
+
+// ======================================================
 // DETECTOR
-// ======================
+// ======================================================
 
 function detect(eq) {
-  eq = eq.replaceAll(" ", "");
-
-  if (eq.includes(",") && eq.includes("=")) {
-    return "system";
-  }
-
-  // FIX: detectar tanto x^2 como x**2 (después del parseHumanMath)
-  if (eq.includes("=") && (eq.includes("x^2") || eq.includes("x**2"))) {
-    return "quadratic";
-  }
-
-  if (eq.includes("=")) {
-    return "linear";
-  }
-
+  eq = eq.replaceAll(" ","");
+  if (eq.includes(",") && eq.includes("=")) return "system";
+  if (eq.includes("=") && (eq.includes("x**2") || eq.includes("x^2"))) return "quadratic";
+  if (eq.includes("=")) return "linear";
   return "function";
 }
 
-// ======================
-// LIMPIAR GRÁFICO
-// ======================
+// ======================================================
+// SOLVERS
+// ======================================================
 
-function clearChart() {
-  if (chartInstance) {
-    chartInstance.destroy();
-    chartInstance = null;
-  }
-}
-
-// ======================
-// SISTEMAS
-// ======================
-
-function solveSystem(input) {
-  let lines = input.split(",");
-  let eq1 = lines[0].split("=");
-  let eq2 = lines[1].split("=");
-
-  let a = Number(eq1[1]);
-  let b = Number(eq2[1]);
-
-  let x = (a + b) / 2;
-  let y = (a - b) / 2;
-
-  return { x, y };
-}
-
-// ======================
-// LINEALES
-// ======================
-
-function linear(eq) {
-  eq = eq.replaceAll(" ", "");
-  eq = eq.replaceAll("*", "");
-
+function solveLinear(eq) {
+  eq = eq.replaceAll(" ","").replaceAll("*","");
   let [l, r] = eq.split("=");
   let right = Number(r);
   let match = l.match(/(-?\d*)x([+-]\d+)?/);
-
-  let a = 1;
-  let b = 0;
-
+  let a = 1, b = 0;
   if (match) {
-    if (match[1] === "-") {
-      a = -1;
-    } else if (match[1] !== "") {
-      a = Number(match[1]);
-    }
-
-    if (match[2]) {
-      b = Number(match[2]);
-    }
+    if (match[1] === "-") a = -1;
+    else if (match[1] !== "") a = Number(match[1]);
+    if (match[2]) b = Number(match[2]);
   }
-
-  return (right - b) / a;
+  return { x: (right - b) / a, a, b, right };
 }
 
-// ======================
-// CUADRÁTICAS
-// ======================
-
-function quadratic(eq) {
-  eq = eq.replaceAll(" ", "");
-
+function solveQuadratic(eq) {
+  eq = eq.replaceAll(" ","").replaceAll("**","^");
   let [l] = eq.split("=");
-
-  // Normalizar: soportar tanto ^ como **
-  l = l.replaceAll("**", "^");
-  l = l.replace(/-/g, "+-");
-
+  l = l.replace(/-/g,"+-");
   let parts = l.split("+");
-
-  let a = 0;
-  let b = 0;
-  let c = 0;
+  let a = 0, b = 0, c = 0;
 
   for (let p of parts) {
     if (!p) continue;
-
-    if (p.includes("x^2")) {
-      a += coeff(p, "x^2");
-    } else if (p.includes("x")) {
-      b += coeff(p, "x");
-    } else {
-      c += Number(p);
-    }
+    if (p.includes("x^2"))      a += coeffOf(p, "x^2");
+    else if (p.includes("x"))   b += coeffOf(p, "x");
+    else                        c += Number(p);
   }
 
-  let d = b * b - 4 * a * c;
-
-  if (d < 0) {
-    return [];
-  }
-
-  return [
-    (-b + Math.sqrt(d)) / (2 * a),
-    (-b - Math.sqrt(d)) / (2 * a)
-  ];
+  let d = b*b - 4*a*c;
+  return { a, b, c, d,
+    roots: d >= 0
+      ? [(-b + Math.sqrt(d))/(2*a), (-b - Math.sqrt(d))/(2*a)]
+      : [
+          { re: -b/(2*a), im:  Math.sqrt(-d)/(2*a) },
+          { re: -b/(2*a), im: -Math.sqrt(-d)/(2*a) }
+        ],
+    complex: d < 0
+  };
 }
 
-// ======================
-// COEFICIENTES
-// ======================
-
-function coeff(p, type) {
-  p = p.replaceAll("*", "");
-
+function coeffOf(p, type) {
+  p = p.replaceAll("*","");
   if (type === "x^2") {
     if (p === "x^2") return 1;
     if (p === "-x^2") return -1;
-    return Number(p.replace("x^2", ""));
+    let n = Number(p.replace("x^2",""));
+    return isNaN(n) ? 0 : n;
   }
-
   if (type === "x") {
     if (p === "x") return 1;
     if (p === "-x") return -1;
-    return Number(p.replace("x", ""));
+    let n = Number(p.replace("x",""));
+    return isNaN(n) ? 0 : n;
   }
-
   return 0;
 }
 
-// ======================
-// GRÁFICO
-// ======================
+function solveSystem(input) {
+  // Cramer's rule para 2 ecuaciones: ax+by=c, dx+ey=f
+  let lines = input.split(",");
+  let parse = (eq) => {
+    eq = eq.replaceAll(" ","");
+    let [l, r] = eq.split("=");
+    let c = Number(r);
+    let am = l.match(/(-?\d*)x/);
+    let bm = l.match(/([+-]?\d*)y/);
+    let a = am ? (am[1]===''||am[1]==='+' ? 1 : am[1]==='-' ? -1 : Number(am[1])) : 0;
+    let b = bm ? (bm[1]===''||bm[1]==='+' ? 1 : bm[1]==='-' ? -1 : Number(bm[1])) : 0;
+    return { a, b, c };
+  };
+  let e1 = parse(lines[0]);
+  let e2 = parse(lines[1]);
+  let det = e1.a*e2.b - e1.b*e2.a;
+  if (det === 0) return null;
+  return {
+    x: (e1.c*e2.b - e1.b*e2.c) / det,
+    y: (e1.a*e2.c - e1.c*e2.a) / det,
+    e1, e2, det
+  };
+}
 
-function draw(eq) {
-  clearChart();
+// ======================================================
+// DERIVADAS
+// ======================================================
 
-  let expr = eq.split("=")[0];
-  expr = expr.replaceAll("^", "**");
+function derivative(expr) {
+  expr = expr.replaceAll(" ","").replaceAll("^","**");
 
-  let data = [];
-  let labels = [];
+  if (expr === "x") return "1";
+  if (expr === "Math.sin(x)") return "Math.cos(x)";
+  if (expr === "Math.cos(x)") return "-Math.sin(x)";
+  if (expr === "Math.tan(x)") return "1/Math.cos(x)**2";
+  if (expr === "Math.log(x)") return "1/x";
+  if (expr === "Math.exp(x)") return "Math.exp(x)";
+
+  let m1 = expr.match(/^(\d+)\*?x\*\*(\d+)$/);
+  if (m1) { let a=Number(m1[1]), n=Number(m1[2]); return `${a*n}*x**${n-1}`; }
+
+  let m2 = expr.match(/^x\*\*(\d+)$/);
+  if (m2) { let n=Number(m2[1]); return `${n}*x**${n-1}`; }
+
+  let m3 = expr.match(/^(\d+)\*?x$/);
+  if (m3) { return m3[1]; }
+
+  return "No soportado aún";
+}
+
+function derivativeSteps(rawExpr) {
+  let expr = rawExpr.replaceAll(" ","").replaceAll("^","**");
+  let steps = [];
+
+  steps.push({ n:1, text: "Expresión original:", val: rawExpr });
+
+  if (expr === "Math.sin(x)") {
+    steps.push({ n:2, text: "Regla: d/dx[sin(x)] = cos(x)", val: "" });
+    steps.push({ n:3, text: "Resultado:", val: "cos(x)" });
+  } else if (expr === "Math.cos(x)") {
+    steps.push({ n:2, text: "Regla: d/dx[cos(x)] = -sin(x)", val: "" });
+    steps.push({ n:3, text: "Resultado:", val: "-sin(x)" });
+  } else {
+    let m = expr.match(/^(\d*)\*?x\*\*(\d+)$/) || expr.match(/^x\*\*(\d+)$/);
+    if (m) {
+      let a = m[1] ? Number(m[1]) || 1 : 1;
+      let n = Number(m[m.length-1]);
+      steps.push({ n:2, text: "Regla de la potencia: d/dx[axⁿ] = n·a·xⁿ⁻¹", val: "" });
+      steps.push({ n:3, text: `Coeficiente: ${a}, Exponente: ${n}`, val: "" });
+      steps.push({ n:4, text: `→ ${a}·${n}·x^${n-1} = ${a*n}·x^${n-1}`, val: "" });
+    }
+  }
+
+  return steps;
+}
+
+// ======================================================
+// INTEGRALES
+// ======================================================
+
+function integral(expr) {
+  expr = expr.replaceAll(" ","").replaceAll("^","**");
+
+  if (expr === "Math.sin(x)") return "-Math.cos(x)";
+  if (expr === "Math.cos(x)") return "Math.sin(x)";
+  if (expr === "1/x")         return "Math.log(Math.abs(x))";
+  if (expr === "Math.exp(x)") return "Math.exp(x)";
+
+  let m1 = expr.match(/^(\d+)\*?x\*\*(\d+)$/);
+  if (m1) { let a=Number(m1[1]), n=Number(m1[2])+1; return `${a}*x**${n}/${n}`; }
+
+  let m2 = expr.match(/^x\*\*(\d+)$/);
+  if (m2) { let n=Number(m2[1])+1; return `x**${n}/${n}`; }
+
+  let m3 = expr.match(/^(\d+)\*?x$/);
+  if (m3) { let a=Number(m3[1]); return `${a}*x**2/2`; }
+
+  if (expr === "x") return "x**2/2";
+
+  return "No soportado aún";
+}
+
+function integralSteps(rawExpr) {
+  let expr = rawExpr.replaceAll(" ","").replaceAll("^","**");
+  let steps = [];
+  steps.push({ n:1, text:"Expresión original:", val: rawExpr });
+
+  let m = expr.match(/^(\d*)\*?x\*\*(\d+)$/) || expr.match(/^x\*\*(\d+)$/);
+  if (m) {
+    let a = m[1] ? Number(m[1]) || 1 : 1;
+    let n = Number(m[m.length-1]);
+    steps.push({ n:2, text:"Regla de la potencia: ∫axⁿ dx = a·xⁿ⁺¹/(n+1)", val:"" });
+    steps.push({ n:3, text:`Exponente: ${n} → ${n+1}. Divisor: ${n+1}`, val:"" });
+    steps.push({ n:4, text:`Resultado:`, val:`${a}·x^${n+1}/${n+1} + C` });
+  } else if (expr === "Math.sin(x)") {
+    steps.push({ n:2, text:"Regla: ∫sin(x)dx = -cos(x) + C", val:"" });
+  } else if (expr === "Math.cos(x)") {
+    steps.push({ n:2, text:"Regla: ∫cos(x)dx = sin(x) + C", val:"" });
+  }
+
+  return steps;
+}
+
+// ======================================================
+// CHART (single)
+// ======================================================
+
+function drawCalcChart(eq) {
+  if (calcChart) { calcChart.destroy(); calcChart = null; }
+
+  let expr = eq.split("=")[0].replaceAll("^","**");
+  let data = [], labels = [];
 
   for (let x = -10; x <= 10; x += 0.1) {
     let y = null;
-
     try {
-      y = Function("x", "return " + expr)(x);
-
-      if (!isFinite(y)) {
-        y = null;
-      }
-
-      if (y > 50 || y < -50) {
-        y = null;
-      }
-    } catch {
-      y = null;
-    }
-
+      y = Function("x","return "+expr)(x);
+      if (!isFinite(y) || y > 100 || y < -100) y = null;
+    } catch { y = null; }
     labels.push(Number(x.toFixed(2)));
     data.push(y);
   }
 
-  chartInstance = new Chart(document.getElementById("chart"), {
+  let ctx = document.getElementById("calc-chart");
+  calcChart = new Chart(ctx, {
     type: "line",
     data: {
       labels,
       datasets: [{
         label: "f(x)",
         data,
+        borderColor: COLORS[0],
+        backgroundColor: "transparent",
         tension: 0.15,
         pointRadius: 0,
         spanGaps: false
@@ -356,294 +1128,607 @@ function draw(eq) {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
+      plugins: { legend: { labels: { color: '#5a7a9a', font: { family:'Space Mono', size:11 } } } },
+      scales: {
+        x: { grid: { color:"rgba(255,255,255,0.05)" }, ticks: { color:"#5a7a9a", maxTicksLimit:10, font:{family:'Space Mono',size:10} } },
+        y: { grid: { color:"rgba(255,255,255,0.05)" }, ticks: { color:"#5a7a9a", font:{family:'Space Mono',size:10} } }
+      }
+    }
+  });
+
+  document.getElementById("calc-chart-card").style.display = "block";
+}
+
+// ======================================================
+// RUN CALC
+// ======================================================
+
+function runCalc() {
+  let raw = document.getElementById("calc-input").value.trim();
+  if (!raw) return;
+
+  let out = "";
+  let steps = [];
+  let showChart = false;
+  let chartEq = "";
+
+  document.getElementById("steps-card").style.display = "none";
+  document.getElementById("calc-chart-card").style.display = "none";
+  document.getElementById("copy-btn").style.display = "inline-block";
+
+  // --- DERIVADAS ---
+  if (raw.toLowerCase().startsWith("derivar ")) {
+    let exprRaw = raw.substring(8).trim();
+    let expr = parseHumanMath(exprRaw);
+    let result = derivative(expr);
+    steps = derivativeSteps(exprRaw);
+    out = `<b style="color:var(--accent)">Derivada</b><br><br>f(x) = ${exprRaw}<br>f'(x) = <span style="color:var(--accent2)">${result}</span>`;
+    try { chartEq = result; showChart = true; } catch {}
+  }
+
+  // --- INTEGRALES ---
+  else if (raw.toLowerCase().startsWith("integral ")) {
+    let exprRaw = raw.substring(9).trim();
+    let expr = parseHumanMath(exprRaw);
+    let result = integral(expr);
+    steps = integralSteps(exprRaw);
+    out = `<b style="color:var(--accent)">Integral</b><br><br>∫ ${exprRaw} dx = <span style="color:var(--accent2)">${result}</span> + C`;
+    try { chartEq = result; showChart = true; } catch {}
+  }
+
+  else {
+    let eq = parseHumanMath(raw);
+    let type = detect(eq);
+
+    // --- SISTEMA ---
+    if (type === "system") {
+      let s = solveSystem(raw);
+      if (s) {
+        out = `<b style="color:var(--accent)">Sistema 2×2</b><br><br>x = <span style="color:var(--accent2)">${fmt(s.x)}</span><br>y = <span style="color:var(--accent2)">${fmt(s.y)}</span>`;
+        steps = [
+          { n:1, text:"Ecuación 1:", val:`${s.e1.a}x + ${s.e1.b}y = ${s.e1.c}` },
+          { n:2, text:"Ecuación 2:", val:`${s.e2.a}x + ${s.e2.b}y = ${s.e2.c}` },
+          { n:3, text:"Determinante (Cramer):", val:`${s.det}` },
+          { n:4, text:"Solución:", val:`x=${fmt(s.x)}, y=${fmt(s.y)}` }
+        ];
+      } else {
+        out = `<span style="color:var(--accent3)">Sistema sin solución única (det = 0)</span>`;
+      }
+    }
+
+    // --- CUADRÁTICA ---
+    else if (type === "quadratic") {
+      let q = solveQuadratic(eq);
+      if (q.complex) {
+        out = `<b style="color:var(--accent)">Raíces complejas</b><br><br>` +
+          `x₁ = <span class="complex-result">${fmt(q.roots[0].re)} <span class="imag">+ ${fmt(q.roots[0].im)}i</span></span><br>` +
+          `x₂ = <span class="complex-result">${fmt(q.roots[1].re)} <span class="imag">- ${fmt(Math.abs(q.roots[1].im))}i</span></span>`;
+      } else {
+        out = `<b style="color:var(--accent)">Raíces reales</b><br><br>` +
+          `x₁ = <span style="color:var(--accent2)">${fmt(q.roots[0])}</span><br>` +
+          `x₂ = <span style="color:var(--accent2)">${fmt(q.roots[1])}</span>`;
+      }
+      steps = [
+        { n:1, text:"Forma: ax² + bx + c = 0", val:"" },
+        { n:2, text:`a = ${q.a}, b = ${q.b}, c = ${q.c}`, val:"" },
+        { n:3, text:"Discriminante: b²−4ac =", val:`${fmt(q.d)}` },
+        { n:4, text:q.complex ? "Δ < 0 → raíces complejas" : "Δ ≥ 0 → raíces reales", val:"" },
+        { n:5, text:"Fórmula: x = (−b ± √Δ) / 2a", val:"" }
+      ];
+      chartEq = eq; showChart = true;
+    }
+
+    // --- LINEAL ---
+    else if (type === "linear") {
+      let s = solveLinear(eq);
+      out = `<b style="color:var(--accent)">Ecuación lineal</b><br><br>x = <span style="color:var(--accent2)">${fmt(s.x)}</span>`;
+      steps = [
+        { n:1, text:"Ecuación:", val:raw },
+        { n:2, text:`Coeficiente a = ${s.a}, constante b = ${s.b}`, val:"" },
+        { n:3, text:`Despejando: x = (${s.right} − ${s.b}) / ${s.a}`, val:"" },
+        { n:4, text:"Resultado:", val:`x = ${fmt(s.x)}` }
+      ];
+    }
+
+    // --- FUNCIÓN ---
+    else {
+      chartEq = eq;
+      showChart = true;
+      // Intentar evaluar si no tiene x
+      if (!eq.includes("x")) {
+        let r;
+        try { r = Function("return " + eq)(); } catch { r = "Error"; }
+        out = `<b style="color:var(--accent)">Resultado directo</b><br><br><span style="color:var(--accent2)">${fmt(r)}</span>`;
+        showChart = false;
+      } else {
+        out = `<b style="color:var(--accent)">Función graficada</b><br><br><span style="font-family:var(--mono);color:var(--accent2)">f(x) = ${eq}</span>`;
+      }
+    }
+  }
+
+  let box = document.getElementById("calc-result");
+  box.innerHTML = out + `<button class="copy-btn" id="copy-btn" onclick="copyResult()">Copiar</button>`;
+  box.className = "result-box success";
+
+  if (steps.length > 0) {
+    let stepsHTML = steps.map(s => `
+      <div class="step" style="animation-delay:${s.n*0.06}s">
+        <div class="step-num">${s.n}</div>
+        <div>${s.text} ${s.val ? `<span>${s.val}</span>` : ''}</div>
+      </div>
+    `).join('');
+    document.getElementById("calc-steps").innerHTML = stepsHTML;
+    document.getElementById("steps-card").style.display = "block";
+  }
+
+  if (showChart && chartEq) {
+    try { drawCalcChart(chartEq); } catch {}
+  }
+
+  addHistory(raw, out);
+}
+
+function fmt(n) {
+  if (typeof n !== 'number') return n;
+  return Number.isInteger(n) ? n : parseFloat(n.toFixed(6));
+}
+
+function setCalc(v) {
+  document.getElementById("calc-input").value = v;
+}
+
+function clearCalc() {
+  document.getElementById("calc-input").value = "";
+  document.getElementById("calc-result").innerHTML = "Esperando cálculo...";
+  document.getElementById("calc-result").className = "result-box";
+  document.getElementById("steps-card").style.display = "none";
+  document.getElementById("calc-chart-card").style.display = "none";
+}
+
+function copyResult() {
+  let text = document.getElementById("calc-result").innerText.replace("Copiar","").trim();
+  navigator.clipboard.writeText(text).then(() => {
+    let btn = document.getElementById("copy-btn");
+    btn.textContent = "✓ Copiado";
+    setTimeout(() => btn.textContent = "Copiar", 1500);
+  });
+}
+
+// ======================================================
+// GRAFICO MULTI-FUNCIÓN
+// ======================================================
+
+let fnRows = [];
+
+function addFnRow(val) {
+  let id = Date.now();
+  let colorIdx = fnRows.length % COLORS.length;
+  fnRows.push({ id, color: COLORS[colorIdx] });
+
+  let container = document.getElementById("fn-list");
+  let div = document.createElement("div");
+  div.id = "fn-row-" + id;
+  div.style.cssText = "display:flex;gap:8px;align-items:center;";
+  div.innerHTML = `
+    <div style="width:12px;height:12px;border-radius:50%;background:${COLORS[colorIdx]};flex-shrink:0;"></div>
+    <input type="text" id="fn-input-${id}" placeholder="ej: Math.sin(x)" value="${val||''}" style="flex:1;">
+    <button class="btn btn-ghost btn-sm" onclick="removeFnRow(${id})" style="padding:6px 10px;">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+function removeFnRow(id) {
+  document.getElementById("fn-row-" + id)?.remove();
+  fnRows = fnRows.filter(f => f.id !== id);
+}
+
+function setGraphExample(expr) {
+  if (fnRows.length === 0) addFnRow(expr);
+  else {
+    let last = fnRows[fnRows.length - 1];
+    document.getElementById("fn-input-" + last.id).value = expr;
+  }
+}
+
+function resetGraphRange() {
+  document.getElementById("xmin").value = -10;
+  document.getElementById("xmax").value = 10;
+  document.getElementById("ymin").value = -10;
+  document.getElementById("ymax").value = 10;
+}
+
+function runGraph() {
+  if (multiChart) { multiChart.destroy(); multiChart = null; }
+
+  let xmin = Number(document.getElementById("xmin").value) || -10;
+  let xmax = Number(document.getElementById("xmax").value) || 10;
+  let ymin = Number(document.getElementById("ymin").value);
+  let ymax = Number(document.getElementById("ymax").value);
+  let step = (xmax - xmin) / 300;
+
+  let labels = [];
+  for (let x = xmin; x <= xmax; x += step) labels.push(Number(x.toFixed(3)));
+
+  let datasets = [];
+  let legendHTML = "";
+
+  for (let fn of fnRows) {
+    let rawExpr = document.getElementById("fn-input-" + fn.id)?.value?.trim();
+    if (!rawExpr) continue;
+    let expr = parseHumanMath(rawExpr);
+    expr = expr.split("=")[0];
+
+    let data = labels.map(x => {
+      try {
+        let y = Function("x", "return " + expr)(x);
+        if (!isFinite(y) || y > ymax*3 || y < ymin*3) return null;
+        return y;
+      } catch { return null; }
+    });
+
+    datasets.push({
+      label: rawExpr,
+      data,
+      borderColor: fn.color,
+      backgroundColor: "transparent",
+      tension: 0.1,
+      pointRadius: 0,
+      spanGaps: false,
+      borderWidth: 2
+    });
+
+    legendHTML += `<div class="legend-item"><div class="legend-dot" style="background:${fn.color}"></div>${rawExpr}</div>`;
+  }
+
+  if (datasets.length === 0) return;
+
+  document.getElementById("graph-legend").innerHTML = legendHTML;
+
+  let ctx = document.getElementById("multi-chart");
+  multiChart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          backgroundColor: '#0b1220',
+          borderColor: 'rgba(0,200,255,0.2)',
+          borderWidth: 1,
+          titleColor: '#00c8ff',
+          bodyColor: '#e2eaf4',
+          titleFont: { family:'Space Mono', size:11 },
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(4) : 'N/A'}`
+          }
+        }
+      },
       scales: {
         x: {
-          grid: { color: "rgba(255,255,255,0.05)" }
+          min: xmin, max: xmax,
+          grid: { color:"rgba(255,255,255,0.05)" },
+          ticks: { color:"#5a7a9a", maxTicksLimit:12, font:{family:'Space Mono',size:10} }
         },
         y: {
-          min: -10,
-          max: 10,
-          grid: { color: "rgba(255,255,255,0.05)" }
+          min: isNaN(ymin) ? undefined : ymin,
+          max: isNaN(ymax) ? undefined : ymax,
+          grid: { color:"rgba(255,255,255,0.05)" },
+          ticks: { color:"#5a7a9a", font:{family:'Space Mono',size:10} }
         }
       }
     }
   });
-}
 
-// ======================
-// PARSER HUMANO
-// ======================
-
-function parseHumanMath(text) {
-  let t = text;
-  let lower = t.toLowerCase();
-
-  // ======================
-  // TRIGONOMETRÍA HUMANA
-  // ======================
-
-  if (lower.includes("seno de x")) {
-    return "Math.sin(x)";
-  }
-
-  if (lower.includes("coseno de x")) {
-    return "Math.cos(x)";
-  }
-
-  if (lower.includes("tangente de x")) {
-    return "Math.tan(x)";
-  }
-
-  // ======================
-  // TEXTO MATEMÁTICO
-  // ======================
-
-  t = t.replaceAll("al cuadrado", "^2");
-  t = t.replaceAll("cuadrado", "^2");
-  t = t.replaceAll("al cubo", "^3");
-  t = t.replaceAll("más", "+");
-  t = t.replaceAll("menos", "-");
-  t = t.replaceAll("por", "*");
-  t = t.replaceAll("dividido", "/");
-  t = t.replaceAll("coseno de x", "cos(x)");
-  t = t.replaceAll("seno de x", "sin(x)");
-  t = t.replaceAll("tangente de x", "tan(x)");
-
-  // ======================
-  // POTENCIAS
-  // ======================
-
-  t = t.replaceAll("^", "**");
-  t = t.replace(/(\d)(x)/g, "$1*$2");
-
-  // ======================
-  // FUNCIONES TRIGONOMÉTRICAS
-  // ======================
-
-  if (!t.includes("Math.sin")) {
-    t = t.replaceAll("sin(x)", "Math.sin(x)");
-  }
-
-  if (!t.includes("Math.cos")) {
-    t = t.replaceAll("cos(x)", "Math.cos(x)");
-  }
-
-  if (!t.includes("Math.tan")) {
-    t = t.replaceAll("tan(x)", "Math.tan(x)");
-  }
-
-  // ======================
-  // RAÍZ
-  // ======================
-
-  t = t.replaceAll("raiz(", "Math.sqrt(");
-  t = t.replaceAll("√(", "Math.sqrt(");
-
-  // ======================
-  // PI
-  // ======================
-
-  t = t.replaceAll("pi", "Math.PI");
-
-  // ======================
-  // LIMPIEZA
-  // ======================
-
-  t = t.replace(/\s+/g, "");
-
-  return t;
-}
-
-// ======================
-// DERIVADAS
-// ======================
-
-function derivative(expr) {
-  expr = expr.replaceAll(" ", "");
-  expr = expr.replaceAll("^", "**");
-
-  if (expr === "x") {
-    return "1";
-  }
-
-  // ax**n (ej: 3*x**4)
-  let match = expr.match(/^(\d+)\*?x\*\*(\d+)$/);
-  if (match) {
-    let a = Number(match[1]);
-    let n = Number(match[2]);
-    return `${a * n}*x**${n - 1}`;
-  }
-
-  // x**n
-  let onlyX = expr.match(/^x\*\*(\d+)$/);
-  if (onlyX) {
-    let n = Number(onlyX[1]);
-    return `${n}*x**${n - 1}`;
-  }
-
-  if (expr === "Math.sin(x)") return "Math.cos(x)";
-  if (expr === "Math.cos(x)") return "-Math.sin(x)";
-
-  return "No soportado aún";
-}
-
-// ======================
-// INTEGRALES
-// ======================
-
-function integral(expr) {
-  expr = expr.replaceAll(" ", "");
-  expr = expr.replaceAll("^", "**");
-
-  let match = expr.match(/^(\d+)\*?x\*\*(\d+)$/);
-  if (match) {
-    let a = Number(match[1]);
-    let n = Number(match[2]) + 1;
-    return `${a}*x**${n}/${n}`;
-  }
-
-  let onlyX = expr.match(/^x\*\*(\d+)$/);
-  if (onlyX) {
-    let n = Number(onlyX[1]) + 1;
-    return `x**${n}/${n}`;
-  }
-
-  if (expr === "Math.sin(x)") return "-Math.cos(x)";
-  if (expr === "Math.cos(x)") return "Math.sin(x)";
-
-  return "No soportado aún";
-}
-
-// ======================
-// RUN
-// ======================
-
-function run() {
-  let raw = document.getElementById("input").value.trim();
-
-  // FIX: variable out siempre declarada para evitar errores si ningún bloque se ejecuta
-  let out = "<b>No se pudo procesar la expresión.</b>";
-
-  // ======================
-  // DERIVADAS
-  // FIX: substring(8) correcto — "derivar " tiene 8 caracteres
-  // ======================
-
-  if (raw.toLowerCase().startsWith("derivar ")) {
-    let exprDeriv = parseHumanMath(raw.substring(8));
-    let result = derivative(exprDeriv);
-
-    try {
-      draw(result);
-    } catch {
-      clearChart();
+  // Mostrar coordenadas al hover
+  ctx.onmousemove = (e) => {
+    let pts = multiChart.getElementsAtEventForMode(e,'index',{intersect:false},true);
+    if (pts.length) {
+      let idx = pts[0].index;
+      let x = labels[idx];
+      let ys = datasets.map(ds => `${ds.label}: ${ds.data[idx] !== null ? ds.data[idx].toFixed(4) : 'N/A'}`).join(' | ');
+      document.getElementById("graph-coords").textContent = `x = ${x} → ${ys}`;
     }
+  };
+}
 
-    document.getElementById("result").innerHTML = `
-      <b>Derivada:</b><br>
-      ${result}
-    `;
+// ======================================================
+// MATRICES
+// ======================================================
+
+function buildMatrices() {
+  let n = Number(document.getElementById("mat-size").value);
+  buildMatrix("mat-a", n);
+  buildMatrix("mat-b", n);
+  document.getElementById("mat-b-card").style.display = "block";
+}
+
+function buildMatrix(id, n) {
+  let el = document.getElementById(id);
+  el.style.gridTemplateColumns = `repeat(${n}, 64px)`;
+  el.innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      let inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = (i === j) ? "1" : "0";
+      inp.id = `${id}-${i}-${j}`;
+      el.appendChild(inp);
+    }
+  }
+}
+
+function readMatrix(id, n) {
+  let m = [];
+  for (let i = 0; i < n; i++) {
+    m.push([]);
+    for (let j = 0; j < n; j++) {
+      m[i].push(Number(document.getElementById(`${id}-${i}-${j}`).value) || 0);
+    }
+  }
+  return m;
+}
+
+function matMul(A, B, n) {
+  let C = Array.from({length:n}, () => Array(n).fill(0));
+  for (let i=0;i<n;i++) for (let j=0;j<n;j++) for (let k=0;k<n;k++) C[i][j] += A[i][k]*B[k][j];
+  return C;
+}
+
+function matAdd(A, B, n) {
+  return A.map((row,i) => row.map((v,j) => v + B[i][j]));
+}
+
+function matDet(m) {
+  let n = m.length;
+  if (n === 1) return m[0][0];
+  if (n === 2) return m[0][0]*m[1][1] - m[0][1]*m[1][0];
+  let det = 0;
+  for (let j = 0; j < n; j++) {
+    det += Math.pow(-1, j) * m[0][j] * matDet(m.slice(1).map(r => r.filter((_,c) => c !== j)));
+  }
+  return det;
+}
+
+function matTrans(m) {
+  return m[0].map((_, j) => m.map(row => row[j]));
+}
+
+function matInv(m) {
+  let n = m.length;
+  let aug = m.map((row, i) => [...row, ...Array(n).fill(0).map((_,j) => i===j?1:0)]);
+  for (let col = 0; col < n; col++) {
+    let pivot = aug[col][col];
+    if (Math.abs(pivot) < 1e-10) return null;
+    for (let j = 0; j < 2*n; j++) aug[col][j] /= pivot;
+    for (let row = 0; row < n; row++) {
+      if (row === col) continue;
+      let f = aug[row][col];
+      for (let j = 0; j < 2*n; j++) aug[row][j] -= f * aug[col][j];
+    }
+  }
+  return aug.map(row => row.slice(n));
+}
+
+function matrixToHTML(m) {
+  let rows = m.map(row =>
+    `<tr>${row.map(v => `<td>${typeof v==='number'?fmt(v):v}</td>`).join('')}</tr>`
+  ).join('');
+  return `<table class="matrix-result-table">${rows}</table>`;
+}
+
+function runMatrix() {
+  let n = Number(document.getElementById("mat-size").value);
+  let op = document.getElementById("mat-op").value;
+  let A = readMatrix("mat-a", n);
+  let B = readMatrix("mat-b", n);
+  let resultEl = document.getElementById("matrix-result");
+  let stepsEl = document.getElementById("matrix-steps");
+  let stepsCard = document.getElementById("matrix-steps-card");
+  let steps = [];
+  let out = "";
+
+  try {
+    if (op === "det") {
+      let d = matDet(A);
+      out = `<b style="color:var(--accent)">Determinante de A</b><br><br><span style="color:var(--accent2);font-size:28px;font-family:var(--mono)">det(A) = ${fmt(d)}</span>`;
+      steps = [
+        { n:1, text:"Método: expansión por cofactores", val:"" },
+        { n:2, text:"Resultado:", val:`det(A) = ${fmt(d)}` },
+        { n:3, text: d===0 ? "La matriz es singular (no tiene inversa)" : "La matriz es invertible", val:"" }
+      ];
+    } else if (op === "sum") {
+      let C = matAdd(A, B, n);
+      out = `<b style="color:var(--accent)">A + B</b><br>${matrixToHTML(C)}`;
+    } else if (op === "mul") {
+      let C = matMul(A, B, n);
+      out = `<b style="color:var(--accent)">A × B</b><br>${matrixToHTML(C)}`;
+      steps = [{ n:1, text:"Multiplicación elemento a elemento (filas × columnas)", val:"" }];
+    } else if (op === "inv") {
+      let inv = matInv(A);
+      if (!inv) {
+        out = `<span style="color:var(--accent3)">La matriz no tiene inversa (det = 0)</span>`;
+      } else {
+        out = `<b style="color:var(--accent)">A⁻¹</b><br>${matrixToHTML(inv)}`;
+        steps = [
+          { n:1, text:"Método: Gauss-Jordan", val:"" },
+          { n:2, text:"Se aumenta la matriz [A|I] y se reduce a [I|A⁻¹]", val:"" }
+        ];
+      }
+    } else if (op === "trans") {
+      let T = matTrans(A);
+      out = `<b style="color:var(--accent)">Aᵀ (Transpuesta)</b><br>${matrixToHTML(T)}`;
+      steps = [{ n:1, text:"Intercambio de filas y columnas: Aᵀᵢⱼ = Aⱼᵢ", val:"" }];
+    }
+  } catch(e) {
+    out = `<span style="color:var(--accent3)">Error: ${e.message}</span>`;
+  }
+
+  resultEl.innerHTML = out;
+  resultEl.className = "result-box success";
+
+  if (steps.length > 0) {
+    stepsEl.innerHTML = steps.map(s => `
+      <div class="step" style="animation-delay:${s.n*0.07}s">
+        <div class="step-num">${s.n}</div>
+        <div>${s.text} ${s.val ? `<span>${s.val}</span>`:''}</div>
+      </div>`).join('');
+    stepsCard.style.display = "block";
+  } else {
+    stepsCard.style.display = "none";
+  }
+}
+
+// ======================================================
+// ESTADÍSTICA
+// ======================================================
+
+function parseNums(str) {
+  return str.split(/[,\s\n]+/).map(Number).filter(n => !isNaN(n) && n !== null);
+}
+
+function runStats() {
+  let nums = parseNums(document.getElementById("stats-input").value);
+  if (nums.length < 2) {
+    document.getElementById("stat-chips").innerHTML = `<span style="color:var(--accent3)">Ingresá al menos 2 números</span>`;
     return;
   }
 
-  // ======================
-  // INTEGRALES
-  // FIX: extraer substring(9) correctamente y aplicar parseHumanMath una sola vez
-  // ======================
+  let n = nums.length;
+  let sorted = [...nums].sort((a,b)=>a-b);
+  let mean = nums.reduce((s,v)=>s+v,0) / n;
+  let median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
+  let variance = nums.reduce((s,v)=>s+(v-mean)**2,0) / n;
+  let std = Math.sqrt(variance);
+  let min = sorted[0];
+  let max = sorted[n-1];
+  let range = max - min;
+  let q1 = sorted[Math.floor(n/4)];
+  let q3 = sorted[Math.floor(3*n/4)];
 
-  if (raw.toLowerCase().startsWith("integral ")) {
-    let exprInteg = parseHumanMath(raw.substring(9));
-    let result = integral(exprInteg);
+  // Moda
+  let freq = {};
+  nums.forEach(v => freq[v] = (freq[v]||0)+1);
+  let maxFreq = Math.max(...Object.values(freq));
+  let mode = Object.keys(freq).filter(k=>freq[k]===maxFreq).map(Number);
 
-    try {
-      draw(result);
-    } catch {
-      clearChart();
+  let chips = [
+    { label:"N",        value: n },
+    { label:"Media",    value: fmt(mean) },
+    { label:"Mediana",  value: fmt(median) },
+    { label:"Moda",     value: mode.length <= 3 ? mode.join(', ') : 'Múltiple' },
+    { label:"Desv. Est",value: fmt(std) },
+    { label:"Varianza", value: fmt(variance) },
+    { label:"Mín",      value: fmt(min) },
+    { label:"Máx",      value: fmt(max) },
+    { label:"Rango",    value: fmt(range) },
+    { label:"Q1",       value: fmt(q1) },
+    { label:"Q3",       value: fmt(q3) },
+    { label:"IQR",      value: fmt(q3-q1) },
+  ];
+
+  document.getElementById("stat-chips").innerHTML = chips.map(c => `
+    <div class="stat-chip">
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+    </div>
+  `).join('');
+
+  // Gráfico distribución (histograma)
+  if (statsChart) { statsChart.destroy(); statsChart = null; }
+  let bins = 8;
+  let binSize = range / bins || 1;
+  let binLabels = [], binData = [];
+  for (let i = 0; i < bins; i++) {
+    let lo = min + i*binSize;
+    let hi = lo + binSize;
+    binLabels.push(fmt(lo));
+    binData.push(nums.filter(v => v >= lo && (i===bins-1 ? v<=hi : v<hi)).length);
+  }
+
+  statsChart = new Chart(document.getElementById("stats-chart"), {
+    type: "bar",
+    data: {
+      labels: binLabels,
+      datasets: [{
+        label: "Frecuencia",
+        data: binData,
+        backgroundColor: "rgba(0,200,255,0.3)",
+        borderColor: COLORS[0],
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"#5a7a9a",font:{family:'Space Mono',size:10}} },
+        y: { grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"#5a7a9a",font:{family:'Space Mono',size:10}} }
+      }
     }
+  });
 
-    document.getElementById("result").innerHTML = `
-      <b>Integral:</b><br>
-      ${result} + C
-    `;
+  document.getElementById("stats-chart-card").style.display = "block";
+}
+
+function setStatsExample() {
+  document.getElementById("stats-input").value = "12, 45, 7, 89, 23, 56, 34, 78, 11, 90, 42, 67, 28, 53, 19";
+}
+
+// ======================================================
+// HISTORIAL
+// ======================================================
+
+function addHistory(input, result) {
+  let now = new Date();
+  let time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  history.unshift({ input, result, time });
+  if (history.length > 50) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  let el = document.getElementById("history-list");
+  if (history.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><div>Aún no hay cálculos</div></div>`;
     return;
   }
-
-  // ======================
-  // DETECCIÓN GENERAL
-  // ======================
-
-  let eq = parseHumanMath(raw);
-  let type = detect(eq);
-
-  // ======================
-  // SISTEMAS
-  // ======================
-
-  if (type === "system") {
-    clearChart();
-    let s = solveSystem(eq);
-    out = `
-      <b>Sistema resuelto:</b><br>
-      x = ${s.x}<br>
-      y = ${s.y}
-    `;
-  }
-
-  // ======================
-  // LINEALES
-  // ======================
-
-  else if (type === "linear") {
-    clearChart();
-    let x = linear(eq);
-    out = `
-      <b>Ecuación lineal:</b><br>
-      x = ${x}
-    `;
-  }
-
-  // ======================
-  // CUADRÁTICAS
-  // ======================
-
-  else if (type === "quadratic") {
-    let r = quadratic(eq);
-    draw(eq);
-    out = `
-      <b>Raíces:</b><br>
-      ${r.length > 0 ? r.join(", ") : "Sin raíces reales (discriminante negativo)"}
-    `;
-  }
-
-  // ======================
-  // CÁLCULO DIRECTO
-  // ======================
-
-  else if (eq.includes("Math.sqrt") || eq.includes("Math.PI")) {
-    clearChart();
-    let result;
-    try {
-      result = Function("return " + eq)();
-    } catch {
-      result = "Error al evaluar la expresión";
-    }
-    out = `
-      <b>Resultado:</b><br>
-      ${result}
-    `;
-  }
-
-  // ======================
-  // FUNCIONES
-  // ======================
-
-  else {
-    draw(eq);
-    out = `<b>Función graficada correctamente</b>`;
-  }
-
-  document.getElementById("result").innerHTML = out;
+  el.innerHTML = history.map((h,i) => `
+    <div class="history-item" onclick="loadFromHistory(${i})">
+      <div>
+        <div class="history-input">${h.input}</div>
+        <div class="history-result">${h.result.replace(/<[^>]+>/g,'').substring(0,60)}...</div>
+      </div>
+      <div class="history-time">${h.time}</div>
+    </div>
+  `).join('');
 }
+
+function loadFromHistory(i) {
+  setCalc(history[i].input);
+  switchTab('calc');
+}
+
+function clearHistory() {
+  history = [];
+  renderHistory();
+}
+
+// ======================================================
+// INIT
+// ======================================================
+
+window.onload = () => {
+  buildMatrices();
+  addFnRow("Math.sin(x)");
+  addFnRow("Math.cos(x)");
+};
 
 </script>
 
