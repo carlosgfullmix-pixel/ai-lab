@@ -191,19 +191,28 @@ function quadratic(eq){
 // ======================
 function coeff(p,type){
 
+  p = p.replaceAll("*","");
+
   if(type==="x^2"){
+
     if(p==="x^2") return 1;
+
     if(p==="-x^2") return -1;
+
     return Number(p.replace("x^2",""));
   }
 
   if(type==="x"){
+
     if(p==="x") return 1;
+
     if(p==="-x") return -1;
+
     return Number(p.replace("x",""));
   }
-}
 
+  return 0;
+}
 // ======================
 // FUNCIÓN
 // ======================
