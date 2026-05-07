@@ -135,15 +135,30 @@ function solveSystem(input){
 function linear(eq){
 
   eq = eq.replaceAll(" ","");
+  eq = eq.replaceAll("*","");
 
   let [l,r] = eq.split("=");
 
-  let right = eval(r);
+  let right = Number(r);
 
   let match = l.match(/(-?\d*)x([+-]\d+)?/);
 
-  let a = match?.[1] ? Number(match[1]) : 1;
-  let b = match?.[2] ? Number(match[2]) : 0;
+  let a = 1;
+  let b = 0;
+
+  if(match){
+
+    if(match[1] === "-"){
+      a = -1;
+    }
+    else if(match[1] !== ""){
+      a = Number(match[1]);
+    }
+
+    if(match[2]){
+      b = Number(match[2]);
+    }
+  }
 
   return (right - b) / a;
 }
