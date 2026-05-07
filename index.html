@@ -100,7 +100,28 @@ function detect(eq){
 
   return "function";
 }
+function isSystem(eq){
+function solveSystem(input){
 
+  let lines = input.split(",");
+
+  let eq1 = lines[0].split("=");
+  let eq2 = lines[1].split("=");
+
+  let a = Number(eq1[1]);
+  let b = Number(eq2[1]);
+
+  // asumimos:
+  // x + y = a
+  // x - y = b
+
+  let x = (a + b) / 2;
+  let y = (a - b) / 2;
+
+  return {x,y};
+}
+  return eq.includes(",") && eq.includes("=");
+}
 // ======================
 // LINEAL
 // x + 5 = 14
@@ -226,7 +247,18 @@ function draw(eq){
 // MAIN
 // ======================
 function run(){
+if(isSystem(eq)){
 
+  let s = solveSystem(eq);
+
+  document.getElementById("result").innerHTML =
+    "x = " + s.x + "<br>y = " + s.y;
+
+  document.getElementById("type").innerText = "Sistema 2x2";
+  document.getElementById("output").innerText = "x=" + s.x + " y=" + s.y;
+
+  return;
+}
   let eq = document.getElementById("input").value;
 
   let type = detect(eq);
