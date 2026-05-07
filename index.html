@@ -602,58 +602,76 @@ function integral(expr){
 
   return "No soportado aún";
 }
-  function run(){
+function run(){
 
   let raw = document.getElementById("input").value;
 
   let eq = parseHumanMath(raw);
-// ======================
-// DERIVAR
-// ======================
 
-if(raw.toLowerCase().startsWith("derivar ")){
+  // ======================
+  // DERIVAR
+  // ======================
 
-  let result = derivative(expr);
+  if(raw.toLowerCase().startsWith("derivar ")){
 
-// graficar derivada si es matemática válida
-try{
+    let expr = raw.substring(9);
 
-  let graphExpr = result
-    .replaceAll("^","**")
-    .replaceAll("x^1","x");
+    expr = parseHumanMath(expr);
 
-  draw(graphExpr);
+    let result = derivative(expr);
 
-}catch{
-  clearChart();
-}
+    // graficar derivada
+    try{
 
-document.getElementById("result").innerHTML = `
-  <b>Derivada:</b><br>
-  ${result}
-`;
+      let graphExpr = result
+        .replaceAll("^","**")
+        .replaceAll("x^1","x");
 
-return;
+      draw(graphExpr);
 
-// ======================
-// INTEGRAL
-// ======================
+    }catch{
+      clearChart();
+    }
 
-if(raw.toLowerCase().startsWith("integral ")){
+    document.getElementById("result").innerHTML = `
+      <b>Derivada:</b><br>
+      ${result}
+    `;
 
-  let expr = raw.substring(9);
+    return;
+  }
 
-  expr = parseHumanMath(expr);
+  // ======================
+  // INTEGRAL
+  // ======================
 
-  let result = integral(expr);
+  if(raw.toLowerCase().startsWith("integral ")){
 
-  document.getElementById("result").innerHTML = `
-    <b>Integral:</b><br>
-    ${result}
-  `;
+    let expr = raw.substring(10);
 
-  return;
-}
+    expr = parseHumanMath(expr);
+
+    let result = integral(expr);
+
+    // quitar + C para graficar
+    let graphExpr = result
+      .replace(" + C","")
+      .replaceAll("^","**");
+
+    try{
+      draw(graphExpr);
+    }catch{
+      clearChart();
+    }
+
+    document.getElementById("result").innerHTML = `
+      <b>Integral:</b><br>
+      ${result}
+    `;
+
+    return;
+  }
+
   let type = detect(eq);
 
   let out = "";
@@ -747,9 +765,7 @@ if(raw.toLowerCase().startsWith("integral ")){
   }
 
   document.getElementById("result").innerHTML = out;
-}
-
-
+} 
 </script>
 
 </body>
