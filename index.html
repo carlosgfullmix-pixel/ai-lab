@@ -604,7 +604,6 @@ expr = expr.replaceAll("^","**");
   if(raw.toLowerCase().startsWith("derivar ")){
 
     let expr = parseHumanMath(raw.substring(9));
-expr = expr.replaceAll("^","**");
 
     expr = parseHumanMath(expr);
 
@@ -630,8 +629,7 @@ expr = expr.replaceAll("^","**");
 
   if(raw.toLowerCase().startsWith("integral ")){
 
-    let expr = parseHumanMath(raw.substring(10));
-expr = expr.replaceAll("^","**");
+    expr = parseHumanMath(expr);
 
     expr = parseHumanMath(expr);
 
