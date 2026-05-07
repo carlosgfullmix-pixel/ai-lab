@@ -453,24 +453,14 @@ function parseHumanMath(text){
   t = t.replaceAll("por", "*");
   t = t.replaceAll("dividido", "/");
 
-  // TRIGONOMETRÍA
- 
-  // TRIGONOMETRÍA
-  t = t.replaceAll("seno de x", "@SIN@");
-  t = t.replaceAll("sin(x)", "@SIN@");
+    // TRIGONOMETRÍA
+  t = t.replaceAll("coseno de x", "Math.cos(x)");
+  t = t.replaceAll("tangente de x", "Math.tan(x)");
+  t = t.replaceAll("seno de x", "Math.sin(x)");
 
-  t = t.replaceAll("coseno de x", "@COS@");
-  t = t.replaceAll("cos(x)", "@COS@");
-
-  t = t.replaceAll("tangente de x", "@TAN@");
-  t = t.replaceAll("tan(x)", "@TAN@");
-
-  // convertir placeholders
-  t = t.replaceAll("@SIN@", "Math.sin(x)");
-  t = t.replaceAll("@COS@", "Math.cos(x)");
-  t = t.replaceAll("@TAN@", "Math.tan(x)");
-  // PI
-  t = t.replaceAll("pi", Math.PI);
+  t = t.replaceAll("cos(x)", "Math.cos(x)");
+  t = t.replaceAll("tan(x)", "Math.tan(x)");
+  t = t.replaceAll("sin(x)", "Math.sin(x)");
 
   // LIMPIEZA
   t = t.replace(/\s+/g, "");
