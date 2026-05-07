@@ -525,17 +525,30 @@ function derivative(expr){
 
   expr = expr.replaceAll(" ","");
 
-  // x^n
+  // x
+  if(expr === "x"){
+    return "1";
+  }
+
+  // x**n
   let powerMatch = expr.match(/^x\*\*(\d+)$/);
 
   if(powerMatch){
 
     let n = Number(powerMatch[1]);
 
+    if(n === 1){
+      return "1";
+    }
+
+    if(n-1 === 1){
+      return `${n}x`;
+    }
+
     return `${n}x^${n-1}`;
   }
 
-  // ax^n
+  // ax**n
   let polyMatch = expr.match(/^(\d+)x\*\*(\d+)$/);
 
   if(polyMatch){
@@ -543,7 +556,13 @@ function derivative(expr){
     let a = Number(polyMatch[1]);
     let n = Number(polyMatch[2]);
 
-    return `${a*n}x^${n-1}`;
+    let coef = a*n;
+
+    if(n-1 === 1){
+      return `${coef}x`;
+    }
+
+    return `${coef}x^${n-1}`;
   }
 
   // trigonométricas
@@ -556,12 +575,11 @@ function derivative(expr){
   }
 
   if(expr === "Math.tan(x)"){
-    return "sec²(x)";
+    return "1/Math.cos(x)**2";
   }
 
   return "No soportado aún";
 }
-
 // ======================
 // INTEGRALES
 // ======================
@@ -570,7 +588,12 @@ function integral(expr){
 
   expr = expr.replaceAll(" ","");
 
-  // x^n
+  // x
+  if(expr === "x"){
+    return "x^2/2 + C";
+  }
+
+  // x**n
   let powerMatch = expr.match(/^x\*\*(\d+)$/);
 
   if(powerMatch){
@@ -580,7 +603,7 @@ function integral(expr){
     return `x^${n}/${n} + C`;
   }
 
-  // ax^n
+  // ax**n
   let polyMatch = expr.match(/^(\d+)x\*\*(\d+)$/);
 
   if(polyMatch){
@@ -588,7 +611,7 @@ function integral(expr){
     let a = Number(polyMatch[1]);
     let n = Number(polyMatch[2]) + 1;
 
-    return `${a}/${n}x^${n} + C`;
+    return `${a}x^${n}/${n} + C`;
   }
 
   // trigonométricas
@@ -602,12 +625,6 @@ function integral(expr){
 
   return "No soportado aún";
 }
-function run(){
-
-  let raw = document.getElementById("input").value;
-
-  let eq = parseHumanMath(raw);
-
   // ======================
   // DERIVAR
   // ======================
