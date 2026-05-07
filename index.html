@@ -112,6 +112,9 @@ function detect(eq){
 // ======================
 // SISTEMA 2x2
 // x+y=a , x-y=b
+  clearChart();
+
+out = `x = ${s.x}<br>y = ${s.y}`;
 // ======================
 function solveSystem(input){
 
@@ -162,7 +165,9 @@ function linear(eq){
 
   return (right - b) / a;
 }
+clearChart();
 
+out = "x = " + x;
 // ======================
 // CUADRÁTICA
 // ======================
@@ -241,7 +246,13 @@ function f(eq,x){
     return 0;
   }
 }
+function clearChart(){
 
+  if(chart){
+    chart.destroy();
+    chart = null;
+  }
+}
 // ======================
 // GRÁFICO
 // ======================
