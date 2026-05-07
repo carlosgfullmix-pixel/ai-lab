@@ -363,9 +363,19 @@ function draw(eq){
 
     try{
 
-      let y = Function("x", "return " + expr)(x);
+let y = Function("x", "return " + expr)(x);
 
-      data.push(y);
+// evitar NaN e infinitos
+if(!isFinite(y)){
+  y = null;
+}
+
+// limitar valores enormes
+if(y > 1000) y = 1000;
+if(y < -1000) y = -1000;
+
+data.push(y);
+      
 
     }catch{
 
