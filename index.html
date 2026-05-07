@@ -524,8 +524,6 @@ function parseHumanMath(text){
 function derivative(expr){
 
   expr = expr.replaceAll(" ","");
-
-  // convertir ^ en **
   expr = expr.replaceAll("^","**");
 
   // x
@@ -551,6 +549,23 @@ function derivative(expr){
     return `${n}*x**${n-1}`;
   }
 
+  // a*x**n
+  let polyMatch = expr.match(/^(\d+)\*x\*\*(\d+)$/);
+
+  if(polyMatch){
+
+    let a = Number(polyMatch[1]);
+    let n = Number(polyMatch[2]);
+
+    let coef = a * n;
+
+    if(n-1 === 1){
+      return `${coef}*x`;
+    }
+
+    return `${coef}*x**${n-1}`;
+  }
+
   // seno
   if(expr === "Math.sin(x)"){
     return "Math.cos(x)";
@@ -570,8 +585,6 @@ function derivative(expr){
 function integral(expr){
 
   expr = expr.replaceAll(" ","");
-
-  // convertir ^ en **
   expr = expr.replaceAll("^","**");
 
   // x
@@ -587,6 +600,17 @@ function integral(expr){
     let n = Number(powerMatch[1]) + 1;
 
     return `x**${n}/${n}`;
+  }
+
+  // a*x**n
+  let polyMatch = expr.match(/^(\d+)\*x\*\*(\d+)$/);
+
+  if(polyMatch){
+
+    let a = Number(polyMatch[1]);
+    let n = Number(polyMatch[2]) + 1;
+
+    return `${a}*x**${n}/${n}`;
   }
 
   // seno
