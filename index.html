@@ -569,7 +569,34 @@ let eq = parseHumanMath(raw);
 
   // FUNCIONES
   else{
+// ======================
+// CÁLCULO DIRECTO
+// ======================
 
+else if(
+  eq.includes("Math.sqrt") ||
+  eq.includes("Math.PI") ||
+  eq.includes("Math.sin") ||
+  eq.includes("Math.cos") ||
+  eq.includes("Math.tan")
+){
+
+  clearChart();
+
+  let result;
+
+  try{
+    result = Function("return " + eq)();
+  }
+  catch{
+    result = "Error";
+  }
+
+  out = `
+    <b>Resultado:</b><br>
+    ${result}
+  `;
+}
     draw(eq);
 
     out = `
