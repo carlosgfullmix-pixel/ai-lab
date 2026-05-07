@@ -518,47 +518,7 @@ function parseHumanMath(text){
   return t;
 }
 
-  // ======================
-  // TEXTO MATEMÁTICO
-  // ======================
-
-  t = t.replaceAll("al cuadrado", "^2");
-  t = t.replaceAll("cuadrado", "^2");
-  t = t.replaceAll("al cubo", "^3");
-
-  t = t.replaceAll("más", "+");
-  t = t.replaceAll("menos", "-");
-  t = t.replaceAll("por", "*");
-  t = t.replaceAll("dividido", "/");
-
-  // ======================
-  // SIN / COS / TAN
-  // ======================
-
-if(!t.includes("Math.sin")){
-  t = t.replaceAll("sin(x)", "Math.sin(x)");
-}
-
-if(!t.includes("Math.cos")){
-  t = t.replaceAll("cos(x)", "Math.cos(x)");
-}
-
-if(!t.includes("Math.tan")){
-  t = t.replaceAll("tan(x)", "Math.tan(x)");
-}
-
-  // ======================
-  // LIMPIEZA
-  // ======================
-
-  t = t.replace(/\s+/g, "");
-
-  return t;
-}
-  // LIMPIEZA
   
-function run(){
-
   let raw = document.getElementById("input").value;
 
 let eq = parseHumanMath(raw);
