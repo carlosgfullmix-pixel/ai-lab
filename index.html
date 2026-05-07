@@ -473,7 +473,9 @@ function parseHumanMath(text){
   t = t.replaceAll("menos", "-");
   t = t.replaceAll("por", "*");
   t = t.replaceAll("dividido", "/");
-
+  t = t.replaceAll("coseno de x", "cos(x)");
+  t = t.replaceAll("seno de x", "sin(x)");
+  t = t.replaceAll("tangente de x", "tan(x)");
   // ======================
   // POTENCIAS
   // ======================
