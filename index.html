@@ -478,9 +478,17 @@ function parseHumanMath(text){
   // SIN / COS / TAN
   // ======================
 
+if(!t.includes("Math.sin")){
   t = t.replaceAll("sin(x)", "Math.sin(x)");
+}
+
+if(!t.includes("Math.cos")){
   t = t.replaceAll("cos(x)", "Math.cos(x)");
+}
+
+if(!t.includes("Math.tan")){
   t = t.replaceAll("tan(x)", "Math.tan(x)");
+}
 
   // ======================
   // LIMPIEZA
