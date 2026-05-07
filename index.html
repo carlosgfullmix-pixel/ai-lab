@@ -566,12 +566,10 @@ function derivative(expr){
     return `${coef}*x**${n-1}`;
   }
 
-  // seno
   if(expr === "Math.sin(x)"){
     return "Math.cos(x)";
   }
 
-  // coseno
   if(expr === "Math.cos(x)"){
     return "-Math.sin(x)";
   }
@@ -613,12 +611,10 @@ function integral(expr){
     return `${a}*x**${n}/${n}`;
   }
 
-  // seno
   if(expr === "Math.sin(x)"){
     return "-Math.cos(x)";
   }
 
-  // coseno
   if(expr === "Math.cos(x)"){
     return "Math.sin(x)";
   }
