@@ -517,12 +517,135 @@ function parseHumanMath(text){
 
   return t;
 }
-function run(){
+// ======================
+// DERIVADAS
+// ======================
+
+function derivative(expr){
+
+  expr = expr.replaceAll(" ","");
+
+  // x^n
+  let powerMatch = expr.match(/^x\*\*(\d+)$/);
+
+  if(powerMatch){
+
+    let n = Number(powerMatch[1]);
+
+    return `${n}x^${n-1}`;
+  }
+
+  // ax^n
+  let polyMatch = expr.match(/^(\d+)x\*\*(\d+)$/);
+
+  if(polyMatch){
+
+    let a = Number(polyMatch[1]);
+    let n = Number(polyMatch[2]);
+
+    return `${a*n}x^${n-1}`;
+  }
+
+  // trigonométricas
+  if(expr === "Math.sin(x)"){
+    return "Math.cos(x)";
+  }
+
+  if(expr === "Math.cos(x)"){
+    return "-Math.sin(x)";
+  }
+
+  if(expr === "Math.tan(x)"){
+    return "sec²(x)";
+  }
+
+  return "No soportado aún";
+}
+
+// ======================
+// INTEGRALES
+// ======================
+
+function integral(expr){
+
+  expr = expr.replaceAll(" ","");
+
+  // x^n
+  let powerMatch = expr.match(/^x\*\*(\d+)$/);
+
+  if(powerMatch){
+
+    let n = Number(powerMatch[1]) + 1;
+
+    return `x^${n}/${n} + C`;
+  }
+
+  // ax^n
+  let polyMatch = expr.match(/^(\d+)x\*\*(\d+)$/);
+
+  if(polyMatch){
+
+    let a = Number(polyMatch[1]);
+    let n = Number(polyMatch[2]) + 1;
+
+    return `${a}/${n}x^${n} + C`;
+  }
+
+  // trigonométricas
+  if(expr === "Math.sin(x)"){
+    return "-Math.cos(x) + C";
+  }
+
+  if(expr === "Math.cos(x)"){
+    return "Math.sin(x) + C";
+  }
+
+  return "No soportado aún";
+}
+  function run(){
 
   let raw = document.getElementById("input").value;
 
   let eq = parseHumanMath(raw);
+// ======================
+// DERIVAR
+// ======================
 
+if(raw.toLowerCase().startsWith("derivar ")){
+
+  let expr = raw.substring(8);
+
+  expr = parseHumanMath(expr);
+
+  let result = derivative(expr);
+
+  document.getElementById("result").innerHTML = `
+    <b>Derivada:</b><br>
+    ${result}
+  `;
+
+  return;
+}
+
+// ======================
+// INTEGRAL
+// ======================
+
+if(raw.toLowerCase().startsWith("integral ")){
+
+  let expr = raw.substring(9);
+
+  expr = parseHumanMath(expr);
+
+  let result = integral(expr);
+
+  document.getElementById("result").innerHTML = `
+    <b>Integral:</b><br>
+    ${result}
+  `;
+
+  return;
+}
   let type = detect(eq);
 
   let out = "";
