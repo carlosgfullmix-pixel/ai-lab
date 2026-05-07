@@ -1,1736 +1,2014 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Engine v2</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Science Engine v3</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-
 :root {
-–bg:       #04080f;
-–surface:  #0b1220;
-–card:     #0f1c2e;
-–border:   rgba(0,200,255,0.12);
-–accent:   #00c8ff;
-–accent2:  #00ffb0;
-–accent3:  #ff6b6b;
-–text:     #e2eaf4;
-–muted:    #5a7a9a;
-–mono:     ‘Space Mono’, monospace;
-–sans:     ‘DM Sans’, sans-serif;
+  --bg:#03070f;
+  --surface:#080f1c;
+  --card:#0c1524;
+  --card2:#0f1a2e;
+  --border:rgba(56,189,248,0.1);
+  --border2:rgba(56,189,248,0.2);
+  --math:#38bdf8;
+  --chem:#34d399;
+  --phys:#f97316;
+  --accent:#38bdf8;
+  --text:#dde8f5;
+  --muted:#4a6a8a;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(56,189,248,0.06),transparent),
+    linear-gradient(rgba(56,189,248,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(56,189,248,0.02) 1px,transparent 1px);
+  background-size:100% 100%,48px 48px,48px 48px;
+  pointer-events:none;z-index:0;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-background: var(–bg);
-color: var(–text);
-font-family: var(–sans);
-min-height: 100vh;
-overflow-x: hidden;
+/* ── HEADER ── */
+header{
+  position:relative;z-index:2;
+  padding:20px 28px;
+  background:rgba(8,15,28,0.8);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
 }
-
-/* BG grid */
-body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image:
-linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
-background-size: 40px 40px;
-pointer-events: none;
-z-index: 0;
+.logo{display:flex;align-items:center;gap:14px}
+.logo-mark{
+  width:42px;height:42px;border-radius:10px;
+  background:linear-gradient(135deg,var(--math),#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-family:var(--mono);font-weight:700;color:#000;
+  box-shadow:0 0 20px rgba(56,189,248,0.3);
 }
-
-/* ============ HEADER ============ */
-header {
-position: relative;
-z-index: 1;
-padding: 36px 24px 28px;
-border-bottom: 1px solid var(–border);
-background: linear-gradient(180deg, rgba(0,200,255,0.05) 0%, transparent 100%);
-display: flex;
-align-items: center;
-justify-content: space-between;
-flex-wrap: wrap;
-gap: 12px;
+.logo-text h1{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:-0.5px}
+.logo-text h1 em{color:var(--math);font-style:normal}
+.logo-text p{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.06em}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{
+  font-family:var(--mono);font-size:10px;padding:4px 10px;
+  border-radius:20px;border:1px solid;letter-spacing:.06em;font-weight:600;
 }
+.badge-math{border-color:var(--math);color:var(--math);background:rgba(56,189,248,.06)}
+.badge-chem{border-color:var(--chem);color:var(--chem);background:rgba(52,211,153,.06)}
+.badge-phys{border-color:var(--phys);color:var(--phys);background:rgba(249,115,22,.06)}
+.badge-v{border-color:var(--muted);color:var(--muted)}
 
-.logo {
-display: flex;
-align-items: center;
-gap: 14px;
+/* ── TABS ── */
+.tab-bar{
+  position:relative;z-index:2;
+  display:flex;gap:2px;padding:0 28px;
+  background:rgba(8,15,28,0.6);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);overflow-x:auto;
 }
-
-.logo-icon {
-width: 44px; height: 44px;
-border-radius: 10px;
-background: linear-gradient(135deg, #00c8ff, #00ffb0);
-display: flex; align-items: center; justify-content: center;
-font-size: 22px;
-flex-shrink: 0;
+.tab{
+  padding:14px 18px;border:none;background:transparent;
+  color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;
+  cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:7px;
 }
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.tab.active-math{color:var(--math);border-bottom-color:var(--math);background:rgba(56,189,248,.05)}
+.tab.active-chem{color:var(--chem);border-bottom-color:var(--chem);background:rgba(52,211,153,.05)}
+.tab.active-phys{color:var(--phys);border-bottom-color:var(--phys);background:rgba(249,115,22,.05)}
 
-.logo h1 {
-font-family: var(–mono);
-font-size: 22px;
-letter-spacing: -0.5px;
-color: white;
+/* ── LAYOUT ── */
+.layout{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:420px 1fr;
+  min-height:calc(100vh - 108px);
 }
+.left-panel{padding:20px;border-right:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 108px)}
+.right-panel{padding:20px;overflow-y:auto;max-height:calc(100vh - 108px)}
 
-.logo h1 span { color: var(–accent); }
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
 
-.logo p {
-font-size: 12px;
-color: var(–muted);
-margin-top: 2px;
-letter-spacing: 0.04em;
+/* ── CARDS ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:18px;margin-bottom:14px;
 }
-
-.badge {
-font-family: var(–mono);
-font-size: 11px;
-padding: 4px 10px;
-border-radius: 20px;
-border: 1px solid var(–accent);
-color: var(–accent);
-letter-spacing: 0.08em;
+.card-title{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
 }
+.card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.math-title .dot{background:var(--math)}
+.chem-title .dot{background:var(--chem)}
+.phys-title .dot{background:var(--phys)}
+.math-title{color:var(--math)}
+.chem-title{color:var(--chem)}
+.phys-title{color:var(--phys)}
 
-/* ============ TABS ============ */
-.tabs {
-position: relative;
-z-index: 1;
-display: flex;
-gap: 4px;
-padding: 16px 24px 0;
-border-bottom: 1px solid var(–border);
-overflow-x: auto;
+/* ── INPUTS ── */
+textarea,input[type=text],input[type=number],select{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;
+  padding:11px 14px;outline:none;transition:border-color .2s;
 }
+textarea{resize:vertical;min-height:80px}
+textarea:focus,input:focus,select:focus{border-color:var(--border2);box-shadow:0 0 0 3px rgba(56,189,248,.06)}
+select{cursor:pointer}
 
-.tab {
-padding: 10px 18px;
-border: none;
-background: transparent;
-color: var(–muted);
-font-family: var(–sans);
-font-size: 14px;
-font-weight: 500;
-cursor: pointer;
-border-radius: 8px 8px 0 0;
-border-bottom: 2px solid transparent;
-transition: all 0.2s;
-white-space: nowrap;
+/* ── BUTTONS ── */
+.btn{
+  padding:10px 18px;border:none;border-radius:8px;
+  font-family:var(--sans);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px;
 }
+.btn-math{background:linear-gradient(135deg,var(--math),#0ea5e9);color:#000}
+.btn-math:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(56,189,248,.3)}
+.btn-chem{background:linear-gradient(135deg,var(--chem),#059669);color:#000}
+.btn-chem:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(52,211,153,.3)}
+.btn-phys{background:linear-gradient(135deg,var(--phys),#dc2626);color:#000}
+.btn-phys:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(249,115,22,.3)}
+.btn-ghost{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 
-.tab:hover { color: var(–text); background: rgba(255,255,255,0.04); }
-
-.tab.active {
-color: var(–accent);
-border-bottom-color: var(–accent);
-background: rgba(0,200,255,0.06);
+/* ── TAGS ── */
+.tag{
+  display:inline-block;padding:4px 10px;border-radius:6px;
+  font-size:11px;font-family:var(--mono);margin:3px;cursor:pointer;
+  transition:all .15s;border:1px solid;
 }
+.tag-math{background:rgba(56,189,248,.07);color:var(--math);border-color:rgba(56,189,248,.15)}
+.tag-math:hover{background:rgba(56,189,248,.15);transform:scale(1.04)}
+.tag-chem{background:rgba(52,211,153,.07);color:var(--chem);border-color:rgba(52,211,153,.15)}
+.tag-chem:hover{background:rgba(52,211,153,.15);transform:scale(1.04)}
+.tag-phys{background:rgba(249,115,22,.07);color:var(--phys);border-color:rgba(249,115,22,.15)}
+.tag-phys:hover{background:rgba(249,115,22,.15);transform:scale(1.04)}
 
-/* ============ LAYOUT ============ */
-.layout {
-position: relative;
-z-index: 1;
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 0;
-max-width: 1400px;
-margin: 0 auto;
-min-height: calc(100vh - 140px);
+/* ── RESULT ── */
+.result-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:16px 18px;font-family:var(--mono);
+  font-size:14px;line-height:1.9;min-height:56px;position:relative;
 }
-
-.panel {
-padding: 24px;
-border-right: 1px solid var(–border);
+.result-box.ok-math{border-color:rgba(56,189,248,.3)}
+.result-box.ok-chem{border-color:rgba(52,211,153,.3)}
+.result-box.ok-phys{border-color:rgba(249,115,22,.3)}
+.result-box.err{border-color:rgba(248,113,113,.3);color:#f87171}
+.copy-btn{
+  position:absolute;top:10px;right:10px;
+  padding:4px 10px;font-size:11px;border-radius:6px;
+  background:rgba(56,189,248,.1);color:var(--math);
+  border:1px solid rgba(56,189,248,.2);cursor:pointer;
+  font-family:var(--mono);transition:all .15s;
 }
+.copy-btn:hover{background:rgba(56,189,248,.2)}
 
-.panel:last-child { border-right: none; }
-
-/* ============ PAGES ============ */
-.page { display: none; }
-.page.active { display: block; }
-
-/* ============ CARDS ============ */
-.card {
-background: var(–card);
-border: 1px solid var(–border);
-border-radius: 14px;
-padding: 20px;
-margin-bottom: 16px;
+/* ── STEPS ── */
+.steps{display:flex;flex-direction:column;gap:1px}
+.step{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:13px;line-height:1.6;color:var(--muted);
+  animation:fadeUp .3s ease both;
 }
-
-.card-title {
-font-family: var(–mono);
-font-size: 11px;
-letter-spacing: 0.1em;
-color: var(–accent);
-text-transform: uppercase;
-margin-bottom: 14px;
-display: flex;
-align-items: center;
-gap: 8px;
+.step:last-child{border-bottom:none}
+.step-n{
+  min-width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;flex-shrink:0;margin-top:1px;
 }
+.step-n.math{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--math)}
+.step-n.chem{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--chem)}
+.step-n.phys{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--phys)}
+.step span{color:var(--text)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-.card-title::before {
-content: ‘’;
-width: 3px; height: 14px;
-background: var(–accent);
-border-radius: 2px;
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;min-width:90px;
 }
+.chip .lbl{font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.chip .val{font-size:18px;font-family:var(--mono);font-weight:700;margin-top:2px}
+.chip.math .val{color:var(--math)}
+.chip.chem .val{color:var(--chem)}
+.chip.phys .val{color:var(--phys)}
 
-/* ============ INPUT ============ */
-textarea, input[type=text] {
-width: 100%;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 10px;
-color: var(–text);
-font-family: var(–mono);
-font-size: 15px;
-padding: 14px 16px;
-resize: vertical;
-transition: border-color 0.2s;
-outline: none;
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:8px}
+.tbl th{padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.tbl td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── PERIODIC TABLE ── */
+.periodic-wrap{overflow-x:auto;padding-bottom:8px}
+.periodic-grid{display:grid;grid-template-columns:repeat(18,36px);gap:2px;min-width:680px}
+.el-cell{
+  width:36px;height:36px;border-radius:4px;border:1px solid transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;font-size:11px;font-family:var(--mono);
 }
+.el-cell:hover{transform:scale(1.15);z-index:10;border-color:var(--chem)}
+.el-cell .sym{font-weight:700;font-size:12px;line-height:1}
+.el-cell .num{font-size:8px;color:rgba(255,255,255,.5);margin-top:1px}
+.el-nonmetal{background:rgba(52,211,153,.12);color:var(--chem)}
+.el-metal{background:rgba(56,189,248,.12);color:var(--math)}
+.el-noble{background:rgba(167,139,250,.12);color:#a78bfa}
+.el-metalloid{background:rgba(251,191,36,.12);color:#fbbf24}
+.el-transition{background:rgba(249,115,22,.12);color:var(--phys)}
+.el-empty{background:transparent;border:none;cursor:default}
 
-textarea { min-height: 90px; }
+/* ── CHART ── */
+.chart-wrap{position:relative;height:300px;width:100%}
+.chart-wrap.sm{height:200px}
 
-textarea:focus, input[type=text]:focus {
-border-color: var(–accent);
-box-shadow: 0 0 0 3px rgba(0,200,255,0.08);
+/* ── MATRIX ── */
+.mat-grid{display:inline-grid;gap:5px}
+.mat-grid input{width:58px;text-align:center;padding:7px;font-size:13px}
+.mat-bracket{display:flex;align-items:center;gap:3px}
+.mat-brace{font-size:52px;font-weight:100;line-height:1;user-select:none}
+.mat-brace.math{color:var(--math)}
+.mat-res-tbl{border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:8px}
+.mat-res-tbl td{padding:6px 12px;border:1px solid var(--border);text-align:center;color:var(--chem)}
+
+/* ── MISC ── */
+.divider{height:1px;background:var(--border);margin:14px 0}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;font-family:var(--mono)}
+.h-list{display:flex;flex-direction:column;gap:7px;max-height:400px;overflow-y:auto}
+.h-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:10px 13px;display:flex;justify-content:space-between;align-items:flex-start;
+  gap:10px;cursor:pointer;transition:border-color .2s;
 }
+.h-item:hover{border-color:var(--border2)}
+.h-item .hi{font-family:var(--mono);font-size:12px;color:var(--math)}
+.h-item .hr{font-size:11px;color:var(--muted);margin-top:2px}
+.h-item .ht{font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+.empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
+.empty .ei{font-size:32px;margin-bottom:8px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-/* ============ BUTTONS ============ */
-.btn {
-padding: 11px 22px;
-border: none;
-border-radius: 9px;
-font-family: var(–sans);
-font-size: 14px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.18s;
-display: inline-flex;
-align-items: center;
-gap: 7px;
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .left-panel,.right-panel{max-height:none}
+  .left-panel{border-right:none;border-bottom:1px solid var(--border)}
 }
-
-.btn-primary {
-background: linear-gradient(135deg, var(–accent), #0099cc);
-color: #000;
-}
-
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,200,255,0.3); }
-
-.btn-ghost {
-background: rgba(255,255,255,0.05);
-color: var(–muted);
-border: 1px solid var(–border);
-}
-
-.btn-ghost:hover { background: rgba(255,255,255,0.09); color: var(–text); }
-
-.btn-sm { padding: 7px 13px; font-size: 12px; }
-
-.btn-danger {
-background: rgba(255,107,107,0.12);
-color: var(–accent3);
-border: 1px solid rgba(255,107,107,0.2);
-}
-
-.btn-danger:hover { background: rgba(255,107,107,0.2); }
-
-.btn-row {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-margin-top: 14px;
-}
-
-/* ============ RESULT BOX ============ */
-.result-box {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 10px;
-padding: 16px;
-font-family: var(–mono);
-font-size: 15px;
-line-height: 1.8;
-min-height: 60px;
-position: relative;
-}
-
-.result-box.success { border-color: rgba(0,255,176,0.3); }
-.result-box.error   { border-color: rgba(255,107,107,0.3); color: var(–accent3); }
-
-.copy-btn {
-position: absolute;
-top: 10px; right: 10px;
-padding: 4px 10px;
-font-size: 11px;
-border-radius: 6px;
-background: rgba(0,200,255,0.1);
-color: var(–accent);
-border: 1px solid rgba(0,200,255,0.2);
-cursor: pointer;
-font-family: var(–mono);
-transition: all 0.15s;
-}
-
-.copy-btn:hover { background: rgba(0,200,255,0.2); }
-
-/* ============ STEPS ============ */
-.steps {
-margin-top: 14px;
-}
-
-.step {
-display: flex;
-gap: 12px;
-align-items: flex-start;
-padding: 10px 0;
-border-bottom: 1px solid var(–border);
-font-size: 14px;
-line-height: 1.6;
-color: var(–muted);
-animation: fadeIn 0.3s ease both;
-}
-
-.step:last-child { border-bottom: none; }
-
-.step-num {
-min-width: 24px; height: 24px;
-border-radius: 50%;
-background: rgba(0,200,255,0.1);
-border: 1px solid rgba(0,200,255,0.2);
-color: var(–accent);
-font-family: var(–mono);
-font-size: 11px;
-display: flex; align-items: center; justify-content: center;
-flex-shrink: 0;
-margin-top: 1px;
-}
-
-.step span { color: var(–text); }
-
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(6px); }
-to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ============ CHART ============ */
-.chart-wrap {
-position: relative;
-height: 340px;
-width: 100%;
-}
-
-.chart-controls {
-display: flex;
-gap: 8px;
-margin-bottom: 12px;
-flex-wrap: wrap;
-align-items: center;
-}
-
-.chart-controls label {
-font-size: 12px;
-color: var(–muted);
-font-family: var(–mono);
-}
-
-.chart-controls input[type=number] {
-width: 64px;
-padding: 6px 8px;
-font-size: 13px;
-min-height: unset;
-}
-
-.legend-item {
-display: flex;
-align-items: center;
-gap: 6px;
-font-size: 12px;
-font-family: var(–mono);
-}
-
-.legend-dot {
-width: 10px; height: 10px;
-border-radius: 50%;
-}
-
-/* ============ HISTORY ============ */
-.history-list {
-display: flex;
-flex-direction: column;
-gap: 8px;
-max-height: 420px;
-overflow-y: auto;
-}
-
-.history-item {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 10px;
-padding: 12px 14px;
-display: flex;
-justify-content: space-between;
-align-items: flex-start;
-gap: 12px;
-cursor: pointer;
-transition: border-color 0.2s;
-animation: fadeIn 0.25s ease both;
-}
-
-.history-item:hover { border-color: rgba(0,200,255,0.3); }
-
-.history-input {
-font-family: var(–mono);
-font-size: 13px;
-color: var(–accent);
-}
-
-.history-result {
-font-size: 12px;
-color: var(–muted);
-margin-top: 3px;
-}
-
-.history-time {
-font-size: 11px;
-color: var(–muted);
-white-space: nowrap;
-font-family: var(–mono);
-}
-
-/* ============ MATRIX ============ */
-.matrix-grid {
-display: inline-grid;
-gap: 6px;
-margin: 8px 0;
-}
-
-.matrix-grid input {
-width: 64px;
-text-align: center;
-padding: 8px;
-font-size: 15px;
-}
-
-.matrix-bracket {
-display: flex;
-align-items: center;
-gap: 4px;
-}
-
-.bracket-left, .bracket-right {
-font-size: 60px;
-font-weight: 100;
-color: var(–accent);
-line-height: 1;
-user-select: none;
-}
-
-.matrix-result-table {
-border-collapse: collapse;
-font-family: var(–mono);
-font-size: 14px;
-margin-top: 10px;
-}
-
-.matrix-result-table td {
-padding: 6px 14px;
-border: 1px solid var(–border);
-text-align: center;
-color: var(–accent2);
-}
-
-/* ============ STATS ============ */
-.stat-chips {
-display: flex;
-flex-wrap: wrap;
-gap: 10px;
-margin-top: 12px;
-}
-
-.stat-chip {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 10px;
-padding: 10px 16px;
-display: flex;
-flex-direction: column;
-gap: 3px;
-}
-
-.stat-chip .label {
-font-size: 11px;
-color: var(–muted);
-font-family: var(–mono);
-text-transform: uppercase;
-letter-spacing: 0.06em;
-}
-
-.stat-chip .value {
-font-size: 20px;
-font-family: var(–mono);
-color: var(–accent2);
-font-weight: 700;
-}
-
-/* ============ COMPLEX ============ */
-.complex-result {
-font-family: var(–mono);
-font-size: 18px;
-color: var(–accent);
-}
-
-.complex-result .imag { color: var(–accent2); }
-
-/* ============ SCROLLBAR ============ */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(–border); border-radius: 4px; }
-
-/* ============ MISC ============ */
-.divider {
-height: 1px;
-background: var(–border);
-margin: 16px 0;
-}
-
-.tag {
-display: inline-block;
-padding: 3px 9px;
-border-radius: 6px;
-font-size: 11px;
-font-family: var(–mono);
-background: rgba(0,200,255,0.1);
-color: var(–accent);
-border: 1px solid rgba(0,200,255,0.15);
-margin: 2px;
-cursor: pointer;
-transition: all 0.15s;
-}
-
-.tag:hover { background: rgba(0,200,255,0.2); transform: scale(1.04); }
-
-.hint {
-font-size: 12px;
-color: var(–muted);
-margin-top: 8px;
-line-height: 1.6;
-}
-
-.empty-state {
-text-align: center;
-padding: 40px 20px;
-color: var(–muted);
-font-size: 14px;
-}
-
-.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
-
-/* ============ RESPONSIVE ============ */
-@media (max-width: 800px) {
-.layout { grid-template-columns: 1fr; }
-.panel { border-right: none; border-bottom: 1px solid var(–border); }
-}
-
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-
 <header>
   <div class="logo">
-    <div class="logo-icon">∑</div>
-    <div>
-      <h1>Math<span>Engine</span></h1>
-      <p>Motor matemático completo</p>
+    <div class="logo-mark">Σ</div>
+    <div class="logo-text">
+      <h1>Science<em>Engine</em></h1>
+      <p>Motor científico completo · Railway-ready</p>
     </div>
   </div>
-  <span class="badge">v2.0 STABLE</span>
+  <div class="badges">
+    <span class="badge badge-math">MATH</span>
+    <span class="badge badge-chem">CHEM</span>
+    <span class="badge badge-phys">PHYS</span>
+    <span class="badge badge-v">v3.0</span>
+  </div>
 </header>
 
-<!-- TABS -->
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('calc')">🧮 Calculadora</button>
-  <button class="tab" onclick="switchTab('graph')">📈 Gráficos</button>
-  <button class="tab" onclick="switchTab('matrix')">🔢 Matrices</button>
-  <button class="tab" onclick="switchTab('stats')">📊 Estadística</button>
-  <button class="tab" onclick="switchTab('history')">🕓 Historial</button>
+<div class="tab-bar">
+  <button class="tab active-math" onclick="goTab('calc')">🧮 Calculadora</button>
+  <button class="tab" onclick="goTab('graph')">📈 Gráficos</button>
+  <button class="tab" onclick="goTab('matrix')">🔢 Matrices</button>
+  <button class="tab" onclick="goTab('stats')">📊 Estadística</button>
+  <button class="tab" onclick="goTab('chem')">⚗️ Química</button>
+  <button class="tab" onclick="goTab('phys')">⚡ Física</button>
+  <button class="tab" onclick="goTab('history')">🕓 Historial</button>
 </div>
-
-<!-- LAYOUT -->
 
 <div class="layout">
+<div class="left-panel">
 
-<!-- ======== LEFT PANEL ======== -->
-
-<div class="panel">
-
-  <!-- CALCULADORA -->
-
-  <div id="page-calc" class="page active">
-    <div class="card">
-      <div class="card-title">Expresión</div>
-      <textarea id="calc-input" placeholder="Ejemplos:
-x^2 + 3*x + 2 = 0
-x + y = 10, x - y = 2
-derivar x^3
-integral 2*x^2
-seno de x
-raiz(144)
-3 * pi"></textarea>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="runCalc()">▶ Resolver</button>
-        <button class="btn btn-ghost btn-sm" onclick="clearCalc()">✕ Limpiar</button>
-      </div>
+<!-- ══════════ CALCULADORA ══════════ -->
+<div id="page-calc" class="page active">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Expresión matemática</div>
+    <textarea id="calc-input" placeholder="Ejemplos:
+x^2 + 3*x + 2 = 0        → cuadrática
+x + y = 10, x - y = 2    → sistema
+derivar 3*x^4             → derivada
+integral x^3              → integral
+lim sin(x)/x              → límite
+log(100)                  → logaritmo
+ln(e^3)                   → logaritmo natural
+arcsin(0.5)               → trig inversa
+(3+2i)*(1-i)              → complejos
+C(10,3)                   → combinatoria
+P(5,2)                    → permutaciones
+10!                       → factorial
+suma 1..100               → progresión
+raiz(144)                 → raíz"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-math" onclick="runCalc()">▶ Resolver</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearCalc()">✕</button>
     </div>
-
-```
-<div class="card">
-  <div class="card-title">Ejemplos rápidos</div>
-  <div>
-    <span class="tag" onclick="setCalc('x + 5 = 14')">Lineal</span>
-    <span class="tag" onclick="setCalc('x^2 + 3*x + 2 = 0')">Cuadrática</span>
-    <span class="tag" onclick="setCalc('x + y = 10, x - y = 2')">Sistema</span>
-    <span class="tag" onclick="setCalc('derivar x^3')">Derivada</span>
-    <span class="tag" onclick="setCalc('integral 2*x^2')">Integral</span>
-    <span class="tag" onclick="setCalc('seno de x')">sin(x)</span>
-    <span class="tag" onclick="setCalc('Math.sqrt(2) * pi')">√2·π</span>
-    <span class="tag" onclick="setCalc('x^4 - 5*x^2 + 4 = 0')">Bicuadrada</span>
-    <span class="tag" onclick="setCalc('2*x + 3*y = 12, x - y = 1')">Sistema 2</span>
-    <span class="tag" onclick="setCalc('derivar Math.sin(x)')">d/dx sin</span>
-    <span class="tag" onclick="setCalc('integral Math.cos(x)')">∫cos</span>
-    <span class="tag" onclick="setCalc('raiz(256)')">√256</span>
+  </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Ejemplos rápidos</div>
+    <span class="tag tag-math" onclick="sc('x^2+3*x+2=0')">Cuadrática</span>
+    <span class="tag tag-math" onclick="sc('x+y=10,x-y=2')">Sistema</span>
+    <span class="tag tag-math" onclick="sc('derivar 3*x^4')">Derivada</span>
+    <span class="tag tag-math" onclick="sc('integral x^3')">Integral</span>
+    <span class="tag tag-math" onclick="sc('lim sin(x)/x')">Límite</span>
+    <span class="tag tag-math" onclick="sc('log(1000)')">log</span>
+    <span class="tag tag-math" onclick="sc('ln(e^2)')">ln</span>
+    <span class="tag tag-math" onclick="sc('arcsin(0.5)')">arcsin</span>
+    <span class="tag tag-math" onclick="sc('(3+2i)*(1-4i)')">Complejos</span>
+    <span class="tag tag-math" onclick="sc('C(10,3)')">C(n,k)</span>
+    <span class="tag tag-math" onclick="sc('P(7,3)')">P(n,k)</span>
+    <span class="tag tag-math" onclick="sc('8!')">Factorial</span>
+    <span class="tag tag-math" onclick="sc('suma 1..50')">Suma aritmética</span>
+    <span class="tag tag-math" onclick="sc('geo 2,3,6')">Progresión geom.</span>
   </div>
 </div>
-```
 
-  </div>
-
-  <!-- GRÁFICOS -->
-
-  <div id="page-graph" class="page">
-    <div class="card">
-      <div class="card-title">Funciones a graficar</div>
-      <div id="fn-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-      <button class="btn btn-ghost btn-sm" onclick="addFnRow()">＋ Agregar función</button>
-      <div class="divider"></div>
-      <div class="chart-controls">
-        <label>X min</label>
-        <input type="number" id="xmin" value="-10">
-        <label>X max</label>
-        <input type="number" id="xmax" value="10">
-        <label>Y min</label>
-        <input type="number" id="ymin" value="-10">
-        <label>Y max</label>
-        <input type="number" id="ymax" value="10">
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="runGraph()">▶ Graficar</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetGraphRange()">↺ Rango</button>
-      </div>
+<!-- ══════════ GRÁFICOS ══════════ -->
+<div id="page-graph" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Funciones</div>
+    <div id="fn-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+    <button class="btn btn-ghost btn-sm" onclick="addFn()">＋ Función</button>
+    <div class="divider"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">X min</div><input type="number" id="xmin" value="-10"></div>
+      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">X max</div><input type="number" id="xmax" value="10"></div>
+      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">Y min</div><input type="number" id="ymin" value="-10"></div>
+      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">Y max</div><input type="number" id="ymax" value="10"></div>
     </div>
-
-```
-<div class="card">
-  <div class="card-title">Ejemplos</div>
-  <span class="tag" onclick="setGraphExample('Math.sin(x)')">sin(x)</span>
-  <span class="tag" onclick="setGraphExample('Math.cos(x)')">cos(x)</span>
-  <span class="tag" onclick="setGraphExample('x**2')">x²</span>
-  <span class="tag" onclick="setGraphExample('x**3 - 3*x')">x³-3x</span>
-  <span class="tag" onclick="setGraphExample('Math.tan(x)')">tan(x)</span>
-  <span class="tag" onclick="setGraphExample('1/x')">1/x</span>
-  <span class="tag" onclick="setGraphExample('Math.sqrt(Math.abs(x))')">√|x|</span>
-  <span class="tag" onclick="setGraphExample('Math.exp(-x*x/2)')">Gauss</span>
-</div>
-```
-
-  </div>
-
-  <!-- MATRICES -->
-
-  <div id="page-matrix" class="page">
-    <div class="card">
-      <div class="card-title">Tamaño</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <select id="mat-size" onchange="buildMatrices()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;outline:none;">
-          <option value="2">2×2</option>
-          <option value="3" selected>3×3</option>
-        </select>
-        <select id="mat-op" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;outline:none;">
-          <option value="det">Determinante de A</option>
-          <option value="sum">A + B</option>
-          <option value="mul">A × B</option>
-          <option value="inv">Inversa de A</option>
-          <option value="trans">Transpuesta de A</option>
-        </select>
-      </div>
+    <div class="btn-row">
+      <button class="btn btn-math" onclick="runGraph()">▶ Graficar</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetRange()">↺ Rango</button>
     </div>
-
-```
-<div class="card">
-  <div class="card-title">Matriz A</div>
-  <div class="matrix-bracket">
-    <span class="bracket-left">[</span>
-    <div id="mat-a" class="matrix-grid"></div>
-    <span class="bracket-right">]</span>
+  </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Ejemplos</div>
+    <span class="tag tag-math" onclick="addFnVal('Math.sin(x)')">sin(x)</span>
+    <span class="tag tag-math" onclick="addFnVal('Math.cos(x)')">cos(x)</span>
+    <span class="tag tag-math" onclick="addFnVal('x**2')">x²</span>
+    <span class="tag tag-math" onclick="addFnVal('x**3-3*x')">x³−3x</span>
+    <span class="tag tag-math" onclick="addFnVal('1/x')">1/x</span>
+    <span class="tag tag-math" onclick="addFnVal('Math.exp(-x*x/2)')">Gauss</span>
+    <span class="tag tag-math" onclick="addFnVal('Math.log(Math.abs(x))')">ln|x|</span>
+    <span class="tag tag-math" onclick="addFnVal('Math.tan(x)')">tan(x)</span>
   </div>
 </div>
 
-<div class="card" id="mat-b-card">
-  <div class="card-title">Matriz B</div>
-  <div class="matrix-bracket">
-    <span class="bracket-left">[</span>
-    <div id="mat-b" class="matrix-grid"></div>
-    <span class="bracket-right">]</span>
+<!-- ══════════ MATRICES ══════════ -->
+<div id="page-matrix" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Configuración</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <select id="mat-size" onchange="buildMats()" style="flex:1">
+        <option value="2">2×2</option>
+        <option value="3" selected>3×3</option>
+      </select>
+      <select id="mat-op" style="flex:2">
+        <option value="det">Determinante de A</option>
+        <option value="sum">A + B</option>
+        <option value="mul">A × B</option>
+        <option value="inv">Inversa de A</option>
+        <option value="trans">Transpuesta de A</option>
+        <option value="rank">Rango de A</option>
+      </select>
+    </div>
   </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Matriz A</div>
+    <div class="mat-bracket">
+      <span class="mat-brace math">[</span>
+      <div id="mat-a" class="mat-grid"></div>
+      <span class="mat-brace math">]</span>
+    </div>
+  </div>
+  <div class="card" id="mat-b-card">
+    <div class="card-title math-title"><div class="dot"></div>Matriz B</div>
+    <div class="mat-bracket">
+      <span class="mat-brace math">[</span>
+      <div id="mat-b" class="mat-grid"></div>
+      <span class="mat-brace math">]</span>
+    </div>
+  </div>
+  <button class="btn btn-math" onclick="runMatrix()">▶ Calcular</button>
 </div>
 
-<button class="btn btn-primary" onclick="runMatrix()">▶ Calcular</button>
-```
-
-  </div>
-
-  <!-- ESTADÍSTICA -->
-
-  <div id="page-stats" class="page">
-    <div class="card">
-      <div class="card-title">Datos</div>
-      <textarea id="stats-input" placeholder="Ingresar números separados por coma o espacio:
+<!-- ══════════ ESTADÍSTICA ══════════ -->
+<div id="page-stats" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Datos</div>
+    <textarea id="stats-input" placeholder="Números separados por coma o espacio:
 12, 45, 7, 89, 23, 56, 34, 78, 11, 90"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-math" onclick="runStats()">▶ Analizar</button>
+      <button class="btn btn-ghost btn-sm" onclick="setStEx()">Ejemplo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ QUÍMICA ══════════ -->
+<div id="page-chem" class="page">
+  <div class="card">
+    <div class="card-title chem-title"><div class="dot"></div>Herramienta</div>
+    <select id="chem-tool" onchange="updateChemUI()">
+      <option value="molar">Masa molar</option>
+      <option value="balance">Balanceo de ecuaciones</option>
+      <option value="ph">pH / pOH</option>
+      <option value="gas">Ley del gas ideal (PV=nRT)</option>
+      <option value="conc">Concentración molar</option>
+      <option value="periodic">Tabla periódica</option>
+    </select>
+  </div>
+
+  <div id="chem-molar" class="chem-panel">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Fórmula química</div>
+      <input type="text" id="molar-input" placeholder="ej: H2O, NaCl, H2SO4, C6H12O6">
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="runStats()">▶ Calcular</button>
-        <button class="btn btn-ghost btn-sm" onclick="setStatsExample()">Ejemplo</button>
+        <button class="btn btn-chem" onclick="runMolar()">▶ Calcular masa molar</button>
+      </div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='H2O'">H₂O</span>
+        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='NaCl'">NaCl</span>
+        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='H2SO4'">H₂SO₄</span>
+        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='C6H12O6'">C₆H₁₂O₆</span>
+        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='Fe2O3'">Fe₂O₃</span>
+        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='Ca3(PO4)2'">Ca₃(PO₄)₂</span>
       </div>
     </div>
   </div>
 
-  <!-- HISTORIAL -->
-
-  <div id="page-history" class="page">
+  <div id="chem-balance" class="chem-panel" style="display:none">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <div class="card-title" style="margin-bottom:0">Historial de cálculos</div>
-        <button class="btn btn-danger btn-sm" onclick="clearHistory()">✕ Limpiar</button>
+      <div class="card-title chem-title"><div class="dot"></div>Ecuación química</div>
+      <input type="text" id="balance-input" placeholder="ej: H2 + O2 → H2O">
+      <div class="btn-row">
+        <button class="btn btn-chem" onclick="runBalance()">▶ Balancear</button>
       </div>
-      <div id="history-list">
-        <div class="empty-state">
-          <div class="icon">📭</div>
-          <div>Aún no hay cálculos en el historial</div>
-        </div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="document.getElementById('balance-input').value='H2 + O2 → H2O'">H₂+O₂→H₂O</span>
+        <span class="tag tag-chem" onclick="document.getElementById('balance-input').value='N2 + H2 → NH3'">N₂+H₂→NH₃</span>
+        <span class="tag tag-chem" onclick="document.getElementById('balance-input').value='Fe + O2 → Fe2O3'">Fe+O₂→Fe₂O₃</span>
       </div>
     </div>
   </div>
 
-</div><!-- end left panel -->
-
-<!-- ======== RIGHT PANEL ======== -->
-
-<div class="panel">
-
-  <!-- RESULTADO CALC -->
-
-  <div id="right-calc" class="page active">
+  <div id="chem-ph" class="chem-panel" style="display:none">
     <div class="card">
-      <div class="card-title">Resultado</div>
-      <div class="result-box" id="calc-result">
-        Esperando cálculo...
-        <button class="copy-btn" onclick="copyResult()" style="display:none" id="copy-btn">Copiar</button>
-      </div>
+      <div class="card-title chem-title"><div class="dot"></div>Cálculo de pH</div>
+      <select id="ph-type" style="margin-bottom:10px">
+        <option value="conc">Concentración [H⁺] → pH</option>
+        <option value="ph">pH → [H⁺] y pOH</option>
+        <option value="weak">Ácido débil (Ka)</option>
+      </select>
+      <input type="text" id="ph-input" placeholder="Valor...">
+      <div class="btn-row"><button class="btn btn-chem" onclick="runPH()">▶ Calcular</button></div>
     </div>
+  </div>
 
-```
-<div class="card" id="steps-card" style="display:none">
-  <div class="card-title">Pasos</div>
-  <div class="steps" id="calc-steps"></div>
+  <div id="chem-gas" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Gas ideal PV = nRT</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Dejá en blanco la variable a calcular</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">P (atm)</div><input type="text" id="gas-p" placeholder="presión"></div>
+        <div><div class="hint" style="margin-bottom:4px">V (L)</div><input type="text" id="gas-v" placeholder="volumen"></div>
+        <div><div class="hint" style="margin-bottom:4px">n (mol)</div><input type="text" id="gas-n" placeholder="moles"></div>
+        <div><div class="hint" style="margin-bottom:4px">T (K)</div><input type="text" id="gas-t" placeholder="temperatura"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-chem" onclick="runGas()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <div id="chem-conc" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Concentración molar</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">Moles (mol)</div><input type="text" id="conc-n" placeholder="n"></div>
+        <div><div class="hint" style="margin-bottom:4px">Volumen (L)</div><input type="text" id="conc-v" placeholder="V"></div>
+        <div><div class="hint" style="margin-bottom:4px">Masa molar (g/mol)</div><input type="text" id="conc-mm" placeholder="MM"></div>
+        <div><div class="hint" style="margin-bottom:4px">Masa (g)</div><input type="text" id="conc-m" placeholder="m"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-chem" onclick="runConc()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <div id="chem-periodic" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
+      <p class="hint">Hacé clic en un elemento para ver sus propiedades</p>
+    </div>
+  </div>
 </div>
 
-<div class="card" id="calc-chart-card" style="display:none">
-  <div class="card-title">Gráfico</div>
-  <div class="chart-wrap">
-    <canvas id="calc-chart"></canvas>
+<!-- ══════════ FÍSICA ══════════ -->
+<div id="page-phys" class="page">
+  <div class="card">
+    <div class="card-title phys-title"><div class="dot"></div>Módulo</div>
+    <select id="phys-tool" onchange="updatePhysUI()">
+      <option value="kine">Cinemática (MRU / MRUA)</option>
+      <option value="dyn">Dinámica (F = ma)</option>
+      <option value="energy">Energía y trabajo</option>
+      <option value="thermo">Termodinámica</option>
+      <option value="ohm">Ley de Ohm y circuitos</option>
+      <option value="waves">Ondas</option>
+      <option value="optics">Óptica (lentes)</option>
+    </select>
+  </div>
+
+  <!-- CINEMÁTICA -->
+  <div id="phys-kine" class="phys-panel">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Cinemática</div>
+      <select id="kine-type" style="margin-bottom:10px">
+        <option value="mru">MRU — v = cte</option>
+        <option value="mrua">MRUA — aceleración cte</option>
+        <option value="caida">Caída libre</option>
+        <option value="tiro">Tiro parabólico</option>
+      </select>
+      <div id="kine-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runKine()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- DINÁMICA -->
+  <div id="phys-dyn" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Dinámica — F = ma</div>
+      <p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">F (N)</div><input type="text" id="dyn-f" placeholder="fuerza"></div>
+        <div><div class="hint" style="margin-bottom:4px">m (kg)</div><input type="text" id="dyn-m" placeholder="masa"></div>
+        <div><div class="hint" style="margin-bottom:4px">a (m/s²)</div><input type="text" id="dyn-a" placeholder="aceleración"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runDyn()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- ENERGÍA -->
+  <div id="phys-energy" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Energía y trabajo</div>
+      <select id="energy-type" style="margin-bottom:10px">
+        <option value="ke">Energía cinética: Ec = ½mv²</option>
+        <option value="pe">Energía potencial: Ep = mgh</option>
+        <option value="work">Trabajo: W = F·d·cos(θ)</option>
+        <option value="power">Potencia: P = W/t</option>
+      </select>
+      <div id="energy-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runEnergy()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- TERMODINÁMICA -->
+  <div id="phys-thermo" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Termodinámica</div>
+      <select id="thermo-type" style="margin-bottom:10px">
+        <option value="q">Calor: Q = m·c·ΔT</option>
+        <option value="conv">Conversión de temperatura</option>
+        <option value="exp">Dilatación lineal: ΔL = α·L₀·ΔT</option>
+      </select>
+      <div id="thermo-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runThermo()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- OHM -->
+  <div id="phys-ohm" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Electricidad</div>
+      <select id="ohm-type" style="margin-bottom:10px">
+        <option value="ohm">Ley de Ohm: V = I·R</option>
+        <option value="serie">Resistencias en serie</option>
+        <option value="paralelo">Resistencias en paralelo</option>
+        <option value="potencia">Potencia eléctrica: P = V·I</option>
+      </select>
+      <div id="ohm-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runOhm()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- ONDAS -->
+  <div id="phys-waves" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Ondas — v = λ·f</div>
+      <p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">v (m/s)</div><input type="text" id="wave-v" placeholder="velocidad"></div>
+        <div><div class="hint" style="margin-bottom:4px">λ (m)</div><input type="text" id="wave-l" placeholder="long. de onda"></div>
+        <div><div class="hint" style="margin-bottom:4px">f (Hz)</div><input type="text" id="wave-f" placeholder="frecuencia"></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="hint" style="margin-bottom:4px">T (s) — Período</div>
+        <input type="text" id="wave-t" placeholder="período (opcional)">
+      </div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runWaves()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- ÓPTICA -->
+  <div id="phys-optics" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Óptica — Ecuación de lentes</div>
+      <p class="hint" style="margin-bottom:10px">1/f = 1/do + 1/di · Dejá en blanco la incógnita</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">f (focal, cm)</div><input type="text" id="opt-f" placeholder="focal"></div>
+        <div><div class="hint" style="margin-bottom:4px">do (objeto, cm)</div><input type="text" id="opt-do" placeholder="dist. objeto"></div>
+        <div><div class="hint" style="margin-bottom:4px">di (imagen, cm)</div><input type="text" id="opt-di" placeholder="dist. imagen"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runOptics()">▶ Calcular</button></div>
+    </div>
   </div>
 </div>
-```
 
+<!-- ══════════ HISTORIAL ══════════ -->
+<div id="page-history" class="page">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="card-title math-title" style="margin-bottom:0"><div class="dot"></div>Historial</div>
+      <button class="btn btn-ghost btn-sm" onclick="clearHist()">✕ Limpiar</button>
+    </div>
+    <div id="hist-list"><div class="empty"><div class="ei">📭</div>Sin cálculos aún</div></div>
   </div>
+</div>
 
-  <!-- RESULTADO GRAPH -->
+</div><!-- /left-panel -->
 
-  <div id="right-graph" class="page">
+<!-- ══════════ RIGHT PANEL ══════════ -->
+<div class="right-panel">
+
+<div id="right-calc" class="page active">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="calc-result">Esperando cálculo...</div>
+  </div>
+  <div class="card" id="steps-card" style="display:none">
+    <div class="card-title math-title"><div class="dot"></div>Pasos</div>
+    <div class="steps" id="calc-steps"></div>
+  </div>
+  <div class="card" id="calc-chart-card" style="display:none">
+    <div class="card-title math-title"><div class="dot"></div>Gráfico</div>
+    <div class="chart-wrap"><canvas id="calc-chart"></canvas></div>
+  </div>
+</div>
+
+<div id="right-graph" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Gráfico</div>
+    <div id="graph-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+    <div class="chart-wrap"><canvas id="multi-chart"></canvas></div>
+    <div class="hint" id="graph-coords" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<div id="right-matrix" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="mat-result">Ingresá datos y presioná Calcular</div>
+  </div>
+  <div class="card" id="mat-steps-card" style="display:none">
+    <div class="card-title math-title"><div class="dot"></div>Pasos</div>
+    <div class="steps" id="mat-steps"></div>
+  </div>
+</div>
+
+<div id="right-stats" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Estadísticas</div>
+    <div id="stat-chips" class="chips"><div class="empty" style="width:100%"><div class="ei">📊</div>Ingresá datos</div></div>
+  </div>
+  <div class="card" id="stats-chart-card" style="display:none">
+    <div class="card-title math-title"><div class="dot"></div>Histograma</div>
+    <div class="chart-wrap sm"><canvas id="stats-chart"></canvas></div>
+  </div>
+</div>
+
+<div id="right-chem" class="page">
+  <div class="card">
+    <div class="card-title chem-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="chem-result">Seleccioná una herramienta y calculá</div>
+  </div>
+  <div class="card" id="chem-steps-card" style="display:none">
+    <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
+    <div class="steps" id="chem-steps"></div>
+  </div>
+  <div id="periodic-display" style="display:none">
     <div class="card">
-      <div class="card-title">Gráfico</div>
-      <div id="graph-legend" class="stat-chips" style="margin-bottom:12px;"></div>
-      <div class="chart-wrap">
-        <canvas id="multi-chart"></canvas>
-      </div>
-      <div class="hint" id="graph-coords" style="margin-top:10px;font-family:var(--mono);"></div>
+      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
+      <div class="periodic-wrap"><div id="periodic-grid" class="periodic-grid"></div></div>
+    </div>
+    <div class="card" id="el-detail" style="display:none">
+      <div class="card-title chem-title"><div class="dot"></div>Elemento seleccionado</div>
+      <div id="el-detail-content"></div>
     </div>
   </div>
+</div>
 
-  <!-- RESULTADO MATRIX -->
-
-  <div id="right-matrix" class="page">
-    <div class="card">
-      <div class="card-title">Resultado</div>
-      <div class="result-box" id="matrix-result">Ingresá los datos y presioná Calcular</div>
-    </div>
-    <div class="card" id="matrix-steps-card" style="display:none">
-      <div class="card-title">Pasos</div>
-      <div class="steps" id="matrix-steps"></div>
-    </div>
+<div id="right-phys" class="page">
+  <div class="card">
+    <div class="card-title phys-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="phys-result">Seleccioná un módulo y calculá</div>
   </div>
-
-  <!-- RESULTADO STATS -->
-
-  <div id="right-stats" class="page">
-    <div class="card">
-      <div class="card-title">Resultados estadísticos</div>
-      <div id="stat-chips" class="stat-chips">
-        <div class="empty-state" style="width:100%">
-          <div class="icon">📊</div>
-          <div>Ingresá datos para ver estadísticas</div>
-        </div>
-      </div>
-    </div>
-    <div class="card" id="stats-chart-card" style="display:none">
-      <div class="card-title">Distribución</div>
-      <div class="chart-wrap" style="height:220px">
-        <canvas id="stats-chart"></canvas>
-      </div>
-    </div>
+  <div class="card" id="phys-steps-card" style="display:none">
+    <div class="card-title phys-title"><div class="dot"></div>Pasos</div>
+    <div class="steps" id="phys-steps"></div>
   </div>
-
-  <!-- HISTORIAL RIGHT -->
-
-  <div id="right-history" class="page">
-    <div class="card">
-      <div class="empty-state">
-        <div class="icon">🕓</div>
-        <div>Hacé clic en un cálculo del historial para cargarlo</div>
-      </div>
-    </div>
+  <div class="card" id="phys-chart-card" style="display:none">
+    <div class="card-title phys-title"><div class="dot"></div>Gráfico</div>
+    <div class="chart-wrap sm"><canvas id="phys-chart"></canvas></div>
   </div>
+</div>
 
-</div><!-- end right panel -->
-</div><!-- end layout -->
+<div id="right-history" class="page">
+  <div class="card">
+    <div class="empty"><div class="ei">🕓</div>Hacé clic en un cálculo del historial para cargarlo</div>
+  </div>
+</div>
+
+</div><!-- /right-panel -->
+</div><!-- /layout -->
 
 <script>
+// ═══════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════
+const COLORS=['#38bdf8','#34d399','#f97316','#a78bfa','#fb7185','#fbbf24'];
+let calcChart=null,multiChart=null,statsChart=null,physChart=null;
+let fnRows=[];
+let histData=[];
 
-// ======================================================
-// STATE
-// ======================================================
+const ATOMIC={
+  H:{name:'Hidrógeno',mass:1.008,num:1,cat:'nonmetal'},
+  He:{name:'Helio',mass:4.003,num:2,cat:'noble'},
+  Li:{name:'Litio',mass:6.941,num:3,cat:'metal'},
+  Be:{name:'Berilio',mass:9.012,num:4,cat:'metal'},
+  B:{name:'Boro',mass:10.811,num:5,cat:'metalloid'},
+  C:{name:'Carbono',mass:12.011,num:6,cat:'nonmetal'},
+  N:{name:'Nitrógeno',mass:14.007,num:7,cat:'nonmetal'},
+  O:{name:'Oxígeno',mass:15.999,num:8,cat:'nonmetal'},
+  F:{name:'Flúor',mass:18.998,num:9,cat:'nonmetal'},
+  Ne:{name:'Neón',mass:20.18,num:10,cat:'noble'},
+  Na:{name:'Sodio',mass:22.99,num:11,cat:'metal'},
+  Mg:{name:'Magnesio',mass:24.305,num:12,cat:'metal'},
+  Al:{name:'Aluminio',mass:26.982,num:13,cat:'metal'},
+  Si:{name:'Silicio',mass:28.086,num:14,cat:'metalloid'},
+  P:{name:'Fósforo',mass:30.974,num:15,cat:'nonmetal'},
+  S:{name:'Azufre',mass:32.06,num:16,cat:'nonmetal'},
+  Cl:{name:'Cloro',mass:35.453,num:17,cat:'nonmetal'},
+  Ar:{name:'Argón',mass:39.948,num:18,cat:'noble'},
+  K:{name:'Potasio',mass:39.098,num:19,cat:'metal'},
+  Ca:{name:'Calcio',mass:40.078,num:20,cat:'metal'},
+  Fe:{name:'Hierro',mass:55.845,num:26,cat:'transition'},
+  Cu:{name:'Cobre',mass:63.546,num:29,cat:'transition'},
+  Zn:{name:'Zinc',mass:65.38,num:30,cat:'transition'},
+  Ag:{name:'Plata',mass:107.868,num:47,cat:'transition'},
+  Au:{name:'Oro',mass:196.967,num:79,cat:'transition'},
+  Hg:{name:'Mercurio',mass:200.59,num:80,cat:'transition'},
+  Pb:{name:'Plomo',mass:207.2,num:82,cat:'metal'},
+  I:{name:'Yodo',mass:126.904,num:53,cat:'nonmetal'},
+  Br:{name:'Bromo',mass:79.904,num:35,cat:'nonmetal'},
+  Mn:{name:'Manganeso',mass:54.938,num:25,cat:'transition'},
+  Ni:{name:'Níquel',mass:58.693,num:28,cat:'transition'},
+  Cr:{name:'Cromo',mass:51.996,num:24,cat:'transition'},
+};
 
-let calcChart = null;
-let multiChart = null;
-let statsChart = null;
-let history = [];
-const COLORS = ['#00c8ff','#00ffb0','#ff6b6b','#ffd966','#c084fc','#fb923c'];
-
-// ======================================================
+// ═══════════════════════════════════════════════
 // TABS
-// ======================================================
+// ═══════════════════════════════════════════════
+const TABS=['calc','graph','matrix','stats','chem','phys','history'];
+const TAB_CLASS={calc:'active-math',graph:'active-math',matrix:'active-math',stats:'active-math',chem:'active-chem',phys:'active-phys',history:'active-math'};
 
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-
-  const tabs = ['calc','graph','matrix','stats','history'];
-  const idx = tabs.indexOf(name);
-  document.querySelectorAll('.tab')[idx].classList.add('active');
-
-  document.getElementById('page-' + name).classList.add('active');
-  document.getElementById('right-' + name).classList.add('active');
+function goTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.className='tab');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  let idx=TABS.indexOf(name);
+  document.querySelectorAll('.tab')[idx].className='tab '+TAB_CLASS[name];
+  document.getElementById('page-'+name)?.classList.add('active');
+  document.getElementById('right-'+name)?.classList.add('active');
+  if(name==='chem') updateChemUI();
+  if(name==='phys') updatePhysUI();
 }
 
-// ======================================================
-// PARSER HUMANO
-// ======================================================
-
-function parseHumanMath(text) {
-  let t = text;
-  let lower = t.toLowerCase();
-
-  if (lower.includes("seno de x"))     return "Math.sin(x)";
-  if (lower.includes("coseno de x"))   return "Math.cos(x)";
-  if (lower.includes("tangente de x")) return "Math.tan(x)";
-
-  t = t.replaceAll("al cuadrado", "**2");
-  t = t.replaceAll("cuadrado",    "**2");
-  t = t.replaceAll("al cubo",     "**3");
-  t = t.replaceAll("más",         "+");
-  t = t.replaceAll("menos",       "-");
-  t = t.replaceAll("por",         "*");
-  t = t.replaceAll("dividido",    "/");
-
-  t = t.replaceAll("^", "**");
-  t = t.replace(/(\d)(x)/g, "$1*$2");
-
-  if (!t.includes("Math.sin")) t = t.replaceAll("sin(x)", "Math.sin(x)");
-  if (!t.includes("Math.cos")) t = t.replaceAll("cos(x)", "Math.cos(x)");
-  if (!t.includes("Math.tan")) t = t.replaceAll("tan(x)", "Math.tan(x)");
-
-  t = t.replaceAll("raiz(",  "Math.sqrt(");
-  t = t.replaceAll("√(",     "Math.sqrt(");
-  t = t.replaceAll("pi",     "Math.PI");
-  t = t.replaceAll("e",      "Math.E");
-  t = t.replace(/\s+/g, "");
-
+// ═══════════════════════════════════════════════
+// PARSER
+// ═══════════════════════════════════════════════
+function parse(text){
+  let t=text;
+  t=t.replaceAll('al cuadrado','**2').replaceAll('cuadrado','**2').replaceAll('al cubo','**3');
+  t=t.replaceAll('más','+').replaceAll('menos','-').replaceAll('por','*').replaceAll('dividido','/');
+  t=t.replaceAll('^','**');
+  t=t.replace(/(\d)(x)/g,'$1*$2');
+  if(!t.includes('Math.sin'))   t=t.replaceAll('sin(','Math.sin(');
+  if(!t.includes('Math.cos'))   t=t.replaceAll('cos(','Math.cos(');
+  if(!t.includes('Math.tan'))   t=t.replaceAll('tan(','Math.tan(');
+  if(!t.includes('Math.sqrt'))  t=t.replaceAll('raiz(','Math.sqrt(').replaceAll('sqrt(','Math.sqrt(');
+  if(!t.includes('Math.log'))   t=t.replaceAll('log(','Math.log10(').replaceAll('ln(','Math.log(');
+  if(!t.includes('Math.asin'))  t=t.replaceAll('arcsin(','Math.asin(');
+  if(!t.includes('Math.acos'))  t=t.replaceAll('arccos(','Math.acos(');
+  if(!t.includes('Math.atan'))  t=t.replaceAll('arctan(','Math.atan(');
+  t=t.replaceAll('e**','Math.E**').replaceAll(/\be\b/g,'Math.E');
+  t=t.replaceAll('pi','Math.PI');
+  t=t.replace(/\s+/g,'');
   return t;
 }
 
-// ======================================================
-// DETECTOR
-// ======================================================
-
-function detect(eq) {
-  eq = eq.replaceAll(" ","");
-  if (eq.includes(",") && eq.includes("=")) return "system";
-  if (eq.includes("=") && (eq.includes("x**2") || eq.includes("x^2"))) return "quadratic";
-  if (eq.includes("=")) return "linear";
-  return "function";
+function detect(eq){
+  eq=eq.replaceAll(' ','');
+  if(eq.includes(',')&&eq.includes('=')) return 'system';
+  if(eq.includes('=')&&(eq.includes('x**2')||eq.includes('x^2'))) return 'quadratic';
+  if(eq.includes('=')) return 'linear';
+  return 'function';
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
+// MATH HELPERS
+// ═══════════════════════════════════════════════
+function fmt(n,d=6){
+  if(typeof n!=='number'||isNaN(n)) return String(n);
+  return Number.isInteger(n)?n:parseFloat(n.toFixed(d));
+}
+
+function factorial(n){
+  n=Math.floor(n);
+  if(n<0||n>170) return NaN;
+  let r=1; for(let i=2;i<=n;i++) r*=i; return r;
+}
+
+function comb(n,k){ return factorial(n)/(factorial(k)*factorial(n-k)); }
+function perm(n,k){ return factorial(n)/factorial(n-k); }
+
+// COMPLEJOS
+function parseComplex(s){
+  s=s.replaceAll(' ','');
+  // (a+bi) or (a-bi)
+  let m=s.match(/^\(?([-\d.]+)([+-][\d.]+)i\)?$/);
+  if(m) return {re:Number(m[1]),im:Number(m[2])};
+  let mi=s.match(/^\(?([-\d.]+)i\)?$/);
+  if(mi) return {re:0,im:Number(mi[1])};
+  let mr=s.match(/^\(?([-\d.]+)\)?$/);
+  if(mr) return {re:Number(mr[1]),im:0};
+  return null;
+}
+
+function complexOp(expr){
+  // detectar operación entre complejos
+  let clean=expr.replaceAll(' ','');
+  // buscar patrón (a+bi) OP (c+di)
+  let m=clean.match(/^\(([^)]+)\)([+\-*/])\(([^)]+)\)$/);
+  if(!m) return null;
+  let A=parseComplex(m[1]),op=m[2],B=parseComplex(m[3]);
+  if(!A||!B) return null;
+  let r={re:0,im:0};
+  if(op==='+'){r.re=A.re+B.re;r.im=A.im+B.im}
+  else if(op==='-'){r.re=A.re-B.re;r.im=A.im-B.im}
+  else if(op==='*'){r.re=A.re*B.re-A.im*B.im;r.im=A.re*B.im+A.im*B.re}
+  else if(op==='/'){let d=B.re**2+B.im**2;r.re=(A.re*B.re+A.im*B.im)/d;r.im=(A.im*B.re-A.re*B.im)/d}
+  return {A,B,op,r};
+}
+
+function fmtC(c){
+  let re=fmt(c.re),im=fmt(c.im);
+  if(c.im===0) return `${re}`;
+  if(c.re===0) return `${im}i`;
+  return im>=0?`${re} + ${im}i`:`${re} - ${Math.abs(im)}i`;
+}
+
+// ═══════════════════════════════════════════════
 // SOLVERS
-// ======================================================
-
-function solveLinear(eq) {
-  eq = eq.replaceAll(" ","").replaceAll("*","");
-  let [l, r] = eq.split("=");
-  let right = Number(r);
-  let match = l.match(/(-?\d*)x([+-]\d+)?/);
-  let a = 1, b = 0;
-  if (match) {
-    if (match[1] === "-") a = -1;
-    else if (match[1] !== "") a = Number(match[1]);
-    if (match[2]) b = Number(match[2]);
+// ═══════════════════════════════════════════════
+function solveLinear(eq){
+  eq=eq.replaceAll(' ','').replaceAll('*','');
+  let [l,r]=eq.split('=');
+  let right=Number(r);
+  let match=l.match(/(-?\d*)x([+-]\d+)?/);
+  let a=1,b=0;
+  if(match){
+    if(match[1]==='-') a=-1;
+    else if(match[1]!=='') a=Number(match[1]);
+    if(match[2]) b=Number(match[2]);
   }
-  return { x: (right - b) / a, a, b, right };
+  return {x:(right-b)/a,a,b,right};
 }
 
-function solveQuadratic(eq) {
-  eq = eq.replaceAll(" ","").replaceAll("**","^");
-  let [l] = eq.split("=");
-  l = l.replace(/-/g,"+-");
-  let parts = l.split("+");
-  let a = 0, b = 0, c = 0;
-
-  for (let p of parts) {
-    if (!p) continue;
-    if (p.includes("x^2"))      a += coeffOf(p, "x^2");
-    else if (p.includes("x"))   b += coeffOf(p, "x");
-    else                        c += Number(p);
+function solveQuadratic(eq){
+  eq=eq.replaceAll(' ','').replaceAll('**','^');
+  let [l]=eq.split('=');
+  l=l.replace(/-/g,'+-');
+  let parts=l.split('+');
+  let a=0,b=0,c=0;
+  for(let p of parts){
+    if(!p) continue;
+    if(p.includes('x^2'))     a+=cof(p,'x^2');
+    else if(p.includes('x'))  b+=cof(p,'x');
+    else                      c+=Number(p);
   }
-
-  let d = b*b - 4*a*c;
-  return { a, b, c, d,
-    roots: d >= 0
-      ? [(-b + Math.sqrt(d))/(2*a), (-b - Math.sqrt(d))/(2*a)]
-      : [
-          { re: -b/(2*a), im:  Math.sqrt(-d)/(2*a) },
-          { re: -b/(2*a), im: -Math.sqrt(-d)/(2*a) }
-        ],
-    complex: d < 0
-  };
+  let d=b*b-4*a*c;
+  return{a,b,c,d,
+    roots:d>=0
+      ?[(-b+Math.sqrt(d))/(2*a),(-b-Math.sqrt(d))/(2*a)]
+      :[{re:-b/(2*a),im:Math.sqrt(-d)/(2*a)},{re:-b/(2*a),im:-Math.sqrt(-d)/(2*a)}],
+    complex:d<0};
 }
 
-function coeffOf(p, type) {
-  p = p.replaceAll("*","");
-  if (type === "x^2") {
-    if (p === "x^2") return 1;
-    if (p === "-x^2") return -1;
-    let n = Number(p.replace("x^2",""));
-    return isNaN(n) ? 0 : n;
-  }
-  if (type === "x") {
-    if (p === "x") return 1;
-    if (p === "-x") return -1;
-    let n = Number(p.replace("x",""));
-    return isNaN(n) ? 0 : n;
-  }
+function cof(p,type){
+  p=p.replaceAll('*','');
+  if(type==='x^2'){if(p==='x^2')return 1;if(p==='-x^2')return -1;let n=Number(p.replace('x^2',''));return isNaN(n)?0:n}
+  if(type==='x'){if(p==='x')return 1;if(p==='-x')return -1;let n=Number(p.replace('x',''));return isNaN(n)?0:n}
   return 0;
 }
 
-function solveSystem(input) {
-  // Cramer's rule para 2 ecuaciones: ax+by=c, dx+ey=f
-  let lines = input.split(",");
-  let parse = (eq) => {
-    eq = eq.replaceAll(" ","");
-    let [l, r] = eq.split("=");
-    let c = Number(r);
-    let am = l.match(/(-?\d*)x/);
-    let bm = l.match(/([+-]?\d*)y/);
-    let a = am ? (am[1]===''||am[1]==='+' ? 1 : am[1]==='-' ? -1 : Number(am[1])) : 0;
-    let b = bm ? (bm[1]===''||bm[1]==='+' ? 1 : bm[1]==='-' ? -1 : Number(bm[1])) : 0;
-    return { a, b, c };
+function solveSystem(input){
+  let lines=input.split(',');
+  let pe=(eq)=>{
+    eq=eq.replaceAll(' ','');
+    let [l,r]=eq.split('=');
+    let c=Number(r);
+    let am=l.match(/(-?\d*)x/),bm=l.match(/([+-]?\d*)y/);
+    let a=am?(am[1]===''||am[1]==='+'?1:am[1]==='-'?-1:Number(am[1])):0;
+    let b=bm?(bm[1]===''||bm[1]==='+'?1:bm[1]==='-'?-1:Number(bm[1])):0;
+    return{a,b,c};
   };
-  let e1 = parse(lines[0]);
-  let e2 = parse(lines[1]);
-  let det = e1.a*e2.b - e1.b*e2.a;
-  if (det === 0) return null;
-  return {
-    x: (e1.c*e2.b - e1.b*e2.c) / det,
-    y: (e1.a*e2.c - e1.c*e2.a) / det,
-    e1, e2, det
-  };
+  let e1=pe(lines[0]),e2=pe(lines[1]);
+  let det=e1.a*e2.b-e1.b*e2.a;
+  if(det===0) return null;
+  return{x:(e1.c*e2.b-e1.b*e2.c)/det,y:(e1.a*e2.c-e1.c*e2.a)/det,e1,e2,det};
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // DERIVADAS
-// ======================================================
-
-function derivative(expr) {
-  expr = expr.replaceAll(" ","").replaceAll("^","**");
-
-  if (expr === "x") return "1";
-  if (expr === "Math.sin(x)") return "Math.cos(x)";
-  if (expr === "Math.cos(x)") return "-Math.sin(x)";
-  if (expr === "Math.tan(x)") return "1/Math.cos(x)**2";
-  if (expr === "Math.log(x)") return "1/x";
-  if (expr === "Math.exp(x)") return "Math.exp(x)";
-
-  let m1 = expr.match(/^(\d+)\*?x\*\*(\d+)$/);
-  if (m1) { let a=Number(m1[1]), n=Number(m1[2]); return `${a*n}*x**${n-1}`; }
-
-  let m2 = expr.match(/^x\*\*(\d+)$/);
-  if (m2) { let n=Number(m2[1]); return `${n}*x**${n-1}`; }
-
-  let m3 = expr.match(/^(\d+)\*?x$/);
-  if (m3) { return m3[1]; }
-
-  return "No soportado aún";
+// ═══════════════════════════════════════════════
+function derivative(expr){
+  expr=expr.replaceAll(' ','').replaceAll('^','**');
+  if(expr==='x') return '1';
+  if(expr==='Math.sin(x)') return 'Math.cos(x)';
+  if(expr==='Math.cos(x)') return '-Math.sin(x)';
+  if(expr==='Math.tan(x)') return '1/Math.cos(x)**2';
+  if(expr==='Math.log(x)'||expr==='Math.log10(x)') return '1/x';
+  if(expr==='Math.exp(x)') return 'Math.exp(x)';
+  if(expr==='Math.sqrt(x)') return '1/(2*Math.sqrt(x))';
+  let m1=expr.match(/^(\d+)\*?x\*\*(\d+)$/);
+  if(m1){let a=Number(m1[1]),n=Number(m1[2]);return `${a*n}*x**${n-1}`;}
+  let m2=expr.match(/^x\*\*(\d+)$/);
+  if(m2){let n=Number(m2[1]);return `${n}*x**${n-1}`;}
+  let m3=expr.match(/^(\d+)\*?x$/);
+  if(m3) return m3[1];
+  return 'No soportado aún';
 }
 
-function derivativeSteps(rawExpr) {
-  let expr = rawExpr.replaceAll(" ","").replaceAll("^","**");
-  let steps = [];
-
-  steps.push({ n:1, text: "Expresión original:", val: rawExpr });
-
-  if (expr === "Math.sin(x)") {
-    steps.push({ n:2, text: "Regla: d/dx[sin(x)] = cos(x)", val: "" });
-    steps.push({ n:3, text: "Resultado:", val: "cos(x)" });
-  } else if (expr === "Math.cos(x)") {
-    steps.push({ n:2, text: "Regla: d/dx[cos(x)] = -sin(x)", val: "" });
-    steps.push({ n:3, text: "Resultado:", val: "-sin(x)" });
-  } else {
-    let m = expr.match(/^(\d*)\*?x\*\*(\d+)$/) || expr.match(/^x\*\*(\d+)$/);
-    if (m) {
-      let a = m[1] ? Number(m[1]) || 1 : 1;
-      let n = Number(m[m.length-1]);
-      steps.push({ n:2, text: "Regla de la potencia: d/dx[axⁿ] = n·a·xⁿ⁻¹", val: "" });
-      steps.push({ n:3, text: `Coeficiente: ${a}, Exponente: ${n}`, val: "" });
-      steps.push({ n:4, text: `→ ${a}·${n}·x^${n-1} = ${a*n}·x^${n-1}`, val: "" });
+function derivSteps(raw){
+  let expr=raw.replaceAll(' ','').replaceAll('^','**');
+  let s=[{t:'Expresión original',v:raw}];
+  if(expr==='Math.sin(x)'){s.push({t:'Regla: d/dx[sin(x)] = cos(x)',v:''});}
+  else if(expr==='Math.cos(x)'){s.push({t:'Regla: d/dx[cos(x)] = −sin(x)',v:''});}
+  else if(expr==='Math.log(x)'){s.push({t:'Regla: d/dx[ln(x)] = 1/x',v:''});}
+  else if(expr==='Math.sqrt(x)'){s.push({t:'Regla: d/dx[√x] = 1/(2√x)',v:''});}
+  else {
+    let m=expr.match(/^(\d*)\*?x\*\*(\d+)$/) || expr.match(/^x\*\*(\d+)$/);
+    if(m){
+      let a=m[1]?Number(m[1])||1:1, n=Number(m[m.length-1]);
+      s.push({t:'Regla de la potencia: d/dx[axⁿ] = n·a·xⁿ⁻¹',v:''});
+      s.push({t:`a=${a}, n=${n} → ${a}·${n}·x^${n-1} = ${a*n}·x^${n-1}`,v:''});
     }
   }
-
-  return steps;
+  return s;
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // INTEGRALES
-// ======================================================
-
-function integral(expr) {
-  expr = expr.replaceAll(" ","").replaceAll("^","**");
-
-  if (expr === "Math.sin(x)") return "-Math.cos(x)";
-  if (expr === "Math.cos(x)") return "Math.sin(x)";
-  if (expr === "1/x")         return "Math.log(Math.abs(x))";
-  if (expr === "Math.exp(x)") return "Math.exp(x)";
-
-  let m1 = expr.match(/^(\d+)\*?x\*\*(\d+)$/);
-  if (m1) { let a=Number(m1[1]), n=Number(m1[2])+1; return `${a}*x**${n}/${n}`; }
-
-  let m2 = expr.match(/^x\*\*(\d+)$/);
-  if (m2) { let n=Number(m2[1])+1; return `x**${n}/${n}`; }
-
-  let m3 = expr.match(/^(\d+)\*?x$/);
-  if (m3) { let a=Number(m3[1]); return `${a}*x**2/2`; }
-
-  if (expr === "x") return "x**2/2";
-
-  return "No soportado aún";
+// ═══════════════════════════════════════════════
+function integral(expr){
+  expr=expr.replaceAll(' ','').replaceAll('^','**');
+  if(expr==='Math.sin(x)') return '-Math.cos(x)';
+  if(expr==='Math.cos(x)') return 'Math.sin(x)';
+  if(expr==='1/x') return 'Math.log(Math.abs(x))';
+  if(expr==='Math.exp(x)') return 'Math.exp(x)';
+  if(expr==='x') return 'x**2/2';
+  let m1=expr.match(/^(\d+)\*?x\*\*(\d+)$/);
+  if(m1){let a=Number(m1[1]),n=Number(m1[2])+1;return `${a}*x**${n}/${n}`;}
+  let m2=expr.match(/^x\*\*(\d+)$/);
+  if(m2){let n=Number(m2[1])+1;return `x**${n}/${n}`;}
+  let m3=expr.match(/^(\d+)\*?x$/);
+  if(m3){let a=Number(m3[1]);return `${a}*x**2/2`;}
+  return 'No soportado aún';
 }
 
-function integralSteps(rawExpr) {
-  let expr = rawExpr.replaceAll(" ","").replaceAll("^","**");
-  let steps = [];
-  steps.push({ n:1, text:"Expresión original:", val: rawExpr });
-
-  let m = expr.match(/^(\d*)\*?x\*\*(\d+)$/) || expr.match(/^x\*\*(\d+)$/);
-  if (m) {
-    let a = m[1] ? Number(m[1]) || 1 : 1;
-    let n = Number(m[m.length-1]);
-    steps.push({ n:2, text:"Regla de la potencia: ∫axⁿ dx = a·xⁿ⁺¹/(n+1)", val:"" });
-    steps.push({ n:3, text:`Exponente: ${n} → ${n+1}. Divisor: ${n+1}`, val:"" });
-    steps.push({ n:4, text:`Resultado:`, val:`${a}·x^${n+1}/${n+1} + C` });
-  } else if (expr === "Math.sin(x)") {
-    steps.push({ n:2, text:"Regla: ∫sin(x)dx = -cos(x) + C", val:"" });
-  } else if (expr === "Math.cos(x)") {
-    steps.push({ n:2, text:"Regla: ∫cos(x)dx = sin(x) + C", val:"" });
+function integSteps(raw){
+  let expr=raw.replaceAll(' ','').replaceAll('^','**');
+  let s=[{t:'Expresión original',v:raw}];
+  if(expr==='Math.sin(x)') s.push({t:'Regla: ∫sin(x)dx = −cos(x) + C',v:''});
+  else if(expr==='Math.cos(x)') s.push({t:'Regla: ∫cos(x)dx = sin(x) + C',v:''});
+  else if(expr==='1/x') s.push({t:'Regla: ∫(1/x)dx = ln|x| + C',v:''});
+  else{
+    let m=expr.match(/^(\d*)\*?x\*\*(\d+)$/) || expr.match(/^x\*\*(\d+)$/);
+    if(m){
+      let a=m[1]?Number(m[1])||1:1, n=Number(m[m.length-1]);
+      s.push({t:'Regla de la potencia: ∫axⁿdx = a·xⁿ⁺¹/(n+1)',v:''});
+      s.push({t:`n=${n} → n+1=${n+1}. Resultado: ${a}·x^${n+1}/${n+1} + C`,v:''});
+    }
   }
-
-  return steps;
+  return s;
 }
 
-// ======================================================
-// CHART (single)
-// ======================================================
+// ═══════════════════════════════════════════════
+// LÍMITES (numérico)
+// ═══════════════════════════════════════════════
+function calcLimit(exprRaw){
+  let expr=parse(exprRaw);
+  // lim x→0 por defecto, detectar "en x=..."
+  let point=0;
+  let m=exprRaw.match(/en\s*x\s*=\s*([-\d.]+)/i);
+  if(m) point=Number(m[1]);
 
-function drawCalcChart(eq) {
-  if (calcChart) { calcChart.destroy(); calcChart = null; }
-
-  let expr = eq.split("=")[0].replaceAll("^","**");
-  let data = [], labels = [];
-
-  for (let x = -10; x <= 10; x += 0.1) {
-    let y = null;
-    try {
-      y = Function("x","return "+expr)(x);
-      if (!isFinite(y) || y > 100 || y < -100) y = null;
-    } catch { y = null; }
-    labels.push(Number(x.toFixed(2)));
-    data.push(y);
-  }
-
-  let ctx = document.getElementById("calc-chart");
-  calcChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "f(x)",
-        data,
-        borderColor: COLORS[0],
-        backgroundColor: "transparent",
-        tension: 0.15,
-        pointRadius: 0,
-        spanGaps: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: { legend: { labels: { color: '#5a7a9a', font: { family:'Space Mono', size:11 } } } },
-      scales: {
-        x: { grid: { color:"rgba(255,255,255,0.05)" }, ticks: { color:"#5a7a9a", maxTicksLimit:10, font:{family:'Space Mono',size:10} } },
-        y: { grid: { color:"rgba(255,255,255,0.05)" }, ticks: { color:"#5a7a9a", font:{family:'Space Mono',size:10} } }
-      }
-    }
-  });
-
-  document.getElementById("calc-chart-card").style.display = "block";
+  let fn=(x)=>{try{return Function('x','return '+expr)(x);}catch{return NaN;}};
+  let eps=1e-8;
+  let L=(fn(point+eps)+fn(point-eps))/2;
+  let steps=[
+    {t:'Límite numérico (promedio bilateral)',v:''},
+    {t:`Evaluando f(${point}+ε) y f(${point}-ε) con ε=10⁻⁸`,v:''},
+    {t:`f(${point}⁺) ≈ ${fmt(fn(point+eps))}`,v:''},
+    {t:`f(${point}⁻) ≈ ${fmt(fn(point-eps))}`,v:''},
+    {t:'Resultado:',v:fmt(L)},
+  ];
+  return{value:L,steps,point};
 }
 
-// ======================================================
-// RUN CALC
-// ======================================================
+// ═══════════════════════════════════════════════
+// MAIN RUN CALC
+// ═══════════════════════════════════════════════
+function sc(v){document.getElementById('calc-input').value=v;}
 
-function runCalc() {
-  let raw = document.getElementById("calc-input").value.trim();
-  if (!raw) return;
+function runCalc(){
+  let raw=document.getElementById('calc-input').value.trim();
+  if(!raw) return;
 
-  let out = "";
-  let steps = [];
-  let showChart = false;
-  let chartEq = "";
+  let out='',steps=[],showChart=false,chartEq='';
+  document.getElementById('steps-card').style.display='none';
+  document.getElementById('calc-chart-card').style.display='none';
 
-  document.getElementById("steps-card").style.display = "none";
-  document.getElementById("calc-chart-card").style.display = "none";
-  document.getElementById("copy-btn").style.display = "inline-block";
-
-  // --- DERIVADAS ---
-  if (raw.toLowerCase().startsWith("derivar ")) {
-    let exprRaw = raw.substring(8).trim();
-    let expr = parseHumanMath(exprRaw);
-    let result = derivative(expr);
-    steps = derivativeSteps(exprRaw);
-    out = `<b style="color:var(--accent)">Derivada</b><br><br>f(x) = ${exprRaw}<br>f'(x) = <span style="color:var(--accent2)">${result}</span>`;
-    try { chartEq = result; showChart = true; } catch {}
-  }
-
-  // --- INTEGRALES ---
-  else if (raw.toLowerCase().startsWith("integral ")) {
-    let exprRaw = raw.substring(9).trim();
-    let expr = parseHumanMath(exprRaw);
-    let result = integral(expr);
-    steps = integralSteps(exprRaw);
-    out = `<b style="color:var(--accent)">Integral</b><br><br>∫ ${exprRaw} dx = <span style="color:var(--accent2)">${result}</span> + C`;
-    try { chartEq = result; showChart = true; } catch {}
-  }
-
-  else {
-    let eq = parseHumanMath(raw);
-    let type = detect(eq);
-
-    // --- SISTEMA ---
-    if (type === "system") {
-      let s = solveSystem(raw);
-      if (s) {
-        out = `<b style="color:var(--accent)">Sistema 2×2</b><br><br>x = <span style="color:var(--accent2)">${fmt(s.x)}</span><br>y = <span style="color:var(--accent2)">${fmt(s.y)}</span>`;
-        steps = [
-          { n:1, text:"Ecuación 1:", val:`${s.e1.a}x + ${s.e1.b}y = ${s.e1.c}` },
-          { n:2, text:"Ecuación 2:", val:`${s.e2.a}x + ${s.e2.b}y = ${s.e2.c}` },
-          { n:3, text:"Determinante (Cramer):", val:`${s.det}` },
-          { n:4, text:"Solución:", val:`x=${fmt(s.x)}, y=${fmt(s.y)}` }
-        ];
-      } else {
-        out = `<span style="color:var(--accent3)">Sistema sin solución única (det = 0)</span>`;
+  try{
+    // FACTORIAL
+    if(raw.match(/^\d+!$/)){
+      let n=Number(raw.replace('!',''));
+      let r=factorial(n);
+      out=res('Factorial',`${n}! = <span style="color:var(--math)">${fmt(r)}</span>`);
+      steps=[{t:`Producto de 1 a ${n}`,v:''},{t:'Resultado:',v:fmt(r)}];
+    }
+    // COMBINATORIA C(n,k)
+    else if(raw.match(/^C\(\d+,\s*\d+\)$/i)){
+      let m=raw.match(/C\((\d+),\s*(\d+)\)/i);
+      let n=Number(m[1]),k=Number(m[2]),r=comb(n,k);
+      out=res('Combinaciones',`C(${n},${k}) = <span style="color:var(--math)">${fmt(r)}</span>`);
+      steps=[{t:'Fórmula: C(n,k) = n! / (k!·(n−k)!)',v:''},{t:`C(${n},${k}) = ${n}! / (${k}!·${n-k}!)`,v:''},{t:'Resultado:',v:fmt(r)}];
+    }
+    // PERMUTACIONES P(n,k)
+    else if(raw.match(/^P\(\d+,\s*\d+\)$/i)){
+      let m=raw.match(/P\((\d+),\s*(\d+)\)/i);
+      let n=Number(m[1]),k=Number(m[2]),r=perm(n,k);
+      out=res('Permutaciones',`P(${n},${k}) = <span style="color:var(--math)">${fmt(r)}</span>`);
+      steps=[{t:'Fórmula: P(n,k) = n! / (n−k)!',v:''},{t:'Resultado:',v:fmt(r)}];
+    }
+    // COMPLEJOS
+    else if(raw.match(/[()]\s*[+-]?\s*[\d.]+\s*[+-]\s*[\d.]*i\s*[)]/)){
+      let c=complexOp(raw);
+      if(c){
+        out=res('Número complejo',`(${fmtC(c.A)}) ${c.op} (${fmtC(c.B)}) = <span style="color:var(--math)">${fmtC(c.r)}</span>`);
+        let mod=Math.sqrt(c.r.re**2+c.r.im**2);
+        let arg=Math.atan2(c.r.im,c.r.re)*180/Math.PI;
+        steps=[{t:'Operación entre números complejos',v:''},{t:'Módulo del resultado:',v:fmt(mod)},{t:'Argumento (°):',v:fmt(arg)}];
       }
     }
-
-    // --- CUADRÁTICA ---
-    else if (type === "quadratic") {
-      let q = solveQuadratic(eq);
-      if (q.complex) {
-        out = `<b style="color:var(--accent)">Raíces complejas</b><br><br>` +
-          `x₁ = <span class="complex-result">${fmt(q.roots[0].re)} <span class="imag">+ ${fmt(q.roots[0].im)}i</span></span><br>` +
-          `x₂ = <span class="complex-result">${fmt(q.roots[1].re)} <span class="imag">- ${fmt(Math.abs(q.roots[1].im))}i</span></span>`;
-      } else {
-        out = `<b style="color:var(--accent)">Raíces reales</b><br><br>` +
-          `x₁ = <span style="color:var(--accent2)">${fmt(q.roots[0])}</span><br>` +
-          `x₂ = <span style="color:var(--accent2)">${fmt(q.roots[1])}</span>`;
+    // LÍMITE
+    else if(raw.toLowerCase().startsWith('lim ')){
+      let exprRaw=raw.substring(4).trim();
+      let lim=calcLimit(exprRaw);
+      out=res('Límite',`lim f(x) = <span style="color:var(--math)">${isNaN(lim.value)?'No existe':fmt(lim.value)}</span>`);
+      steps=lim.steps;
+    }
+    // SUMA ARITMÉTICA
+    else if(raw.toLowerCase().startsWith('suma ')){
+      let m=raw.match(/suma\s+(\d+)\.\.(\d+)/i);
+      if(m){
+        let a=Number(m[1]),b=Number(m[2]);
+        let n=b-a+1, s=n*(a+b)/2;
+        out=res('Progresión aritmética',`Σ(${a}..${b}) = <span style="color:var(--math)">${s}</span>`);
+        steps=[{t:'Fórmula: S = n·(a₁+aₙ)/2',v:''},{t:`n=${n}, a₁=${a}, aₙ=${b}`,v:''},{t:'Resultado:',v:s}];
       }
-      steps = [
-        { n:1, text:"Forma: ax² + bx + c = 0", val:"" },
-        { n:2, text:`a = ${q.a}, b = ${q.b}, c = ${q.c}`, val:"" },
-        { n:3, text:"Discriminante: b²−4ac =", val:`${fmt(q.d)}` },
-        { n:4, text:q.complex ? "Δ < 0 → raíces complejas" : "Δ ≥ 0 → raíces reales", val:"" },
-        { n:5, text:"Fórmula: x = (−b ± √Δ) / 2a", val:"" }
-      ];
-      chartEq = eq; showChart = true;
     }
-
-    // --- LINEAL ---
-    else if (type === "linear") {
-      let s = solveLinear(eq);
-      out = `<b style="color:var(--accent)">Ecuación lineal</b><br><br>x = <span style="color:var(--accent2)">${fmt(s.x)}</span>`;
-      steps = [
-        { n:1, text:"Ecuación:", val:raw },
-        { n:2, text:`Coeficiente a = ${s.a}, constante b = ${s.b}`, val:"" },
-        { n:3, text:`Despejando: x = (${s.right} − ${s.b}) / ${s.a}`, val:"" },
-        { n:4, text:"Resultado:", val:`x = ${fmt(s.x)}` }
-      ];
+    // PROGRESIÓN GEOMÉTRICA
+    else if(raw.toLowerCase().startsWith('geo ')){
+      let parts=raw.substring(4).split(',').map(Number);
+      if(parts.length===3){
+        let[a,r,n]=parts;
+        let an=a*r**(n-1);
+        let s=r===1?a*n:a*(1-r**n)/(1-r);
+        out=res('Progresión geométrica',`a_n = <span style="color:var(--math)">${fmt(an)}</span><br>S_n = <span style="color:var(--math)">${fmt(s)}</span>`);
+        steps=[{t:'a₁ = primer término, r = razón, n = cantidad',v:''},{t:`aₙ = a₁·rⁿ⁻¹ = ${a}·${r}^${n-1}`,v:fmt(an)},{t:`Sₙ = a₁·(1−rⁿ)/(1−r)`,v:fmt(s)}];
+      }
     }
-
-    // --- FUNCIÓN ---
+    // LOG / LN directos
+    else if(raw.match(/^log\([\d.]+\)$/i)){
+      let v=Number(raw.match(/\(([\d.]+)\)/)[1]);
+      let r=Math.log10(v);
+      out=res('Logaritmo',`log(${v}) = <span style="color:var(--math)">${fmt(r)}</span>`);
+      steps=[{t:`log base 10 de ${v}`,v:''},{t:'Resultado:',v:fmt(r)}];
+    }
+    else if(raw.match(/^ln\([\d.]+\)$/i)){
+      let v=Number(raw.match(/\(([\d.]+)\)/)[1]);
+      let r=Math.log(v);
+      out=res('Logaritmo natural',`ln(${v}) = <span style="color:var(--math)">${fmt(r)}</span>`);
+      steps=[{t:`ln(e) = 1, ln(eⁿ) = n`,v:''},{t:'Resultado:',v:fmt(r)}];
+    }
+    // ARCSIN / ARCCOS / ARCTAN
+    else if(raw.match(/^arc(sin|cos|tan)\(([-\d.]+)\)$/i)){
+      let m=raw.match(/^arc(sin|cos|tan)\(([-\d.]+)\)$/i);
+      let fn=m[1].toLowerCase(), val=Number(m[2]);
+      let r;
+      if(fn==='sin') r=Math.asin(val)*180/Math.PI;
+      else if(fn==='cos') r=Math.acos(val)*180/Math.PI;
+      else r=Math.atan(val)*180/Math.PI;
+      out=res(`arc${fn}`,`arc${fn}(${val}) = <span style="color:var(--math)">${fmt(r)}°</span> (${fmt(r*Math.PI/180)} rad)`);
+      steps=[{t:`Función trigonométrica inversa`,v:''},{t:'Resultado en grados:',v:fmt(r)+'°'},{t:'Resultado en radianes:',v:fmt(r*Math.PI/180)}];
+    }
+    // DERIVADAS
+    else if(raw.toLowerCase().startsWith('derivar ')){
+      let exprRaw=raw.substring(8).trim();
+      let expr=parse(exprRaw);
+      let r=derivative(expr);
+      out=res('Derivada',`f(x) = ${exprRaw}<br>f′(x) = <span style="color:var(--math)">${r}</span>`);
+      steps=derivSteps(exprRaw);
+      chartEq=r; showChart=true;
+    }
+    // INTEGRALES
+    else if(raw.toLowerCase().startsWith('integral ')){
+      let exprRaw=raw.substring(9).trim();
+      let expr=parse(exprRaw);
+      let r=integral(expr);
+      out=res('Integral indefinida',`∫ ${exprRaw} dx = <span style="color:var(--math)">${r}</span> + C`);
+      steps=integSteps(exprRaw);
+      chartEq=r; showChart=true;
+    }
+    // GENERAL
     else {
-      chartEq = eq;
-      showChart = true;
-      // Intentar evaluar si no tiene x
-      if (!eq.includes("x")) {
-        let r;
-        try { r = Function("return " + eq)(); } catch { r = "Error"; }
-        out = `<b style="color:var(--accent)">Resultado directo</b><br><br><span style="color:var(--accent2)">${fmt(r)}</span>`;
-        showChart = false;
-      } else {
-        out = `<b style="color:var(--accent)">Función graficada</b><br><br><span style="font-family:var(--mono);color:var(--accent2)">f(x) = ${eq}</span>`;
+      let eq=parse(raw);
+      let type=detect(eq);
+
+      if(type==='system'){
+        let s=solveSystem(raw);
+        if(s){
+          out=res('Sistema 2×2',`x = <span style="color:var(--math)">${fmt(s.x)}</span><br>y = <span style="color:var(--math)">${fmt(s.y)}</span>`);
+          steps=[{t:'Regla de Cramer',v:''},{t:`det = ${fmt(s.det)}`,v:''},{t:`x = ${fmt(s.x)}, y = ${fmt(s.y)}`,v:''}];
+        } else out=err('Sin solución única (det = 0)');
       }
-    }
-  }
-
-  let box = document.getElementById("calc-result");
-  box.innerHTML = out + `<button class="copy-btn" id="copy-btn" onclick="copyResult()">Copiar</button>`;
-  box.className = "result-box success";
-
-  if (steps.length > 0) {
-    let stepsHTML = steps.map(s => `
-      <div class="step" style="animation-delay:${s.n*0.06}s">
-        <div class="step-num">${s.n}</div>
-        <div>${s.text} ${s.val ? `<span>${s.val}</span>` : ''}</div>
-      </div>
-    `).join('');
-    document.getElementById("calc-steps").innerHTML = stepsHTML;
-    document.getElementById("steps-card").style.display = "block";
-  }
-
-  if (showChart && chartEq) {
-    try { drawCalcChart(chartEq); } catch {}
-  }
-
-  addHistory(raw, out);
-}
-
-function fmt(n) {
-  if (typeof n !== 'number') return n;
-  return Number.isInteger(n) ? n : parseFloat(n.toFixed(6));
-}
-
-function setCalc(v) {
-  document.getElementById("calc-input").value = v;
-}
-
-function clearCalc() {
-  document.getElementById("calc-input").value = "";
-  document.getElementById("calc-result").innerHTML = "Esperando cálculo...";
-  document.getElementById("calc-result").className = "result-box";
-  document.getElementById("steps-card").style.display = "none";
-  document.getElementById("calc-chart-card").style.display = "none";
-}
-
-function copyResult() {
-  let text = document.getElementById("calc-result").innerText.replace("Copiar","").trim();
-  navigator.clipboard.writeText(text).then(() => {
-    let btn = document.getElementById("copy-btn");
-    btn.textContent = "✓ Copiado";
-    setTimeout(() => btn.textContent = "Copiar", 1500);
-  });
-}
-
-// ======================================================
-// GRAFICO MULTI-FUNCIÓN
-// ======================================================
-
-let fnRows = [];
-
-function addFnRow(val) {
-  let id = Date.now();
-  let colorIdx = fnRows.length % COLORS.length;
-  fnRows.push({ id, color: COLORS[colorIdx] });
-
-  let container = document.getElementById("fn-list");
-  let div = document.createElement("div");
-  div.id = "fn-row-" + id;
-  div.style.cssText = "display:flex;gap:8px;align-items:center;";
-  div.innerHTML = `
-    <div style="width:12px;height:12px;border-radius:50%;background:${COLORS[colorIdx]};flex-shrink:0;"></div>
-    <input type="text" id="fn-input-${id}" placeholder="ej: Math.sin(x)" value="${val||''}" style="flex:1;">
-    <button class="btn btn-ghost btn-sm" onclick="removeFnRow(${id})" style="padding:6px 10px;">✕</button>
-  `;
-  container.appendChild(div);
-}
-
-function removeFnRow(id) {
-  document.getElementById("fn-row-" + id)?.remove();
-  fnRows = fnRows.filter(f => f.id !== id);
-}
-
-function setGraphExample(expr) {
-  if (fnRows.length === 0) addFnRow(expr);
-  else {
-    let last = fnRows[fnRows.length - 1];
-    document.getElementById("fn-input-" + last.id).value = expr;
-  }
-}
-
-function resetGraphRange() {
-  document.getElementById("xmin").value = -10;
-  document.getElementById("xmax").value = 10;
-  document.getElementById("ymin").value = -10;
-  document.getElementById("ymax").value = 10;
-}
-
-function runGraph() {
-  if (multiChart) { multiChart.destroy(); multiChart = null; }
-
-  let xmin = Number(document.getElementById("xmin").value) || -10;
-  let xmax = Number(document.getElementById("xmax").value) || 10;
-  let ymin = Number(document.getElementById("ymin").value);
-  let ymax = Number(document.getElementById("ymax").value);
-  let step = (xmax - xmin) / 300;
-
-  let labels = [];
-  for (let x = xmin; x <= xmax; x += step) labels.push(Number(x.toFixed(3)));
-
-  let datasets = [];
-  let legendHTML = "";
-
-  for (let fn of fnRows) {
-    let rawExpr = document.getElementById("fn-input-" + fn.id)?.value?.trim();
-    if (!rawExpr) continue;
-    let expr = parseHumanMath(rawExpr);
-    expr = expr.split("=")[0];
-
-    let data = labels.map(x => {
-      try {
-        let y = Function("x", "return " + expr)(x);
-        if (!isFinite(y) || y > ymax*3 || y < ymin*3) return null;
-        return y;
-      } catch { return null; }
-    });
-
-    datasets.push({
-      label: rawExpr,
-      data,
-      borderColor: fn.color,
-      backgroundColor: "transparent",
-      tension: 0.1,
-      pointRadius: 0,
-      spanGaps: false,
-      borderWidth: 2
-    });
-
-    legendHTML += `<div class="legend-item"><div class="legend-dot" style="background:${fn.color}"></div>${rawExpr}</div>`;
-  }
-
-  if (datasets.length === 0) return;
-
-  document.getElementById("graph-legend").innerHTML = legendHTML;
-
-  let ctx = document.getElementById("multi-chart");
-  multiChart = new Chart(ctx, {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      interaction: { mode:'index', intersect:false },
-      plugins: {
-        legend: { display:false },
-        tooltip: {
-          backgroundColor: '#0b1220',
-          borderColor: 'rgba(0,200,255,0.2)',
-          borderWidth: 1,
-          titleColor: '#00c8ff',
-          bodyColor: '#e2eaf4',
-          titleFont: { family:'Space Mono', size:11 },
-          callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(4) : 'N/A'}`
-          }
+      else if(type==='quadratic'){
+        let q=solveQuadratic(eq);
+        if(q.complex){
+          out=res('Raíces complejas',
+            `x₁ = <span style="color:var(--math)">${fmt(q.roots[0].re)} + ${fmt(q.roots[0].im)}i</span><br>`+
+            `x₂ = <span style="color:var(--math)">${fmt(q.roots[1].re)} − ${fmt(Math.abs(q.roots[1].im))}i</span>`);
+        } else {
+          out=res('Raíces reales',
+            `x₁ = <span style="color:var(--math)">${fmt(q.roots[0])}</span><br>x₂ = <span style="color:var(--math)">${fmt(q.roots[1])}</span>`);
         }
-      },
-      scales: {
-        x: {
-          min: xmin, max: xmax,
-          grid: { color:"rgba(255,255,255,0.05)" },
-          ticks: { color:"#5a7a9a", maxTicksLimit:12, font:{family:'Space Mono',size:10} }
-        },
-        y: {
-          min: isNaN(ymin) ? undefined : ymin,
-          max: isNaN(ymax) ? undefined : ymax,
-          grid: { color:"rgba(255,255,255,0.05)" },
-          ticks: { color:"#5a7a9a", font:{family:'Space Mono',size:10} }
+        steps=[{t:'ax²+bx+c=0',v:''},{t:`a=${q.a}, b=${q.b}, c=${q.c}`,v:''},{t:'Δ = b²−4ac =',v:fmt(q.d)},{t:q.complex?'Δ<0 → raíces complejas':'Δ≥0 → raíces reales',v:''}];
+        chartEq=eq; showChart=true;
+      }
+      else if(type==='linear'){
+        let s=solveLinear(eq);
+        out=res('Ecuación lineal',`x = <span style="color:var(--math)">${fmt(s.x)}</span>`);
+        steps=[{t:`${s.a}x + ${s.b} = ${s.right}`,v:''},{t:`x = (${s.right}−${s.b}) / ${s.a}`,v:fmt(s.x)}];
+      }
+      else{
+        if(!eq.includes('x')){
+          let r;
+          try{r=Function('return '+eq)();}catch{r='Error';}
+          out=res('Resultado directo',`<span style="color:var(--math)">${typeof r==='number'?fmt(r):r}</span>`);
+        } else {
+          chartEq=eq; showChart=true;
+          out=res('Función',`f(x) = <span style="color:var(--math)">${eq}</span>`);
         }
       }
     }
-  });
 
-  // Mostrar coordenadas al hover
-  ctx.onmousemove = (e) => {
-    let pts = multiChart.getElementsAtEventForMode(e,'index',{intersect:false},true);
-    if (pts.length) {
-      let idx = pts[0].index;
-      let x = labels[idx];
-      let ys = datasets.map(ds => `${ds.label}: ${ds.data[idx] !== null ? ds.data[idx].toFixed(4) : 'N/A'}`).join(' | ');
-      document.getElementById("graph-coords").textContent = `x = ${x} → ${ys}`;
+    if(steps.length>0){
+      document.getElementById('calc-steps').innerHTML=steps.map((s,i)=>`
+        <div class="step" style="animation-delay:${i*.06}s">
+          <div class="step-n math">${i+1}</div>
+          <div>${s.t}${s.v?` <span>${s.v}</span>`:''}</div>
+        </div>`).join('');
+      document.getElementById('steps-card').style.display='block';
+    }
+
+    if(showChart&&chartEq){
+      try{drawCalcChart(chartEq);}catch{}
+    }
+
+    addHist(raw,out,'calc');
+
+  } catch(e){
+    out=err('Error: '+e.message);
+  }
+
+  let el=document.getElementById('calc-result');
+  el.innerHTML=out+`<button class="copy-btn" onclick="copyR('calc-result')">Copiar</button>`;
+  el.className='result-box ok-math';
+}
+
+function res(title,body){return `<b style="color:var(--math)">${title}</b><br><br>${body}`;}
+function err(msg){return `<span style="color:#f87171">${msg}</span>`;}
+
+function clearCalc(){
+  document.getElementById('calc-input').value='';
+  document.getElementById('calc-result').innerHTML='Esperando cálculo...';
+  document.getElementById('calc-result').className='result-box';
+  document.getElementById('steps-card').style.display='none';
+  document.getElementById('calc-chart-card').style.display='none';
+}
+
+function copyR(id){
+  let text=document.getElementById(id).innerText.replace('Copiar','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    let btns=document.querySelectorAll('.copy-btn');
+    btns.forEach(b=>{b.textContent='✓ Copiado';setTimeout(()=>b.textContent='Copiar',1500);});
+  });
+}
+
+// ═══════════════════════════════════════════════
+// CHART CALC
+// ═══════════════════════════════════════════════
+function drawCalcChart(eq){
+  if(calcChart){calcChart.destroy();calcChart=null;}
+  let expr=eq.split('=')[0];
+  let data=[],labels=[];
+  for(let x=-10;x<=10;x+=0.1){
+    let y=null;
+    try{y=Function('x','return '+expr)(x);if(!isFinite(y)||y>200||y<-200)y=null;}catch{y=null;}
+    labels.push(Number(x.toFixed(2)));data.push(y);
+  }
+  calcChart=new Chart(document.getElementById('calc-chart'),chartCfg(labels,[{label:'f(x)',data,borderColor:COLORS[0]}]));
+  document.getElementById('calc-chart-card').style.display='block';
+}
+
+function chartCfg(labels,datasets,opts={}){
+  return{
+    type:'line',
+    data:{labels,datasets:datasets.map(d=>({...d,backgroundColor:'transparent',tension:.1,pointRadius:0,spanGaps:false,borderWidth:2,...d}))},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:datasets.length>1,labels:{color:'#4a6a8a',font:{family:'JetBrains Mono',size:10}}},
+        tooltip:{backgroundColor:'#0c1524',borderColor:'rgba(56,189,248,.2)',borderWidth:1,titleColor:'#38bdf8',bodyColor:'#dde8f5',titleFont:{family:'JetBrains Mono',size:11}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a6a8a',maxTicksLimit:10,font:{family:'JetBrains Mono',size:9}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a6a8a',font:{family:'JetBrains Mono',size:9}},...(opts.y||{})}
+      }
     }
   };
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
+// GRÁFICOS MULTI
+// ═══════════════════════════════════════════════
+function addFn(val){
+  let id=Date.now(),ci=fnRows.length%COLORS.length;
+  fnRows.push({id,color:COLORS[ci]});
+  let c=document.getElementById('fn-list');
+  let d=document.createElement('div');
+  d.id='fnr-'+id;d.style.cssText='display:flex;gap:8px;align-items:center';
+  d.innerHTML=`<div style="width:10px;height:10px;border-radius:50%;background:${COLORS[ci]};flex-shrink:0"></div>
+    <input type="text" id="fni-${id}" placeholder="ej: Math.sin(x)" value="${val||''}" style="flex:1">
+    <button class="btn btn-ghost btn-sm" onclick="removeFn(${id})" style="padding:5px 9px">✕</button>`;
+  c.appendChild(d);
+}
+function removeFn(id){document.getElementById('fnr-'+id)?.remove();fnRows=fnRows.filter(f=>f.id!==id);}
+function addFnVal(v){if(fnRows.length===0)addFn(v);else{let l=fnRows[fnRows.length-1];document.getElementById('fni-'+l.id).value=v;}}
+function resetRange(){['xmin','xmax','ymin','ymax'].forEach((id,i)=>document.getElementById(id).value=[-10,10,-10,10][i]);}
+
+function runGraph(){
+  if(multiChart){multiChart.destroy();multiChart=null;}
+  let xmin=Number(document.getElementById('xmin').value)||−10;
+  let xmax=Number(document.getElementById('xmax').value)||10;
+  let ymin=Number(document.getElementById('ymin').value);
+  let ymax=Number(document.getElementById('ymax').value);
+  let step=(xmax-xmin)/400;
+  let labels=[];
+  for(let x=xmin;x<=xmax;x+=step) labels.push(Number(x.toFixed(3)));
+
+  let datasets=[],legHTML='';
+  for(let fn of fnRows){
+    let raw=document.getElementById('fni-'+fn.id)?.value?.trim();
+    if(!raw) continue;
+    let expr=parse(raw).split('=')[0];
+    let data=labels.map(x=>{try{let y=Function('x','return '+expr)(x);return isFinite(y)&&y<ymax*5&&y>ymin*5?y:null;}catch{return null;}});
+    datasets.push({label:raw,data,borderColor:fn.color});
+    legHTML+=`<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono)"><div style="width:10px;height:10px;border-radius:50%;background:${fn.color}"></div>${raw}</div>`;
+  }
+  if(!datasets.length) return;
+  document.getElementById('graph-legend').innerHTML=legHTML;
+  let ctx=document.getElementById('multi-chart');
+  let cfg=chartCfg(labels,datasets,{y:{min:isNaN(ymin)?undefined:ymin,max:isNaN(ymax)?undefined:ymax}});
+  cfg.options.plugins.legend.display=false;
+  multiChart=new Chart(ctx,cfg);
+  ctx.onmousemove=(e)=>{
+    let pts=multiChart.getElementsAtEventForMode(e,'index',{intersect:false},true);
+    if(pts.length){let i=pts[0].index;document.getElementById('graph-coords').textContent='x = '+labels[i]+' → '+datasets.map(d=>d.label+': '+(d.data[i]!==null?d.data[i].toFixed(4):'N/A')).join(' | ');}
+  };
+}
+
+// ═══════════════════════════════════════════════
 // MATRICES
-// ======================================================
-
-function buildMatrices() {
-  let n = Number(document.getElementById("mat-size").value);
-  buildMatrix("mat-a", n);
-  buildMatrix("mat-b", n);
-  document.getElementById("mat-b-card").style.display = "block";
+// ═══════════════════════════════════════════════
+function buildMats(){
+  let n=Number(document.getElementById('mat-size').value);
+  buildMat('mat-a',n);buildMat('mat-b',n);
 }
-
-function buildMatrix(id, n) {
-  let el = document.getElementById(id);
-  el.style.gridTemplateColumns = `repeat(${n}, 64px)`;
-  el.innerHTML = "";
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      let inp = document.createElement("input");
-      inp.type = "text";
-      inp.value = (i === j) ? "1" : "0";
-      inp.id = `${id}-${i}-${j}`;
-      el.appendChild(inp);
-    }
+function buildMat(id,n){
+  let el=document.getElementById(id);
+  el.style.gridTemplateColumns=`repeat(${n},58px)`;
+  el.innerHTML='';
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    let inp=document.createElement('input');
+    inp.type='text';inp.value=i===j?'1':'0';inp.id=`${id}-${i}-${j}`;
+    el.appendChild(inp);
   }
 }
-
-function readMatrix(id, n) {
-  let m = [];
-  for (let i = 0; i < n; i++) {
-    m.push([]);
-    for (let j = 0; j < n; j++) {
-      m[i].push(Number(document.getElementById(`${id}-${i}-${j}`).value) || 0);
-    }
-  }
+function readMat(id,n){
+  let m=[];
+  for(let i=0;i<n;i++){m.push([]);for(let j=0;j<n;j++) m[i].push(Number(document.getElementById(`${id}-${i}-${j}`).value)||0);}
   return m;
 }
-
-function matMul(A, B, n) {
-  let C = Array.from({length:n}, () => Array(n).fill(0));
-  for (let i=0;i<n;i++) for (let j=0;j<n;j++) for (let k=0;k<n;k++) C[i][j] += A[i][k]*B[k][j];
-  return C;
+function mMul(A,B,n){let C=Array.from({length:n},()=>Array(n).fill(0));for(let i=0;i<n;i++)for(let j=0;j<n;j++)for(let k=0;k<n;k++)C[i][j]+=A[i][k]*B[k][j];return C;}
+function mAdd(A,B){return A.map((r,i)=>r.map((v,j)=>v+B[i][j]));}
+function mDet(m){
+  let n=m.length;
+  if(n===1)return m[0][0];
+  if(n===2)return m[0][0]*m[1][1]-m[0][1]*m[1][0];
+  let d=0;for(let j=0;j<n;j++) d+=Math.pow(-1,j)*m[0][j]*mDet(m.slice(1).map(r=>r.filter((_,c)=>c!==j)));
+  return d;
 }
-
-function matAdd(A, B, n) {
-  return A.map((row,i) => row.map((v,j) => v + B[i][j]));
-}
-
-function matDet(m) {
-  let n = m.length;
-  if (n === 1) return m[0][0];
-  if (n === 2) return m[0][0]*m[1][1] - m[0][1]*m[1][0];
-  let det = 0;
-  for (let j = 0; j < n; j++) {
-    det += Math.pow(-1, j) * m[0][j] * matDet(m.slice(1).map(r => r.filter((_,c) => c !== j)));
+function mTrans(m){return m[0].map((_,j)=>m.map(r=>r[j]));}
+function mInv(m){
+  let n=m.length;
+  let aug=m.map((r,i)=>[...r,...Array(n).fill(0).map((_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let piv=aug[col][col];if(Math.abs(piv)<1e-10)return null;
+    for(let j=0;j<2*n;j++) aug[col][j]/=piv;
+    for(let row=0;row<n;row++){if(row===col)continue;let f=aug[row][col];for(let j=0;j<2*n;j++) aug[row][j]-=f*aug[col][j];}
   }
-  return det;
+  return aug.map(r=>r.slice(n));
 }
-
-function matTrans(m) {
-  return m[0].map((_, j) => m.map(row => row[j]));
+function mRank(m){
+  let mat=m.map(r=>[...r]);
+  let rows=mat.length,cols=mat[0].length,rank=0;
+  for(let col=0;col<cols&&rank<rows;col++){
+    let piv=-1;for(let row=rank;row<rows;row++){if(Math.abs(mat[row][col])>1e-10){piv=row;break;}}
+    if(piv===-1) continue;
+    [mat[rank],mat[piv]]=[mat[piv],mat[rank]];
+    let s=mat[rank][col];for(let j=0;j<cols;j++) mat[rank][j]/=s;
+    for(let row=0;row<rows;row++){if(row===rank)continue;let f=mat[row][col];for(let j=0;j<cols;j++) mat[row][j]-=f*mat[rank][j];}
+    rank++;
+  }
+  return rank;
 }
+function mHTML(m){return `<table class="mat-res-tbl">${m.map(r=>`<tr>${r.map(v=>`<td>${fmt(v)}</td>`).join('')}</tr>`).join('')}</table>`;}
 
-function matInv(m) {
-  let n = m.length;
-  let aug = m.map((row, i) => [...row, ...Array(n).fill(0).map((_,j) => i===j?1:0)]);
-  for (let col = 0; col < n; col++) {
-    let pivot = aug[col][col];
-    if (Math.abs(pivot) < 1e-10) return null;
-    for (let j = 0; j < 2*n; j++) aug[col][j] /= pivot;
-    for (let row = 0; row < n; row++) {
-      if (row === col) continue;
-      let f = aug[row][col];
-      for (let j = 0; j < 2*n; j++) aug[row][j] -= f * aug[col][j];
+function runMatrix(){
+  let n=Number(document.getElementById('mat-size').value);
+  let op=document.getElementById('mat-op').value;
+  let A=readMat('mat-a',n),B=readMat('mat-b',n);
+  let out='',steps=[];
+  try{
+    if(op==='det'){
+      let d=mDet(A);
+      out=`<b style="color:var(--math)">Determinante</b><br><br><span style="font-size:28px;font-family:var(--mono);color:var(--math)">det(A) = ${fmt(d)}</span>`;
+      steps=[{t:'Expansión por cofactores',v:''},{t:`det(A) = ${fmt(d)}`,v:''},{t:d===0?'Matriz singular (sin inversa)':'Matriz invertible',v:''}];
+    } else if(op==='sum'){
+      out=`<b style="color:var(--math)">A + B</b><br>${mHTML(mAdd(A,B))}`;
+    } else if(op==='mul'){
+      out=`<b style="color:var(--math)">A × B</b><br>${mHTML(mMul(A,B,n))}`;
+      steps=[{t:'Multiplicación fila × columna',v:''}];
+    } else if(op==='inv'){
+      let inv=mInv(A);
+      out=inv?`<b style="color:var(--math)">A⁻¹</b><br>${mHTML(inv)}`:`<span style="color:#f87171">No tiene inversa (det = 0)</span>`;
+      if(inv) steps=[{t:'Método Gauss-Jordan: [A|I] → [I|A⁻¹]',v:''}];
+    } else if(op==='trans'){
+      out=`<b style="color:var(--math)">Aᵀ</b><br>${mHTML(mTrans(A))}`;
+      steps=[{t:'Intercambio de filas y columnas',v:''}];
+    } else if(op==='rank'){
+      let r=mRank(A);
+      out=`<b style="color:var(--math)">Rango de A</b><br><br><span style="font-size:28px;font-family:var(--mono);color:var(--math)">rank(A) = ${r}</span>`;
+      steps=[{t:'Reducción por eliminación gaussiana',v:''},{t:`Filas linealmente independientes: ${r}`,v:''}];
     }
-  }
-  return aug.map(row => row.slice(n));
+  } catch(e){out=`<span style="color:#f87171">Error: ${e.message}</span>`;}
+
+  document.getElementById('mat-result').innerHTML=out;
+  document.getElementById('mat-result').className='result-box ok-math';
+  if(steps.length>0){
+    document.getElementById('mat-steps').innerHTML=steps.map((s,i)=>`<div class="step" style="animation-delay:${i*.07}s"><div class="step-n math">${i+1}</div><div>${s.t}${s.v?` <span>${s.v}</span>`:''}</div></div>`).join('');
+    document.getElementById('mat-steps-card').style.display='block';
+  } else document.getElementById('mat-steps-card').style.display='none';
 }
 
-function matrixToHTML(m) {
-  let rows = m.map(row =>
-    `<tr>${row.map(v => `<td>${typeof v==='number'?fmt(v):v}</td>`).join('')}</tr>`
-  ).join('');
-  return `<table class="matrix-result-table">${rows}</table>`;
-}
-
-function runMatrix() {
-  let n = Number(document.getElementById("mat-size").value);
-  let op = document.getElementById("mat-op").value;
-  let A = readMatrix("mat-a", n);
-  let B = readMatrix("mat-b", n);
-  let resultEl = document.getElementById("matrix-result");
-  let stepsEl = document.getElementById("matrix-steps");
-  let stepsCard = document.getElementById("matrix-steps-card");
-  let steps = [];
-  let out = "";
-
-  try {
-    if (op === "det") {
-      let d = matDet(A);
-      out = `<b style="color:var(--accent)">Determinante de A</b><br><br><span style="color:var(--accent2);font-size:28px;font-family:var(--mono)">det(A) = ${fmt(d)}</span>`;
-      steps = [
-        { n:1, text:"Método: expansión por cofactores", val:"" },
-        { n:2, text:"Resultado:", val:`det(A) = ${fmt(d)}` },
-        { n:3, text: d===0 ? "La matriz es singular (no tiene inversa)" : "La matriz es invertible", val:"" }
-      ];
-    } else if (op === "sum") {
-      let C = matAdd(A, B, n);
-      out = `<b style="color:var(--accent)">A + B</b><br>${matrixToHTML(C)}`;
-    } else if (op === "mul") {
-      let C = matMul(A, B, n);
-      out = `<b style="color:var(--accent)">A × B</b><br>${matrixToHTML(C)}`;
-      steps = [{ n:1, text:"Multiplicación elemento a elemento (filas × columnas)", val:"" }];
-    } else if (op === "inv") {
-      let inv = matInv(A);
-      if (!inv) {
-        out = `<span style="color:var(--accent3)">La matriz no tiene inversa (det = 0)</span>`;
-      } else {
-        out = `<b style="color:var(--accent)">A⁻¹</b><br>${matrixToHTML(inv)}`;
-        steps = [
-          { n:1, text:"Método: Gauss-Jordan", val:"" },
-          { n:2, text:"Se aumenta la matriz [A|I] y se reduce a [I|A⁻¹]", val:"" }
-        ];
-      }
-    } else if (op === "trans") {
-      let T = matTrans(A);
-      out = `<b style="color:var(--accent)">Aᵀ (Transpuesta)</b><br>${matrixToHTML(T)}`;
-      steps = [{ n:1, text:"Intercambio de filas y columnas: Aᵀᵢⱼ = Aⱼᵢ", val:"" }];
-    }
-  } catch(e) {
-    out = `<span style="color:var(--accent3)">Error: ${e.message}</span>`;
-  }
-
-  resultEl.innerHTML = out;
-  resultEl.className = "result-box success";
-
-  if (steps.length > 0) {
-    stepsEl.innerHTML = steps.map(s => `
-      <div class="step" style="animation-delay:${s.n*0.07}s">
-        <div class="step-num">${s.n}</div>
-        <div>${s.text} ${s.val ? `<span>${s.val}</span>`:''}</div>
-      </div>`).join('');
-    stepsCard.style.display = "block";
-  } else {
-    stepsCard.style.display = "none";
-  }
-}
-
-// ======================================================
+// ═══════════════════════════════════════════════
 // ESTADÍSTICA
-// ======================================================
+// ═══════════════════════════════════════════════
+function setStEx(){document.getElementById('stats-input').value='15,22,8,45,31,67,12,88,24,53,39,71,16,42,9';}
 
-function parseNums(str) {
-  return str.split(/[,\s\n]+/).map(Number).filter(n => !isNaN(n) && n !== null);
-}
+function runStats(){
+  let nums=document.getElementById('stats-input').value.split(/[,\s\n]+/).map(Number).filter(n=>!isNaN(n));
+  if(nums.length<2){document.getElementById('stat-chips').innerHTML='<span style="color:#f87171">Mínimo 2 números</span>';return;}
+  let n=nums.length,sorted=[...nums].sort((a,b)=>a-b);
+  let mean=nums.reduce((s,v)=>s+v,0)/n;
+  let med=n%2===0?(sorted[n/2-1]+sorted[n/2])/2:sorted[Math.floor(n/2)];
+  let vr=nums.reduce((s,v)=>s+(v-mean)**2,0)/n;
+  let std=Math.sqrt(vr);
+  let freq={};nums.forEach(v=>freq[v]=(freq[v]||0)+1);
+  let mf=Math.max(...Object.values(freq));
+  let mode=Object.keys(freq).filter(k=>freq[k]===mf).map(Number);
+  let q1=sorted[Math.floor(n/4)],q3=sorted[Math.floor(3*n/4)];
+  let cv=std/mean*100;
 
-function runStats() {
-  let nums = parseNums(document.getElementById("stats-input").value);
-  if (nums.length < 2) {
-    document.getElementById("stat-chips").innerHTML = `<span style="color:var(--accent3)">Ingresá al menos 2 números</span>`;
-    return;
-  }
-
-  let n = nums.length;
-  let sorted = [...nums].sort((a,b)=>a-b);
-  let mean = nums.reduce((s,v)=>s+v,0) / n;
-  let median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
-  let variance = nums.reduce((s,v)=>s+(v-mean)**2,0) / n;
-  let std = Math.sqrt(variance);
-  let min = sorted[0];
-  let max = sorted[n-1];
-  let range = max - min;
-  let q1 = sorted[Math.floor(n/4)];
-  let q3 = sorted[Math.floor(3*n/4)];
-
-  // Moda
-  let freq = {};
-  nums.forEach(v => freq[v] = (freq[v]||0)+1);
-  let maxFreq = Math.max(...Object.values(freq));
-  let mode = Object.keys(freq).filter(k=>freq[k]===maxFreq).map(Number);
-
-  let chips = [
-    { label:"N",        value: n },
-    { label:"Media",    value: fmt(mean) },
-    { label:"Mediana",  value: fmt(median) },
-    { label:"Moda",     value: mode.length <= 3 ? mode.join(', ') : 'Múltiple' },
-    { label:"Desv. Est",value: fmt(std) },
-    { label:"Varianza", value: fmt(variance) },
-    { label:"Mín",      value: fmt(min) },
-    { label:"Máx",      value: fmt(max) },
-    { label:"Rango",    value: fmt(range) },
-    { label:"Q1",       value: fmt(q1) },
-    { label:"Q3",       value: fmt(q3) },
-    { label:"IQR",      value: fmt(q3-q1) },
+  let cdata=[
+    {l:'N',v:n},{l:'Media',v:fmt(mean)},{l:'Mediana',v:fmt(med)},{l:'Moda',v:mode.length<=3?mode.join(', '):'Múltiple'},
+    {l:'Desv.Est',v:fmt(std)},{l:'Varianza',v:fmt(vr)},{l:'CV%',v:fmt(cv)},
+    {l:'Mín',v:fmt(sorted[0])},{l:'Máx',v:fmt(sorted[n-1])},{l:'Rango',v:fmt(sorted[n-1]-sorted[0])},
+    {l:'Q1',v:fmt(q1)},{l:'Q3',v:fmt(q3)},{l:'IQR',v:fmt(q3-q1)}
   ];
+  document.getElementById('stat-chips').innerHTML=cdata.map(c=>`<div class="chip math"><div class="lbl">${c.l}</div><div class="val">${c.v}</div></div>`).join('');
 
-  document.getElementById("stat-chips").innerHTML = chips.map(c => `
-    <div class="stat-chip">
-      <div class="label">${c.label}</div>
-      <div class="value">${c.value}</div>
-    </div>
-  `).join('');
-
-  // Gráfico distribución (histograma)
-  if (statsChart) { statsChart.destroy(); statsChart = null; }
-  let bins = 8;
-  let binSize = range / bins || 1;
-  let binLabels = [], binData = [];
-  for (let i = 0; i < bins; i++) {
-    let lo = min + i*binSize;
-    let hi = lo + binSize;
-    binLabels.push(fmt(lo));
-    binData.push(nums.filter(v => v >= lo && (i===bins-1 ? v<=hi : v<hi)).length);
+  if(statsChart){statsChart.destroy();statsChart=null;}
+  let bins=Math.min(10,Math.ceil(Math.sqrt(n)));
+  let rng=sorted[n-1]-sorted[0]||1, bsz=rng/bins;
+  let bl=[],bd=[];
+  for(let i=0;i<bins;i++){
+    let lo=sorted[0]+i*bsz,hi=lo+bsz;
+    bl.push(fmt(lo,1));
+    bd.push(nums.filter(v=>v>=lo&&(i===bins-1?v<=hi:v<hi)).length);
   }
-
-  statsChart = new Chart(document.getElementById("stats-chart"), {
-    type: "bar",
-    data: {
-      labels: binLabels,
-      datasets: [{
-        label: "Frecuencia",
-        data: binData,
-        backgroundColor: "rgba(0,200,255,0.3)",
-        borderColor: COLORS[0],
-        borderWidth: 1,
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: { legend: { display:false } },
-      scales: {
-        x: { grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"#5a7a9a",font:{family:'Space Mono',size:10}} },
-        y: { grid:{color:"rgba(255,255,255,0.05)"}, ticks:{color:"#5a7a9a",font:{family:'Space Mono',size:10}} }
-      }
-    }
+  statsChart=new Chart(document.getElementById('stats-chart'),{
+    type:'bar',data:{labels:bl,datasets:[{label:'Frecuencia',data:bd,backgroundColor:'rgba(56,189,248,.25)',borderColor:COLORS[0],borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a6a8a',font:{family:'JetBrains Mono',size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a6a8a',font:{family:'JetBrains Mono',size:9}}}}}
   });
-
-  document.getElementById("stats-chart-card").style.display = "block";
+  document.getElementById('stats-chart-card').style.display='block';
 }
 
-function setStatsExample() {
-  document.getElementById("stats-input").value = "12, 45, 7, 89, 23, 56, 34, 78, 11, 90, 42, 67, 28, 53, 19";
+// ═══════════════════════════════════════════════
+// QUÍMICA
+// ═══════════════════════════════════════════════
+function updateChemUI(){
+  let tool=document.getElementById('chem-tool').value;
+  document.querySelectorAll('.chem-panel').forEach(p=>p.style.display='none');
+  document.getElementById('chem-'+tool).style.display='block';
+  document.getElementById('periodic-display').style.display=tool==='periodic'?'block':'none';
+  if(tool==='periodic') buildPeriodic();
 }
 
-// ======================================================
-// HISTORIAL
-// ======================================================
-
-function addHistory(input, result) {
-  let now = new Date();
-  let time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  history.unshift({ input, result, time });
-  if (history.length > 50) history.pop();
-  renderHistory();
-}
-
-function renderHistory() {
-  let el = document.getElementById("history-list");
-  if (history.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><div>Aún no hay cálculos</div></div>`;
-    return;
+// MASA MOLAR
+function parseMolar(formula){
+  let elements={};
+  // expandir paréntesis ej: Ca3(PO4)2
+  let expand=(f)=>{
+    let re=/\(([^()]+)\)(\d*)/g,m;
+    while((m=re.exec(f))!==null){
+      let inner=m[1],mult=m[2]?Number(m[2]):1;
+      let rep='';for(let i=0;i<mult;i++) rep+=inner;
+      f=f.slice(0,m.index)+rep+f.slice(m.index+m[0].length);
+      re.lastIndex=0;
+    }
+    return f;
+  };
+  formula=expand(formula);
+  let re=/([A-Z][a-z]?)(\d*)/g,m;
+  while((m=re.exec(formula))!==null){
+    let sym=m[1],cnt=m[2]?Number(m[2]):1;
+    elements[sym]=(elements[sym]||0)+cnt;
   }
-  el.innerHTML = history.map((h,i) => `
-    <div class="history-item" onclick="loadFromHistory(${i})">
-      <div>
-        <div class="history-input">${h.input}</div>
-        <div class="history-result">${h.result.replace(/<[^>]+>/g,'').substring(0,60)}...</div>
-      </div>
-      <div class="history-time">${h.time}</div>
+  return elements;
+}
+
+function runMolar(){
+  let formula=document.getElementById('molar-input').value.trim();
+  if(!formula) return;
+  let elems=parseMolar(formula);
+  let total=0,rows='';
+  let ok=true;
+  for(let sym in elems){
+    let data=ATOMIC[sym];
+    if(!data){rows+=`<tr><td style="color:#f87171">${sym}: no encontrado</td><td>—</td><td>—</td></tr>`;ok=false;continue;}
+    let cnt=elems[sym],contrib=data.mass*cnt;
+    total+=contrib;
+    rows+=`<tr><td>${sym} (${data.name})</td><td>${cnt}</td><td>${fmt(data.mass)}</td><td style="color:var(--chem)">${fmt(contrib)}</td></tr>`;
+  }
+  let out=`<b style="color:var(--chem)">${formula}</b><br><br>
+    <table class="tbl"><thead><tr><th>Elemento</th><th>Cantidad</th><th>Masa (g/mol)</th><th>Contribución</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <br><b style="color:var(--chem)">Masa molar total: ${fmt(total)} g/mol</b>`;
+  setChem(out,[
+    {t:'Fórmula: '+formula,v:''},
+    ...Object.entries(elems).map(([s,n])=>({t:`${s}: ${n} × ${ATOMIC[s]?.mass||'?'} =`,v:fmt((ATOMIC[s]?.mass||0)*n)})),
+    {t:'Masa molar total:',v:fmt(total)+' g/mol'}
+  ]);
+}
+
+// BALANCEO
+function runBalance(){
+  let eq=document.getElementById('balance-input').value.trim();
+  eq=eq.replace('→','->').replace('→','->');
+  let[left,right]=eq.split('->');
+  if(!right){setChem('<span style="color:#f87171">Formato: H2 + O2 → H2O</span>',[]);return;}
+
+  let parseEl=(s)=>{
+    let parts=s.split('+').map(t=>t.trim());
+    return parts.map(p=>{let m=p.match(/^(\d*)([A-Z].*)$/);return{coef:m[1]?Number(m[1]):1,mol:m[2]};});
+  };
+
+  // Balanceo simple por inspeccion para reacciones comunes
+  let react=parseEl(left),prod=parseEl(right);
+
+  // Contar átomos lado izquierdo y derecho con coeficientes 1
+  let countAtoms=(mols,coefs)=>{
+    let atoms={};
+    mols.forEach((m,i)=>{
+      let elems=parseMolar(m.mol);
+      for(let sym in elems) atoms[sym]=(atoms[sym]||0)+elems[sym]*coefs[i];
+    });
+    return atoms;
+  };
+
+  // Búsqueda por fuerza bruta coeficientes 1..6
+  let found=null;
+  outer:for(let a=1;a<=6;a++) for(let b=1;b<=6;b++) for(let c=1;c<=6;c++) for(let d=1;d<=6;d++){
+    if(react.length===2&&prod.length===1){
+      let L=countAtoms(react,[a,b]),R=countAtoms(prod,[c]);
+      if(JSON.stringify(L)===JSON.stringify(R)){found={r:[a,b],p:[c]};break outer;}
+    }
+    if(react.length===2&&prod.length===2){
+      let L=countAtoms(react,[a,b]),R=countAtoms(prod,[c,d]);
+      if(JSON.stringify(L)===JSON.stringify(R)){found={r:[a,b],p:[c,d]};break outer;}
+    }
+  }
+  if(react.length===1&&prod.length===2){
+    outer2:for(let a=1;a<=6;a++) for(let b=1;b<=6;b++) for(let c=1;c<=6;c++){
+      let L=countAtoms(react,[a]),R=countAtoms(prod,[b,c]);
+      if(JSON.stringify(L)===JSON.stringify(R)){found={r:[a],p:[b,c]};break outer2;}
+    }
+  }
+
+  if(!found){setChem('<span style="color:#f87171">No se pudo balancear automáticamente (reacción compleja)</span>',[]);return;}
+
+  let fmt2=(mols,coefs)=>mols.map((m,i)=>(coefs[i]>1?coefs[i]:'')+m.mol).join(' + ');
+  let balanced=fmt2(react,found.r)+' → '+fmt2(prod,found.p);
+  let out=`<b style="color:var(--chem)">Ecuación balanceada</b><br><br><span style="font-size:18px;font-family:var(--mono)">${balanced}</span>`;
+  setChem(out,[{t:'Coeficientes encontrados por balance de átomos',v:''},{t:'Reactivos:',v:found.r.join(', ')},{t:'Productos:',v:found.p.join(', ')}]);
+}
+
+// pH
+function runPH(){
+  let type=document.getElementById('ph-type').value;
+  let val=Number(document.getElementById('ph-input').value);
+  let out='',steps=[];
+  if(type==='conc'){
+    let ph=-Math.log10(val);
+    let poh=14-ph;
+    out=`<b style="color:var(--chem)">pH</b><br><br>[H⁺] = ${val} mol/L<br>pH = <span style="color:var(--chem)">${fmt(ph)}</span><br>pOH = <span style="color:var(--chem)">${fmt(poh)}</span><br><br>${ph<7?'Ácido 🔴':ph>7?'Básico 🔵':'Neutro ⚪'}`;
+    steps=[{t:'pH = −log₁₀[H⁺]',v:''},{t:`pH = −log₁₀(${val})`,v:fmt(ph)},{t:'pOH = 14 − pH',v:fmt(poh)}];
+  } else if(type==='ph'){
+    let h=Math.pow(10,-val);
+    let poh=14-val;
+    out=`<b style="color:var(--chem)">Desde pH</b><br><br>pH = ${val}<br>[H⁺] = <span style="color:var(--chem)">${h.toExponential(3)} mol/L</span><br>pOH = <span style="color:var(--chem)">${poh}</span>`;
+    steps=[{t:'[H⁺] = 10^(−pH)',v:''},{t:`[H⁺] = 10^(−${val})`,v:h.toExponential(3)}];
+  } else {
+    // ácido débil Ka
+    let h=Math.sqrt(val);
+    let ph=-Math.log10(h);
+    out=`<b style="color:var(--chem)">Ácido débil</b><br><br>Ka = ${val}<br>[H⁺] = √Ka = <span style="color:var(--chem)">${fmt(h)}</span><br>pH ≈ <span style="color:var(--chem)">${fmt(ph)}</span>`;
+    steps=[{t:'Aproximación: [H⁺] ≈ √Ka',v:''},{t:`[H⁺] = √${val} = ${fmt(h)}`,v:''},{t:'pH = −log[H⁺]',v:fmt(ph)}];
+  }
+  setChem(out,steps);
+}
+
+// GAS IDEAL
+function runGas(){
+  const R=0.08206; // L·atm/mol·K
+  let P=document.getElementById('gas-p').value;
+  let V=document.getElementById('gas-v').value;
+  let n=document.getElementById('gas-n').value;
+  let T=document.getElementById('gas-t').value;
+  let blanks=[P,V,n,T].filter(v=>v==='').length;
+  if(blanks!==1){setChem('<span style="color:#f87171">Dejá exactamente 1 campo vacío</span>',[]);return;}
+  P=P===''?null:Number(P);V=V===''?null:Number(V);n=n===''?null:Number(n);T=T===''?null:Number(T);
+  let result,label;
+  if(P===null){result=n*R*T/V;label='P (atm)';}
+  else if(V===null){result=n*R*T/P;label='V (L)';}
+  else if(n===null){result=P*V/(R*T);label='n (mol)';}
+  else{result=P*V/(n*R);label='T (K)';}
+  let out=`<b style="color:var(--chem)">Gas ideal PV = nRT</b><br><br>${label} = <span style="color:var(--chem);font-size:24px;font-family:var(--mono)">${fmt(result)}</span>`;
+  setChem(out,[{t:'PV = nRT, R = 0.08206 L·atm/mol·K',v:''},{t:'Resultado:',v:`${label} = ${fmt(result)}`}]);
+}
+
+// CONCENTRACIÓN
+function runConc(){
+  let n=document.getElementById('conc-n').value;
+  let v=document.getElementById('conc-v').value;
+  let mm=document.getElementById('conc-mm').value;
+  let m=document.getElementById('conc-m').value;
+  let steps=[],out='';
+  if(n&&v){
+    let M=Number(n)/Number(v);
+    out=`<b style="color:var(--chem)">Molaridad</b><br><br>M = <span style="color:var(--chem);font-size:24px">${fmt(M)}</span> mol/L`;
+    steps=[{t:'M = n / V',v:''},{t:`M = ${n} / ${v}`,v:fmt(M)+' mol/L'}];
+  } else if(m&&mm&&v){
+    let moles=Number(m)/Number(mm);
+    let M=moles/Number(v);
+    out=`<b style="color:var(--chem)">Molaridad desde masa</b><br><br>n = ${fmt(moles)} mol<br>M = <span style="color:var(--chem);font-size:24px">${fmt(M)}</span> mol/L`;
+    steps=[{t:'n = m / MM',v:fmt(moles)+' mol'},{t:'M = n / V',v:fmt(M)+' mol/L'}];
+  } else {out='<span style="color:#f87171">Ingresá n+V o m+MM+V</span>';}
+  setChem(out,steps);
+}
+
+function setChem(out,steps){
+  document.getElementById('chem-result').innerHTML=out+`<button class="copy-btn" onclick="copyR('chem-result')">Copiar</button>`;
+  document.getElementById('chem-result').className='result-box ok-chem';
+  if(steps.length>0){
+    document.getElementById('chem-steps').innerHTML=steps.map((s,i)=>`<div class="step" style="animation-delay:${i*.06}s"><div class="step-n chem">${i+1}</div><div>${s.t}${s.v?` <span>${s.v}</span>`:''}</div></div>`).join('');
+    document.getElementById('chem-steps-card').style.display='block';
+  } else document.getElementById('chem-steps-card').style.display='none';
+  document.getElementById('right-chem').scrollTop=0;
+}
+
+// TABLA PERIÓDICA
+const PERIODIC_LAYOUT=[
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [3,4,0,0,0,0,0,0,0,0,0,0,5,6,7,8,9,10],
+  [11,12,0,0,0,0,0,0,0,0,0,0,13,14,15,16,17,18],
+  [19,20,21,22,23,24,25,26,27,28,29,30,13,14,15,16,17,36],
+];
+
+function buildPeriodic(){
+  let grid=document.getElementById('periodic-grid');
+  if(grid.children.length>0) return;
+  let byNum={};
+  for(let sym in ATOMIC) byNum[ATOMIC[sym].num]={sym,...ATOMIC[sym]};
+
+  // Construir grilla simplificada
+  let els=Object.entries(ATOMIC).sort((a,b)=>a[1].num-b[1].num);
+  let positions={};
+  // posición fija para elementos principales
+  const pos={
+    H:[0,0],He:[0,17],Li:[1,0],Be:[1,1],B:[1,12],C:[1,13],N:[1,14],O:[1,15],F:[1,16],Ne:[1,17],
+    Na:[2,0],Mg:[2,1],Al:[2,12],Si:[2,13],P:[2,14],S:[2,15],Cl:[2,16],Ar:[2,17],
+    K:[3,0],Ca:[3,1],Fe:[3,8],Cu:[3,11],Zn:[3,12],Mn:[3,7],Cr:[3,6],Ni:[3,10],
+    Br:[4,17],I:[5,17],Ag:[5,11],Pb:[6,14],Au:[6,11],Hg:[6,12],
+  };
+  const catCls={nonmetal:'el-nonmetal',metal:'el-metal',noble:'el-noble',metalloid:'el-metalloid',transition:'el-transition'};
+
+  // 8 filas × 18 cols
+  let cells=Array.from({length:8},()=>Array(18).fill(null));
+  for(let sym in pos){
+    let[r,c]=pos[sym];
+    if(ATOMIC[sym]) cells[r][c]={sym,...ATOMIC[sym]};
+  }
+
+  grid.innerHTML='';
+  for(let r=0;r<8;r++) for(let c=0;c<18;c++){
+    let el=cells[r][c];
+    let div=document.createElement('div');
+    if(el){
+      div.className=`el-cell ${catCls[el.cat]||'el-nonmetal'}`;
+      div.innerHTML=`<div class="sym">${el.sym}</div><div class="num">${el.num}</div>`;
+      div.onclick=()=>showElement(el.sym);
+    } else {
+      div.className='el-cell el-empty';
+    }
+    grid.appendChild(div);
+  }
+}
+
+function showElement(sym){
+  let el=ATOMIC[sym];if(!el) return;
+  let detail=document.getElementById('el-detail');
+  document.getElementById('el-detail-content').innerHTML=`
+    <div class="chips">
+      <div class="chip chem"><div class="lbl">Símbolo</div><div class="val">${sym}</div></div>
+      <div class="chip chem"><div class="lbl">Número atómico</div><div class="val">${el.num}</div></div>
+      <div class="chip chem"><div class="lbl">Masa atómica</div><div class="val">${el.mass}</div></div>
+      <div class="chip chem"><div class="lbl">Categoría</div><div class="val" style="font-size:13px">${el.cat}</div></div>
     </div>
-  `).join('');
+    <div style="margin-top:10px;font-size:14px;color:var(--muted)">${el.name}</div>
+  `;
+  detail.style.display='block';
 }
 
-function loadFromHistory(i) {
-  setCalc(history[i].input);
-  switchTab('calc');
+// ═══════════════════════════════════════════════
+// FÍSICA
+// ═══════════════════════════════════════════════
+function updatePhysUI(){
+  let tool=document.getElementById('phys-tool').value;
+  document.querySelectorAll('.phys-panel').forEach(p=>p.style.display='none');
+  document.getElementById('phys-'+tool).style.display='block';
+  if(tool==='kine') buildKineFields();
+  if(tool==='energy') buildEnergyFields();
+  if(tool==='thermo') buildThermoFields();
+  if(tool==='ohm') buildOhmFields();
 }
 
-function clearHistory() {
-  history = [];
-  renderHistory();
+// CINEMÁTICA
+function buildKineFields(){
+  let type=document.getElementById('kine-type')?.value||'mru';
+  let html='<p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>';
+  if(type==='mru'){
+    html+=fields([['d (m)','kine-d','distancia'],['v (m/s)','kine-v','velocidad'],['t (s)','kine-t','tiempo']]);
+  } else if(type==='mrua'){
+    html+=fields([['d (m)','kine-d','distancia'],['vi (m/s)','kine-vi','vel. inicial'],['vf (m/s)','kine-vf','vel. final'],['a (m/s²)','kine-a','aceleración'],['t (s)','kine-t','tiempo']]);
+  } else if(type==='caida'){
+    html+=fields([['h (m)','kine-h','altura'],['t (s)','kine-t','tiempo'],['v (m/s)','kine-v','velocidad final']]);
+    html+='<p class="hint">g = 9.8 m/s²</p>';
+  } else if(type==='tiro'){
+    html+=fields([['v0 (m/s)','kine-v0','vel. inicial'],['θ (°)','kine-ang','ángulo'],['t (s)','kine-t','tiempo (opcional)']]);
+  }
+  document.getElementById('kine-fields').innerHTML=html;
+  document.getElementById('kine-type').onchange=buildKineFields;
 }
 
-// ======================================================
+function fields(arr){
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">${arr.map(([lbl,id,ph])=>`<div><div class="hint" style="margin-bottom:4px">${lbl}</div><input type="text" id="${id}" placeholder="${ph}"></div>`).join('')}</div>`;
+}
+
+function gv(id){let el=document.getElementById(id);return el&&el.value!==''?Number(el.value):null;}
+
+function runKine(){
+  const g=9.8;
+  let type=document.getElementById('kine-type').value;
+  let out='',steps=[];
+
+  if(type==='mru'){
+    let d=gv('kine-d'),v=gv('kine-v'),t=gv('kine-t');
+    if(v!==null&&t!==null&&d===null){d=v*t;out=phRes('MRU',`d = v·t = ${v}·${t} = <b>${fmt(d)} m</b>`);steps=[{t:'d = v·t',v:fmt(d)+' m'}];}
+    else if(d!==null&&t!==null&&v===null){v=d/t;out=phRes('MRU',`v = d/t = ${d}/${t} = <b>${fmt(v)} m/s</b>`);steps=[{t:'v = d/t',v:fmt(v)+' m/s'}];}
+    else if(d!==null&&v!==null&&t===null){t=d/v;out=phRes('MRU',`t = d/v = ${d}/${v} = <b>${fmt(t)} s</b>`);steps=[{t:'t = d/v',v:fmt(t)+' s'}];}
+    else out=phErr('Completá 2 de 3 campos');
+  }
+  else if(type==='mrua'){
+    let d=gv('kine-d'),vi=gv('kine-vi'),vf=gv('kine-vf'),a=gv('kine-a'),t=gv('kine-t');
+    if(vi!==null&&a!==null&&t!==null){
+      vf=vi+a*t; d=vi*t+0.5*a*t**2;
+      out=phRes('MRUA',`vf = ${fmt(vf)} m/s<br>d = ${fmt(d)} m`);
+      steps=[{t:'vf = vi + a·t',v:fmt(vf)+' m/s'},{t:'d = vi·t + ½a·t²',v:fmt(d)+' m'}];
+    } else if(vi!==null&&vf!==null&&a!==null){
+      t=(vf-vi)/a; d=(vf**2-vi**2)/(2*a);
+      out=phRes('MRUA',`t = ${fmt(t)} s<br>d = ${fmt(d)} m`);
+      steps=[{t:'t = (vf−vi)/a',v:fmt(t)+' s'},{t:'d = (vf²−vi²)/(2a)',v:fmt(d)+' m'}];
+    } else out=phErr('Ingresá vi + a + t, o vi + vf + a');
+  }
+  else if(type==='caida'){
+    let h=gv('kine-h'),t=gv('kine-t'),v=gv('kine-v');
+    if(h!==null&&t===null){t=Math.sqrt(2*h/g);v=g*t;out=phRes('Caída libre',`t = ${fmt(t)} s<br>v_f = ${fmt(v)} m/s`);steps=[{t:'t = √(2h/g)',v:fmt(t)+' s'},{t:'vf = g·t',v:fmt(v)+' m/s'}];}
+    else if(t!==null&&h===null){h=0.5*g*t**2;v=g*t;out=phRes('Caída libre',`h = ${fmt(h)} m<br>vf = ${fmt(v)} m/s`);steps=[{t:'h = ½g·t²',v:fmt(h)+' m'}];}
+    else out=phErr('Ingresá h o t');
+  }
+  else if(type==='tiro'){
+    let v0=gv('kine-v0'),ang=gv('kine-ang');
+    if(v0!==null&&ang!==null){
+      let rad=ang*Math.PI/180;
+      let vx=v0*Math.cos(rad),vy=v0*Math.sin(rad);
+      let tTotal=2*vy/g,xMax=vx*tTotal,yMax=vy**2/(2*g);
+      out=phRes('Tiro parabólico',`vₓ = ${fmt(vx)} m/s · vᵧ = ${fmt(vy)} m/s<br>Alcance = <b>${fmt(xMax)} m</b><br>Altura máx = <b>${fmt(yMax)} m</b><br>Tiempo vuelo = <b>${fmt(tTotal)} s</b>`);
+      steps=[{t:'vₓ = v₀·cos(θ)',v:fmt(vx)+' m/s'},{t:'vᵧ = v₀·sin(θ)',v:fmt(vy)+' m/s'},{t:'Alcance = vₓ·t',v:fmt(xMax)+' m'},{t:'Ymax = vᵧ²/(2g)',v:fmt(yMax)+' m'}];
+
+      // Gráfico trayectoria
+      if(physChart){physChart.destroy();physChart=null;}
+      let pts=[];
+      for(let t=0;t<=tTotal;t+=tTotal/100){pts.push({x:vx*t,y:vy*t-0.5*g*t**2});}
+      physChart=new Chart(document.getElementById('phys-chart'),{
+        type:'scatter',
+        data:{datasets:[{label:'Trayectoria',data:pts,showLine:true,borderColor:COLORS[2],backgroundColor:'transparent',pointRadius:0,tension:0.3}]},
+        options:{responsive:true,maintainAspectRatio:false,animation:false,
+          plugins:{legend:{display:false}},
+          scales:{x:{title:{display:true,text:'x (m)',color:'#4a6a8a'},grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a6a8a',font:{family:'JetBrains Mono',size:9}}},
+            y:{title:{display:true,text:'y (m)',color:'#4a6a8a'},grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a6a8a',font:{family:'JetBrains Mono',size:9}}}}}
+      });
+      document.getElementById('phys-chart-card').style.display='block';
+    }
+  }
+  setPhys(out,steps);
+}
+
+// DINÁMICA
+function runDyn(){
+  let F=gv('dyn-f'),m=gv('dyn-m'),a=gv('dyn-a');
+  let out='',steps=[];
+  if(F===null&&m!==null&&a!==null){F=m*a;out=phRes('F = ma',`F = ${m}·${a} = <b>${fmt(F)} N</b>`);steps=[{t:'F = m·a',v:fmt(F)+' N'}];}
+  else if(m===null&&F!==null&&a!==null){m=F/a;out=phRes('F = ma',`m = F/a = ${F}/${a} = <b>${fmt(m)} kg</b>`);steps=[{t:'m = F/a',v:fmt(m)+' kg'}];}
+  else if(a===null&&F!==null&&m!==null){a=F/m;out=phRes('F = ma',`a = F/m = ${F}/${m} = <b>${fmt(a)} m/s²</b>`);steps=[{t:'a = F/m',v:fmt(a)+' m/s²'}];}
+  else out=phErr('Dejá exactamente 1 campo vacío');
+  setPhys(out,steps);
+}
+
+// ENERGÍA
+function buildEnergyFields(){
+  let type=document.getElementById('energy-type').value;
+  let html='<p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>';
+  if(type==='ke') html+=fields([['m (kg)','en-m','masa'],['v (m/s)','en-v','velocidad'],['Ec (J)','en-ec','energía cinética']]);
+  else if(type==='pe') html+=fields([['m (kg)','en-m','masa'],['h (m)','en-h','altura'],['Ep (J)','en-ep','energía potencial']]);
+  else if(type==='work') html+=fields([['F (N)','en-f','fuerza'],['d (m)','en-d','distancia'],['θ (°)','en-ang','ángulo'],['W (J)','en-w','trabajo']]);
+  else if(type==='power') html+=fields([['W (J)','en-w','trabajo'],['t (s)','en-t','tiempo'],['P (W)','en-p','potencia']]);
+  document.getElementById('energy-fields').innerHTML=html;
+  document.getElementById('energy-type').onchange=buildEnergyFields;
+}
+
+function runEnergy(){
+  let type=document.getElementById('energy-type').value;
+  let out='',steps=[];
+  if(type==='ke'){
+    let m=gv('en-m'),v=gv('en-v'),ec=gv('en-ec');
+    if(ec===null&&m!==null&&v!==null){ec=0.5*m*v**2;out=phRes('Energía cinética',`Ec = ½mv² = <b>${fmt(ec)} J</b>`);steps=[{t:'Ec = ½·m·v²',v:fmt(ec)+' J'}];}
+    else if(v===null&&m!==null&&ec!==null){v=Math.sqrt(2*ec/m);out=phRes('Velocidad',`v = √(2Ec/m) = <b>${fmt(v)} m/s</b>`);steps=[{t:'v = √(2Ec/m)',v:fmt(v)+' m/s'}];}
+    else out=phErr('Completá los campos');
+  } else if(type==='pe'){
+    let m=gv('en-m'),h=gv('en-h'),ep=gv('en-ep');
+    const g=9.8;
+    if(ep===null&&m!==null&&h!==null){ep=m*g*h;out=phRes('Energía potencial',`Ep = mgh = <b>${fmt(ep)} J</b>`);steps=[{t:'Ep = m·g·h',v:fmt(ep)+' J'}];}
+    else if(h===null&&m!==null&&ep!==null){h=ep/(m*g);out=phRes('Altura',`h = Ep/(mg) = <b>${fmt(h)} m</b>`);steps=[{t:'h = Ep/(m·g)',v:fmt(h)+' m'}];}
+    else out=phErr('Completá los campos');
+  } else if(type==='work'){
+    let F=gv('en-f'),d=gv('en-d'),ang=gv('en-ang')||0,W=gv('en-w');
+    let rad=ang*Math.PI/180;
+    if(W===null&&F!==null&&d!==null){W=F*d*Math.cos(rad);out=phRes('Trabajo',`W = F·d·cos(θ) = <b>${fmt(W)} J</b>`);steps=[{t:'W = F·d·cos(θ)',v:fmt(W)+' J'}];}
+    else out=phErr('Completá F y d');
+  } else if(type==='power'){
+    let W=gv('en-w'),t=gv('en-t'),P=gv('en-p');
+    if(P===null&&W!==null&&t!==null){P=W/t;out=phRes('Potencia',`P = W/t = <b>${fmt(P)} W</b>`);steps=[{t:'P = W/t',v:fmt(P)+' W'}];}
+    else if(W===null&&P!==null&&t!==null){W=P*t;out=phRes('Trabajo',`W = P·t = <b>${fmt(W)} J</b>`);steps=[{t:'W = P·t',v:fmt(W)+' J'}];}
+    else out=phErr('Completá los campos');
+  }
+  setPhys(out,steps);
+}
+
+// TERMODINÁMICA
+function buildThermoFields(){
+  let type=document.getElementById('thermo-type').value;
+  let html='';
+  if(type==='q') html+=fields([['m (kg)','th-m','masa'],['c (J/kg·K)','th-c','calor específico'],['ΔT (K)','th-dt','variación temp'],['Q (J)','th-q','calor']]);
+  else if(type==='conv') html+=`<div style="display:grid;gap:10px"><div><div class="hint" style="margin-bottom:4px">Tipo</div><select id="th-ctype" style="width:100%"><option value="ctf">°C → °F</option><option value="ftc">°F → °C</option><option value="ctk">°C → K</option><option value="ktc">K → °C</option></select></div><div><div class="hint" style="margin-bottom:4px">Valor</div><input type="text" id="th-val" placeholder="temperatura"></div></div>`;
+  else if(type==='exp') html+=fields([['L₀ (m)','th-l0','longitud inicial'],['α (1/K)','th-a','coef. dilatación'],['ΔT (K)','th-dt','variación temp'],['ΔL (m)','th-dl','variación longitud']]);
+  document.getElementById('thermo-fields').innerHTML=html;
+  document.getElementById('thermo-type').onchange=buildThermoFields;
+}
+
+function runThermo(){
+  let type=document.getElementById('thermo-type').value;
+  let out='',steps=[];
+  if(type==='q'){
+    let m=gv('th-m'),c=gv('th-c'),dt=gv('th-dt'),Q=gv('th-q');
+    if(Q===null&&m!==null&&c!==null&&dt!==null){Q=m*c*dt;out=phRes('Calor',`Q = m·c·ΔT = <b>${fmt(Q)} J</b>`);steps=[{t:'Q = m·c·ΔT',v:fmt(Q)+' J'}];}
+    else if(dt===null&&Q!==null&&m!==null&&c!==null){dt=Q/(m*c);out=phRes('ΔT',`ΔT = Q/(mc) = <b>${fmt(dt)} K</b>`);steps=[{t:'ΔT = Q/(m·c)',v:fmt(dt)+' K'}];}
+    else out=phErr('Completá los campos');
+  } else if(type==='conv'){
+    let ct=document.getElementById('th-ctype').value;
+    let val=gv('th-val');if(val===null){out=phErr('Ingresá un valor');setPhys(out,[]);return;}
+    let r;
+    if(ct==='ctf'){r=val*9/5+32;out=phRes('°C → °F',`${val}°C = <b>${fmt(r)}°F</b>`);}
+    else if(ct==='ftc'){r=(val-32)*5/9;out=phRes('°F → °C',`${val}°F = <b>${fmt(r)}°C</b>`);}
+    else if(ct==='ctk'){r=val+273.15;out=phRes('°C → K',`${val}°C = <b>${fmt(r)} K</b>`);}
+    else{r=val-273.15;out=phRes('K → °C',`${val} K = <b>${fmt(r)}°C</b>`);}
+    steps=[{t:'Conversión de temperatura',v:fmt(r)}];
+  } else if(type==='exp'){
+    let l0=gv('th-l0'),a=gv('th-a'),dt=gv('th-dt'),dl=gv('th-dl');
+    if(dl===null&&l0!==null&&a!==null&&dt!==null){dl=a*l0*dt;out=phRes('Dilatación lineal',`ΔL = α·L₀·ΔT = <b>${fmt(dl)} m</b>`);steps=[{t:'ΔL = α·L₀·ΔT',v:fmt(dl)+' m'}];}
+    else out=phErr('Completá los campos');
+  }
+  setPhys(out,steps);
+}
+
+// OHM
+function buildOhmFields(){
+  let type=document.getElementById('ohm-type').value;
+  let html='';
+  if(type==='ohm') html+=`<p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>`+fields([['V (V)','oh-v','voltaje'],['I (A)','oh-i','corriente'],['R (Ω)','oh-r','resistencia']]);
+  else if(type==='serie') html+=`<div><div class="hint" style="margin-bottom:4px">Resistencias (Ω) separadas por coma</div><input type="text" id="oh-rs" placeholder="ej: 10, 20, 30"></div>`;
+  else if(type==='paralelo') html+=`<div><div class="hint" style="margin-bottom:4px">Resistencias (Ω) separadas por coma</div><input type="text" id="oh-rp" placeholder="ej: 10, 20, 30"></div>`;
+  else if(type==='potencia') html+=`<p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>`+fields([['V (V)','oh-v','voltaje'],['I (A)','oh-i','corriente'],['P (W)','oh-p','potencia']]);
+  document.getElementById('ohm-fields').innerHTML=html;
+  document.getElementById('ohm-type').onchange=buildOhmFields;
+}
+
+function runOhm(){
+  let type=document.getElementById('ohm-type').value;
+  let out='',steps=[];
+  if(type==='ohm'){
+    let V=gv('oh-v'),I=gv('oh-i'),R=gv('oh-r');
+    if(V===null&&I!==null&&R!==null){V=I*R;out=phRes('Ley de Ohm',`V = I·R = <b>${fmt(V)} V</b>`);steps=[{t:'V = I·R',v:fmt(V)+' V'}];}
+    else if(I===null&&V!==null&&R!==null){I=V/R;out=phRes('Corriente',`I = V/R = <b>${fmt(I)} A</b>`);steps=[{t:'I = V/R',v:fmt(I)+' A'}];}
+    else if(R===null&&V!==null&&I!==null){R=V/I;out=phRes('Resistencia',`R = V/I = <b>${fmt(R)} Ω</b>`);steps=[{t:'R = V/I',v:fmt(R)+' Ω'}];}
+    else out=phErr('Dejá exactamente 1 campo vacío');
+  } else if(type==='serie'){
+    let rs=document.getElementById('oh-rs')?.value?.split(',').map(Number).filter(n=>!isNaN(n));
+    if(rs&&rs.length>0){let R=rs.reduce((s,v)=>s+v,0);out=phRes('Serie',`Rtotal = ${rs.join(' + ')} = <b>${fmt(R)} Ω</b>`);steps=[{t:'Rtotal = R₁ + R₂ + ... + Rₙ',v:fmt(R)+' Ω'}];}
+  } else if(type==='paralelo'){
+    let rp=document.getElementById('oh-rp')?.value?.split(',').map(Number).filter(n=>!isNaN(n));
+    if(rp&&rp.length>0){let R=1/rp.reduce((s,v)=>s+1/v,0);out=phRes('Paralelo',`1/Rtotal = ${rp.map(r=>'1/'+r).join(' + ')}<br>Rtotal = <b>${fmt(R)} Ω</b>`);steps=[{t:'1/Rtotal = 1/R₁ + 1/R₂ + ...',v:fmt(R)+' Ω'}];}
+  } else if(type==='potencia'){
+    let V=gv('oh-v'),I=gv('oh-i'),P=gv('oh-p');
+    if(P===null&&V!==null&&I!==null){P=V*I;out=phRes('Potencia',`P = V·I = <b>${fmt(P)} W</b>`);steps=[{t:'P = V·I',v:fmt(P)+' W'}];}
+    else if(V===null&&P!==null&&I!==null){V=P/I;out=phRes('Voltaje',`V = P/I = <b>${fmt(V)} V</b>`);steps=[{t:'V = P/I',v:fmt(V)+' V'}];}
+    else out=phErr('Completá los campos');
+  }
+  setPhys(out,steps);
+}
+
+// ONDAS
+function runWaves(){
+  let v=gv('wave-v'),l=gv('wave-l'),f=gv('wave-f'),T=gv('wave-t');
+  let out='',steps=[];
+  if(T!==null&&f===null) f=1/T;
+  if(v===null&&l!==null&&f!==null){v=l*f;out=phRes('Velocidad de onda',`v = λ·f = <b>${fmt(v)} m/s</b>`);steps=[{t:'v = λ·f',v:fmt(v)+' m/s'},{t:'T = 1/f',v:T!==null?T:fmt(1/f)+' s'}];}
+  else if(l===null&&v!==null&&f!==null){l=v/f;out=phRes('Longitud de onda',`λ = v/f = <b>${fmt(l)} m</b>`);steps=[{t:'λ = v/f',v:fmt(l)+' m'}];}
+  else if(f===null&&v!==null&&l!==null){f=v/l;T=1/f;out=phRes('Frecuencia',`f = v/λ = <b>${fmt(f)} Hz</b><br>T = 1/f = <b>${fmt(T)} s</b>`);steps=[{t:'f = v/λ',v:fmt(f)+' Hz'}];}
+  else out=phErr('Completá 2 de 3 variables');
+  setPhys(out,steps);
+}
+
+// ÓPTICA
+function runOptics(){
+  let f=gv('opt-f'),dobj=gv('opt-do'),dimg=gv('opt-di');
+  let out='',steps=[];
+  if(f===null&&dobj!==null&&dimg!==null){f=1/(1/dobj+1/dimg);let tipo=f>0?'convergente':'divergente';out=phRes('Focal',`f = 1/(1/do + 1/di) = <b>${fmt(f)} cm</b><br>Lente: ${tipo}`);}
+  else if(dobj===null&&f!==null&&dimg!==null){dobj=1/(1/f-1/dimg);out=phRes('Distancia objeto',`do = <b>${fmt(dobj)} cm</b>`);}
+  else if(dimg===null&&f!==null&&dobj!==null){dimg=1/(1/f-1/dobj);let m=-dimg/dobj;let tipo=dimg>0?'real, invertida':'virtual, derecha';out=phRes('Imagen',`di = <b>${fmt(dimg)} cm</b><br>Magnificación = ${fmt(m)}<br>Imagen: ${tipo}`);}
+  else{out=phErr('Dejá exactamente 1 campo vacío');}
+  if(out) steps=[{t:'1/f = 1/do + 1/di',v:''},{t:'m = −di/do',v:''}];
+  setPhys(out,steps);
+}
+
+function phRes(title,body){return `<b style="color:var(--phys)">${title}</b><br><br>${body}`;}
+function phErr(msg){return `<span style="color:#f87171">${msg}</span>`;}
+
+function setPhys(out,steps){
+  document.getElementById('phys-result').innerHTML=out+`<button class="copy-btn" onclick="copyR('phys-result')">Copiar</button>`;
+  document.getElementById('phys-result').className='result-box ok-phys';
+  if(steps&&steps.length>0){
+    document.getElementById('phys-steps').innerHTML=steps.map((s,i)=>`<div class="step" style="animation-delay:${i*.06}s"><div class="step-n phys">${i+1}</div><div>${s.t}${s.v?` <span>${s.v}</span>`:''}</div></div>`).join('');
+    document.getElementById('phys-steps-card').style.display='block';
+  } else document.getElementById('phys-steps-card').style.display='none';
+}
+
+// ═══════════════════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════════════════
+function addHist(input,out,tab){
+  let now=new Date();
+  let time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  histData.unshift({input,result:out.replace(/<[^>]+>/g,'').substring(0,80),tab,time});
+  if(histData.length>60) histData.pop();
+  renderHist();
+}
+
+function renderHist(){
+  let el=document.getElementById('hist-list');
+  if(!histData.length){el.innerHTML='<div class="empty"><div class="ei">📭</div>Sin cálculos aún</div>';return;}
+  el.innerHTML=histData.map((h,i)=>`
+    <div class="h-item" onclick="loadHist(${i})">
+      <div><div class="hi">${h.input}</div><div class="hr">${h.result}...</div></div>
+      <div class="ht">${h.time}</div>
+    </div>`).join('');
+}
+
+function loadHist(i){
+  let h=histData[i];
+  if(h.tab==='calc'){sc(h.input);goTab('calc');}
+}
+
+function clearHist(){histData=[];renderHist();}
+
+// ═══════════════════════════════════════════════
 // INIT
-// ======================================================
-
-window.onload = () => {
-  buildMatrices();
-  addFnRow("Math.sin(x)");
-  addFnRow("Math.cos(x)");
+// ═══════════════════════════════════════════════
+window.onload=()=>{
+  buildMats();
+  addFn('Math.sin(x)');
+  addFn('x**2');
+  updatePhysUI();
 };
-
 </script>
-
 </body>
 </html>
