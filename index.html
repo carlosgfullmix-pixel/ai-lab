@@ -479,7 +479,7 @@ function parseHumanMath(text){
   // ======================
 
   t = t.replaceAll("^", "**");
-
+  t = t.replace(/(\d)(x)/g, "$1*$2");
   // ======================
   // FUNCIONES TRIGONOMÉTRICAS
   // ======================
