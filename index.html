@@ -613,19 +613,27 @@ function integral(expr){
 
 if(raw.toLowerCase().startsWith("derivar ")){
 
-  let expr = raw.substring(8);
-
-  expr = parseHumanMath(expr);
-
   let result = derivative(expr);
 
-  document.getElementById("result").innerHTML = `
-    <b>Derivada:</b><br>
-    ${result}
-  `;
+// graficar derivada si es matemática válida
+try{
 
-  return;
+  let graphExpr = result
+    .replaceAll("^","**")
+    .replaceAll("x^1","x");
+
+  draw(graphExpr);
+
+}catch{
+  clearChart();
 }
+
+document.getElementById("result").innerHTML = `
+  <b>Derivada:</b><br>
+  ${result}
+`;
+
+return;
 
 // ======================
 // INTEGRAL
