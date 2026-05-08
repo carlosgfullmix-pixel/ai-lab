@@ -444,6 +444,8 @@ raiz(144)                 → raíz"></textarea>
       <option value="gas">Ley del gas ideal (PV=nRT)</option>
       <option value="conc">Concentración molar</option>
       <option value="periodic">Tabla periódica</option>
+      <option value="redox">Números de oxidación / Redox</option>
+      <option value="halfcell">Hemirreacciones y potencial de celda</option>
     </select>
   </div>
 
@@ -524,6 +526,71 @@ raiz(144)                 → raíz"></textarea>
     <div class="card">
       <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
       <p class="hint">Hacé clic en un elemento para ver sus propiedades</p>
+    </div>
+  </div>
+
+  <div id="chem-redox" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Números de oxidación y Redox</div>
+      <input type="text" id="redox-input" placeholder="ej: Fe2O3, KMnO4, H2SO4, Cr2O7(2-)">
+      <div class="btn-row">
+        <button class="btn btn-chem" onclick="runRedox()">▶ Analizar</button>
+      </div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='KMnO4'">KMnO₄</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='Fe2O3'">Fe₂O₃</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='H2SO4'">H₂SO₄</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='K2Cr2O7'">K₂Cr₂O₇</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='MnO2'">MnO₂</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='Na2SO4'">Na₂SO₄</span>
+      </div>
+      <div class="divider"></div>
+      <div class="card-title chem-title" style="margin-top:8px"><div class="dot"></div>Identificar reacción redox</div>
+      <input type="text" id="redox-rxn" placeholder="ej: Fe + CuSO4 → FeSO4 + Cu">
+      <div class="btn-row">
+        <button class="btn btn-chem" onclick="runRedoxRxn()">▶ Identificar oxidación/reducción</button>
+      </div>
+      <div style="margin-top:8px">
+        <span class="tag tag-chem" onclick="document.getElementById('redox-rxn').value='Fe + CuSO4 → FeSO4 + Cu'">Fe+CuSO₄</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-rxn').value='Zn + 2HCl → ZnCl2 + H2'">Zn+HCl</span>
+        <span class="tag tag-chem" onclick="document.getElementById('redox-rxn').value='2Fe + 3Cl2 → 2FeCl3'">Fe+Cl₂</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="chem-halfcell" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Potencial de celda electroquímica</div>
+      <p class="hint" style="margin-bottom:12px">Seleccioná cátodo (reducción) y ánodo (oxidación)</p>
+      <div style="display:grid;gap:10px">
+        <div>
+          <div class="hint" style="margin-bottom:4px">Cátodo — reducción (E° mayor)</div>
+          <select id="hc-cathode" style="width:100%"></select>
+        </div>
+        <div>
+          <div class="hint" style="margin-bottom:4px">Ánodo — oxidación (E° menor)</div>
+          <select id="hc-anode" style="width:100%"></select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-chem" onclick="runHalfCell()">▶ Calcular potencial</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-title chem-title"><div class="dot"></div>Balance por hemirreacciones</div>
+      <select id="hc-medium" style="margin-bottom:10px;width:100%">
+        <option value="acid">Medio ácido (H⁺ / H₂O)</option>
+        <option value="base">Medio básico (OH⁻ / H₂O)</option>
+      </select>
+      <input type="text" id="hc-rxn" placeholder="ej: MnO4- + Fe2+ → Mn2+ + Fe3+">
+      <div class="btn-row">
+        <button class="btn btn-chem" onclick="runHalfBalance()">▶ Balancear por hemirreacciones</button>
+      </div>
+      <div style="margin-top:8px">
+        <span class="tag tag-chem" onclick="document.getElementById('hc-rxn').value='MnO4- + Fe2+ → Mn2+ + Fe3+'">MnO₄⁻+Fe²⁺</span>
+        <span class="tag tag-chem" onclick="document.getElementById('hc-rxn').value='Cr2O7(2-) + Fe2+ → Cr3+ + Fe3+'">Cr₂O₇²⁻+Fe²⁺</span>
+        <span class="tag tag-chem" onclick="document.getElementById('hc-rxn').value='MnO4- + C2O4(2-) → Mn2+ + CO2'">MnO₄⁻+C₂O₄²⁻</span>
+      </div>
     </div>
   </div>
 </div>
@@ -1498,6 +1565,7 @@ function updateChemUI(){
   document.getElementById('chem-'+tool).style.display='block';
   document.getElementById('periodic-display').style.display=tool==='periodic'?'block':'none';
   if(tool==='periodic') buildPeriodic();
+  if(tool==='halfcell') buildHalfCellSelects();
 }
 
 // MASA MOLAR
@@ -1754,6 +1822,415 @@ function setChem(out,steps){
     document.getElementById('chem-steps-card').style.display='block';
   } else document.getElementById('chem-steps-card').style.display='none';
   document.getElementById('right-chem').scrollTop=0;
+}
+
+// ═══════════════════════════════════════════════
+// NÚMEROS DE OXIDACIÓN
+// ═══════════════════════════════════════════════
+// Reglas estándar de números de oxidación
+const OX_RULES={
+  'H':1,'O':-2,'F':-1,'Cl':-1,'Br':-1,'I':-1,
+  'Na':1,'K':1,'Li':1,'Rb':1,'Cs':1,
+  'Ca':2,'Mg':2,'Ba':2,'Sr':2,'Be':2,
+  'Al':3,'Zn':2,'Ag':1
+};
+// Excepciones conocidas por compuesto
+const OX_EXCEPTIONS={
+  'H2O2':{'O':-1},'Na2O2':{'O':-1},'NaH':{'H':-1},'CaH2':{'H':-1}
+};
+// Posibles estados de oxidación variables
+const OX_VAR={
+  'Fe':[2,3],'Cu':[1,2],'Cr':[2,3,6],'Mn':[2,3,4,6,7],
+  'Pb':[2,4],'Sn':[2,4],'Co':[2,3],'Ni':[2,3],
+  'S':[2,4,6,-2],'N':[-3,1,2,3,4,5],'P':[3,5,-3],
+  'C':[-4,-2,2,4],'Cl':[-1,1,3,5,7],'Br':[-1,1,3,5],
+  'I':[-1,1,3,5,7],'Au':[1,3],'Hg':[1,2]
+};
+
+function calcOxidationNumbers(formula, charge=0){
+  // Parsear carga del tipo Fe2O3, o Cr2O7(2-) → charge=-2
+  let chargeMatch=formula.match(/\((\d*)([-+])\)$/);
+  if(chargeMatch){
+    let n=chargeMatch[1]?Number(chargeMatch[1]):1;
+    charge=chargeMatch[2]==='-'?-n:n;
+    formula=formula.replace(/\(\d*[-+]\)$/,'');
+  }
+
+  let elems=parseMolar(formula);
+  let syms=Object.keys(elems);
+  let result={};
+
+  // Verificar excepciones por fórmula exacta
+  if(OX_EXCEPTIONS[formula]){
+    let exc=OX_EXCEPTIONS[formula];
+    for(let s of syms){
+      if(exc[s]!==undefined) result[s]=exc[s];
+      else if(OX_RULES[s]!==undefined) result[s]=OX_RULES[s];
+    }
+    // Verificar balance
+    let sum=syms.reduce((t,s)=>t+(result[s]||0)*elems[s],0);
+    if(Math.abs(sum-charge)<0.01) return{elems,result,charge,ok:true};
+  }
+
+  // Asignar reglas fijas primero
+  let fixed={}, unknown=[];
+  for(let s of syms){
+    if(OX_RULES[s]!==undefined) fixed[s]=OX_RULES[s];
+    else unknown.push(s);
+  }
+
+  if(unknown.length===0){
+    // Verificar consistencia
+    let sum=syms.reduce((t,s)=>t+fixed[s]*elems[s],0);
+    return{elems,result:fixed,charge:sum,ok:true};
+  }
+
+  if(unknown.length===1){
+    let s=unknown[0];
+    let fixedSum=syms.filter(x=>x!==s).reduce((t,x)=>t+(fixed[x]||0)*elems[x],0);
+    let ox=(charge-fixedSum)/elems[s];
+    fixed[s]=Math.round(ox*10)/10;
+    return{elems,result:fixed,charge,ok:Math.abs(ox-Math.round(ox))<0.1};
+  }
+
+  // Múltiples desconocidos — intentar combinaciones
+  let unknownVars=unknown.map(s=>OX_VAR[s]||[-3,-2,-1,0,1,2,3,4,5,6,7]);
+  function tryCombo(idx, current, runSum){
+    if(idx===unknown.length){
+      return Math.abs(runSum-charge)<0.01?{...fixed,...current}:null;
+    }
+    let s=unknown[idx];
+    for(let v of unknownVars[idx]){
+      let r=tryCombo(idx+1,{...current,[s]:v}, runSum+v*elems[s]);
+      if(r) return r;
+    }
+    return null;
+  }
+  let fixedSum=syms.filter(s=>!unknown.includes(s)).reduce((t,s)=>t+fixed[s]*elems[s],0);
+  let combo=tryCombo(0,{},fixedSum);
+  if(combo) return{elems,result:combo,charge,ok:true};
+  return{elems,result:fixed,charge,ok:false};
+}
+
+function oxStr(n){
+  if(n===0) return '0';
+  return n>0?'+'+n:String(n);
+}
+
+function runRedox(){
+  let formula=document.getElementById('redox-input').value.trim();
+  if(!formula){setChem('<span style="color:#f87171">Ingresá una fórmula</span>',[]);return;}
+  let res=calcOxidationNumbers(formula);
+  if(!res.ok){setChem(`<span style="color:#f87171">No se pudo determinar todos los números de oxidación para ${formula}</span>`,[]);return;}
+
+  let rows=Object.entries(res.result).map(([s,ox])=>{
+    let cnt=res.elems[s];
+    let total=ox*cnt;
+    return `<tr><td style="color:var(--chem)">${s}</td><td>${ATOMIC[s]?.name||s}</td><td>${cnt}</td><td style="font-weight:700;color:${ox>0?'#f97316':ox<0?'#38bdf8':'var(--muted)'}">${oxStr(ox)}</td><td>${oxStr(total)}</td></tr>`;
+  }).join('');
+
+  let sumTotal=Object.entries(res.result).reduce((t,[s,ox])=>t+ox*res.elems[s],0);
+  let out=`<b style="color:var(--chem)">Números de oxidación — ${formula}</b><br><br>
+    <table class="tbl"><thead><tr><th>Elemento</th><th>Nombre</th><th>Cant.</th><th>N° Ox.</th><th>Contribución</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <br><span style="color:var(--muted);font-size:12px">Suma total: <b style="color:var(--chem)">${oxStr(sumTotal)}</b>${sumTotal===res.charge?' ✓ Correcto':' ⚠ Revisar'}</span>`;
+
+  let steps=Object.entries(res.result).map(([s,ox])=>({t:`${s}: N° ox. = ${oxStr(ox)}`,v:`${res.elems[s]} átomo(s)`}));
+  steps.unshift({t:'Reglas: O=-2, H=+1, metales alcalinos=+1/+2',v:''});
+  steps.push({t:'Suma de contribuciones:',v:oxStr(sumTotal)});
+  setChem(out,steps);
+}
+
+function runRedoxRxn(){
+  let eq=document.getElementById('redox-rxn').value.trim();
+  if(!eq){setChem('<span style="color:#f87171">Ingresá una ecuación</span>',[]);return;}
+  eq=eq.replace(/→|->|=>/g,'->');
+  let[left,right]=eq.split('->');
+  if(!left||!right){setChem('<span style="color:#f87171">Formato: Fe + CuSO4 → FeSO4 + Cu</span>',[]);return;}
+
+  let parseSide=s=>s.split('+').map(t=>{
+    t=t.trim();
+    let m=t.match(/^(\d+)?\s*([A-Z].*)$/);
+    return m?m[2].trim():t.trim();
+  }).filter(Boolean);
+
+  let reactMols=parseSide(left), prodMols=parseSide(right);
+
+  // Calcular oxidation numbers para cada molécula
+  let getElemOx=mol=>{
+    try{return calcOxidationNumbers(mol);}catch{return null;}
+  };
+
+  // Recopilar N° ox de cada elemento en reactivos y productos
+  let reactOx={}, prodOx={};
+  reactMols.forEach(m=>{let r=getElemOx(m);if(r&&r.ok)Object.entries(r.result).forEach(([s,ox])=>{if(!reactOx[s])reactOx[s]={ox,mol:m};});});
+  prodMols.forEach(m=>{let r=getElemOx(m);if(r&&r.ok)Object.entries(r.result).forEach(([s,ox])=>{if(!prodOx[s])prodOx[s]={ox,mol:m};});});
+
+  let oxidized=[], reduced=[], unchanged=[];
+  let allElems=new Set([...Object.keys(reactOx),...Object.keys(prodOx)]);
+
+  for(let s of allElems){
+    if(!reactOx[s]||!prodOx[s]) continue;
+    let diff=prodOx[s].ox-reactOx[s].ox;
+    if(diff>0) oxidized.push({s,before:reactOx[s].ox,after:prodOx[s].ox,delta:diff,mol:reactOx[s].mol});
+    else if(diff<0) reduced.push({s,before:reactOx[s].ox,after:prodOx[s].ox,delta:diff,mol:reactOx[s].mol});
+    else unchanged.push(s);
+  }
+
+  if(!oxidized.length&&!reduced.length){
+    setChem('<span style="color:#f87171">No se detectaron cambios en números de oxidación (no es reacción redox)</span>',[]);return;
+  }
+
+  let oxRows=oxidized.map(x=>`<tr><td style="color:var(--phys)">${x.s}</td><td>${oxStr(x.before)} → ${oxStr(x.after)}</td><td style="color:var(--phys)">+${x.delta} e⁻ (pierde)</td><td>${x.mol}</td><td style="color:var(--phys)">Agente reductor</td></tr>`).join('');
+  let redRows=reduced.map(x=>`<tr><td style="color:var(--math)">${x.s}</td><td>${oxStr(x.before)} → ${oxStr(x.after)}</td><td style="color:var(--math)">${x.delta} e⁻ (gana)</td><td>${x.mol}</td><td style="color:var(--math)">Agente oxidante</td></tr>`).join('');
+
+  let out=`<b style="color:var(--chem)">Análisis Redox</b><br><br>
+    <table class="tbl"><thead><tr><th>Elem.</th><th>N° Ox.</th><th>Electrones</th><th>Compuesto</th><th>Rol</th></tr></thead>
+    <tbody>${oxRows}${redRows}</tbody></table>
+    <br>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px">
+        <div style="font-size:10px;color:var(--phys);font-family:var(--mono);margin-bottom:4px">OXIDACIÓN</div>
+        ${oxidized.map(x=>`<div style="font-size:13px">${x.s}: ${oxStr(x.before)}→${oxStr(x.after)} <span style="color:var(--muted)">(pierde ${x.delta} e⁻)</span></div>`).join('')}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">Agente reductor: <b style="color:var(--phys)">${oxidized.map(x=>x.mol).join(', ')}</b></div>
+      </div>
+      <div style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:8px;padding:10px">
+        <div style="font-size:10px;color:var(--math);font-family:var(--mono);margin-bottom:4px">REDUCCIÓN</div>
+        ${reduced.map(x=>`<div style="font-size:13px">${x.s}: ${oxStr(x.before)}→${oxStr(x.after)} <span style="color:var(--muted)">(gana ${Math.abs(x.delta)} e⁻)</span></div>`).join('')}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">Agente oxidante: <b style="color:var(--math)">${reduced.map(x=>x.mol).join(', ')}</b></div>
+      </div>
+    </div>`;
+
+  let steps=[
+    {t:'Paso 1: asignar N° de oxidación a cada elemento',v:''},
+    ...oxidized.map(x=>({t:`${x.s} se OXIDA (pierde electrones)`,v:`${oxStr(x.before)} → ${oxStr(x.after)}`})),
+    ...reduced.map(x=>({t:`${x.s} se REDUCE (gana electrones)`,v:`${oxStr(x.before)} → ${oxStr(x.after)}`})),
+    {t:'Agente reductor (se oxida):',v:oxidized.map(x=>x.mol).join(', ')},
+    {t:'Agente oxidante (se reduce):',v:reduced.map(x=>x.mol).join(', ')},
+  ];
+  setChem(out,steps);
+}
+
+// ═══════════════════════════════════════════════
+// HEMIRREACCIONES Y POTENCIAL DE CELDA
+// ═══════════════════════════════════════════════
+const HALF_REACTIONS=[
+  {label:'F₂ + 2e⁻ → 2F⁻',             e0:2.87,  cat:'F2',  an:'F-'},
+  {label:'MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O', e0:1.51, cat:'MnO4-',an:'Mn2+'},
+  {label:'Cl₂ + 2e⁻ → 2Cl⁻',           e0:1.36,  cat:'Cl2', an:'Cl-'},
+  {label:'Cr₂O₇²⁻ + 14H⁺ + 6e⁻ → 2Cr³⁺ + 7H₂O', e0:1.33, cat:'Cr2O7(2-)', an:'Cr3+'},
+  {label:'O₂ + 4H⁺ + 4e⁻ → 2H₂O',     e0:1.23,  cat:'O2',  an:'H2O'},
+  {label:'Br₂ + 2e⁻ → 2Br⁻',           e0:1.07,  cat:'Br2', an:'Br-'},
+  {label:'NO₃⁻ + 4H⁺ + 3e⁻ → NO + 2H₂O', e0:0.96, cat:'NO3-', an:'NO'},
+  {label:'Ag⁺ + e⁻ → Ag',              e0:0.80,  cat:'Ag+', an:'Ag'},
+  {label:'Fe³⁺ + e⁻ → Fe²⁺',           e0:0.77,  cat:'Fe3+',an:'Fe2+'},
+  {label:'O₂ + 2H₂O + 4e⁻ → 4OH⁻',    e0:0.40,  cat:'O2',  an:'OH-'},
+  {label:'Cu²⁺ + 2e⁻ → Cu',            e0:0.34,  cat:'Cu2+',an:'Cu'},
+  {label:'Cu²⁺ + e⁻ → Cu⁺',            e0:0.16,  cat:'Cu2+',an:'Cu+'},
+  {label:'2H⁺ + 2e⁻ → H₂',            e0:0.00,  cat:'H+',  an:'H2'},
+  {label:'Fe³⁺ + 3e⁻ → Fe',            e0:-0.04, cat:'Fe3+',an:'Fe'},
+  {label:'Pb²⁺ + 2e⁻ → Pb',            e0:-0.13, cat:'Pb2+',an:'Pb'},
+  {label:'Sn²⁺ + 2e⁻ → Sn',            e0:-0.14, cat:'Sn2+',an:'Sn'},
+  {label:'Ni²⁺ + 2e⁻ → Ni',            e0:-0.25, cat:'Ni2+',an:'Ni'},
+  {label:'Co²⁺ + 2e⁻ → Co',            e0:-0.28, cat:'Co2+',an:'Co'},
+  {label:'Fe²⁺ + 2e⁻ → Fe',            e0:-0.44, cat:'Fe2+',an:'Fe'},
+  {label:'Cr³⁺ + 3e⁻ → Cr',            e0:-0.74, cat:'Cr3+',an:'Cr'},
+  {label:'Zn²⁺ + 2e⁻ → Zn',            e0:-0.76, cat:'Zn2+',an:'Zn'},
+  {label:'Mn²⁺ + 2e⁻ → Mn',            e0:-1.18, cat:'Mn2+',an:'Mn'},
+  {label:'Al³⁺ + 3e⁻ → Al',            e0:-1.66, cat:'Al3+',an:'Al'},
+  {label:'Mg²⁺ + 2e⁻ → Mg',            e0:-2.37, cat:'Mg2+',an:'Mg'},
+  {label:'Na⁺ + e⁻ → Na',              e0:-2.71, cat:'Na+', an:'Na'},
+  {label:'Ca²⁺ + 2e⁻ → Ca',            e0:-2.87, cat:'Ca2+',an:'Ca'},
+  {label:'K⁺ + e⁻ → K',               e0:-2.93, cat:'K+',  an:'K'},
+  {label:'Li⁺ + e⁻ → Li',             e0:-3.05, cat:'Li+', an:'Li'},
+];
+
+function buildHalfCellSelects(){
+  let cat=document.getElementById('hc-cathode');
+  let an=document.getElementById('hc-anode');
+  if(cat.options.length>0) return;
+  HALF_REACTIONS.forEach((r,i)=>{
+    let sign=r.e0>=0?'+':'';
+    let opt1=new Option(`${r.label}   [E° = ${sign}${r.e0.toFixed(2)} V]`,i);
+    let opt2=new Option(`${r.label}   [E° = ${sign}${r.e0.toFixed(2)} V]`,i);
+    cat.add(opt1); an.add(opt2);
+  });
+  // Default: catodo=Cu, anodo=Zn
+  cat.value=10; an.value=21;
+}
+
+function runHalfCell(){
+  let ci=Number(document.getElementById('hc-cathode').value);
+  let ai=Number(document.getElementById('hc-anode').value);
+  let cath=HALF_REACTIONS[ci], anod=HALF_REACTIONS[ai];
+  if(ci===ai){setChem('<span style="color:#f87171">Seleccioná hemirreacciones diferentes</span>',[]);return;}
+
+  let ecell=cath.e0-anod.e0;
+  let F=96485; // C/mol
+  // Determinar n (electrones) — simplificado, extraer de la etiqueta
+  let getN=r=>{let m=r.label.match(/(\d+)e⁻/);return m?Number(m[1]):1;};
+  let nc=getN(cath), na=getN(anod);
+  // MCM para igualar electrones
+  let g=(a,b)=>b===0?a:g(b,a%b);
+  let lcm=(a,b)=>a*b/g(a,b);
+  let n=lcm(nc,na);
+  let mc=n/nc, ma=n/na;
+
+  let dG=-n*F*ecell;
+  let spontaneo=ecell>0;
+
+  let catLabel=mc>1?`${mc}×[${cath.label}]`:cath.label;
+  let anLabel=ma>1?`${ma}×[${anod.label.replace('→','← (invertida)').replace('+ ','').replace('e⁻','e⁻ ')}]`:anod.label.replace('→','← (invertida)');
+
+  let color=spontaneo?'var(--chem)':'#f87171';
+  let icon=spontaneo?'✅':'❌';
+
+  let out=`<b style="color:var(--chem)">Celda electroquímica</b><br><br>
+    <div style="display:grid;gap:8px">
+      <div style="background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--math);font-family:var(--mono);margin-bottom:4px">CÁTODO — REDUCCIÓN</div>
+        <div style="font-family:var(--mono);font-size:13px">${cath.label}</div>
+        <div style="color:var(--math);font-size:12px;margin-top:4px">E°red = +${cath.e0>=0?'+':''}${cath.e0.toFixed(2)} V</div>
+      </div>
+      <div style="background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--phys);font-family:var(--mono);margin-bottom:4px">ÁNODO — OXIDACIÓN</div>
+        <div style="font-family:var(--mono);font-size:13px">${anod.label}</div>
+        <div style="color:var(--phys);font-size:12px;margin-top:4px">E°ox = ${(-anod.e0).toFixed(2)} V</div>
+      </div>
+    </div>
+    <br>
+    <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">E°celda = E°cátodo − E°ánodo</div>
+      <div style="font-size:28px;font-family:var(--mono);font-weight:700;color:${color}">${ecell>=0?'+':''}${ecell.toFixed(3)} V</div>
+      <div style="margin-top:8px;font-size:13px">${icon} Reacción <b style="color:${color}">${spontaneo?'ESPONTÁNEA':'NO ESPONTÁNEA'}</b></div>
+      <div style="margin-top:6px;font-size:12px;color:var(--muted)">ΔG° = −nFE° = <b style="color:var(--text)">${(dG/1000).toFixed(1)} kJ/mol</b> (n=${n})</div>
+    </div>`;
+
+  let steps=[
+    {t:'E°celda = E°cátodo − E°ánodo',v:''},
+    {t:`E°cátodo (reducción): ${cath.e0.toFixed(2)} V`,v:''},
+    {t:`E°ánodo (reducción): ${anod.e0.toFixed(2)} V`,v:''},
+    {t:`E°celda = ${cath.e0.toFixed(2)} − (${anod.e0.toFixed(2)})`,v:`${ecell>=0?'+':''}${ecell.toFixed(3)} V`},
+    {t:`Electrones transferidos (n):`,v:String(n)},
+    {t:'ΔG° = −nFE° (F = 96485 C/mol)',v:`${(dG/1000).toFixed(1)} kJ/mol`},
+    {t:spontaneo?'E° > 0 → Espontánea ✅':'E° < 0 → No espontánea ❌',v:''},
+  ];
+  setChem(out,steps);
+}
+
+// BALANCE POR HEMIRREACCIONES
+function runHalfBalance(){
+  let eq=document.getElementById('hc-rxn').value.trim();
+  let medium=document.getElementById('hc-medium').value;
+  if(!eq){setChem('<span style="color:#f87171">Ingresá una ecuación</span>',[]);return;}
+
+  eq=eq.replace(/→|->|=>/g,'->');
+  let[left,right]=eq.split('->');
+  if(!left||!right){setChem('<span style="color:#f87171">Formato: MnO4- + Fe2+ → Mn2+ + Fe3+</span>',[]);return;}
+
+  // Normalizar iones: MnO4- → MnO4, Fe2+ → Fe etc.
+  let normMol=s=>s.trim().replace(/\d*[+-]+$/,'').replace(/[()]/g,'').trim();
+  let parseSideH=s=>s.split('+').map(t=>normMol(t)).filter(Boolean);
+
+  let reactList=parseSideH(left), prodList=parseSideH(right);
+
+  // Identificar pares redox — buscar qué elemento cambia N° ox entre reactivos y productos
+  // para separar en dos hemirreacciones
+  let getMainElem=mol=>{
+    try{
+      let e=parseMolar(mol);
+      // El elemento principal es el que no es H, O, K, Na...
+      let keys=Object.keys(e).filter(s=>!['H','O','Na','K','Li','Ca','Mg'].includes(s));
+      return keys[0]||Object.keys(e)[0];
+    }catch{return mol;}
+  };
+
+  // Calcular N° ox para todos los compuestos
+  let oxMap={};
+  [...reactList,...prodList].forEach(mol=>{
+    try{
+      let r=calcOxidationNumbers(mol);
+      if(r.ok) Object.entries(r.result).forEach(([s,ox])=>{
+        if(!oxMap[s]) oxMap[s]={};
+        oxMap[s][mol]=ox;
+      });
+    }catch{}
+  });
+
+  // Encontrar elementos que cambian
+  let changes=[];
+  for(let s in oxMap){
+    if(['H','O'].includes(s)) continue;
+    let reactVals=reactList.map(m=>oxMap[s]?.[m]).filter(v=>v!==undefined);
+    let prodVals=prodList.map(m=>oxMap[s]?.[m]).filter(v=>v!==undefined);
+    if(reactVals.length&&prodVals.length&&reactVals[0]!==prodVals[0]){
+      changes.push({s, oxBefore:reactVals[0], oxAfter:prodVals[0],
+        reactMol:reactList.find(m=>oxMap[s]?.[m]!==undefined),
+        prodMol:prodList.find(m=>oxMap[s]?.[m]!==undefined)});
+    }
+  }
+
+  if(changes.length<2){
+    setChem('<span style="color:#f87171">No se pudieron identificar las dos hemirreacciones. Verificá el formato.</span>',[]);return;
+  }
+
+  let oxHalf=changes.find(c=>c.oxAfter>c.oxBefore); // se oxida
+  let redHalf=changes.find(c=>c.oxAfter<c.oxBefore); // se reduce
+
+  if(!oxHalf||!redHalf){
+    setChem('<span style="color:#f87171">No se identificaron ambas hemirreacciones</span>',[]);return;
+  }
+
+  let nOx=Math.abs(oxHalf.oxAfter-oxHalf.oxBefore);
+  let nRed=Math.abs(redHalf.oxAfter-redHalf.oxBefore);
+  let g2=(a,b)=>b===0?a:g2(b,a%b);
+  let lcm2=(a,b)=>a*b/g2(a,b);
+  let totalE=lcm2(nOx,nRed);
+  let multOx=totalE/nOx;
+  let multRed=totalE/nRed;
+
+  let hOxLabel=`${multOx>1?multOx+' ':''}${oxHalf.reactMol} → ${multOx>1?multOx+' ':''}${oxHalf.prodMol} + ${totalE}e⁻`;
+  let hRedLabel=`${multRed>1?multRed+' ':''}${redHalf.reactMol} + ${totalE}e⁻ → ${multRed>1?multRed+' ':''}${redHalf.prodMol}`;
+
+  let acidBase=medium==='acid'?'H⁺ y H₂O':'OH⁻ y H₂O';
+
+  let out=`<b style="color:var(--chem)">Balance por hemirreacciones</b> <span style="color:var(--muted);font-size:11px">(medio ${medium==='acid'?'ácido':'básico'})</span><br><br>
+    <div style="display:grid;gap:8px">
+      <div style="background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--phys);font-family:var(--mono);margin-bottom:6px">HEMIRREACCIÓN DE OXIDACIÓN — ${oxHalf.s}</div>
+        <div style="font-family:var(--mono);font-size:13px;line-height:1.8">
+          N° ox: ${oxStr(oxHalf.oxBefore)} → ${oxStr(oxHalf.oxAfter)} (pierde ${nOx} e⁻)<br>
+          <b>${hOxLabel}</b><br>
+          <span style="color:var(--muted);font-size:11px">Balancear O con ${acidBase}</span>
+        </div>
+      </div>
+      <div style="background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--math);font-family:var(--mono);margin-bottom:6px">HEMIRREACCIÓN DE REDUCCIÓN — ${redHalf.s}</div>
+        <div style="font-family:var(--mono);font-size:13px;line-height:1.8">
+          N° ox: ${oxStr(redHalf.oxBefore)} → ${oxStr(redHalf.oxAfter)} (gana ${nRed} e⁻)<br>
+          <b>${hRedLabel}</b><br>
+          <span style="color:var(--muted);font-size:11px">Balancear O con ${acidBase}</span>
+        </div>
+      </div>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--chem);font-family:var(--mono);margin-bottom:6px">REACCIÓN GLOBAL (electrones cancelados)</div>
+        <div style="font-family:var(--mono);font-size:13px">
+          ${multOx>1?multOx+' ':''}${oxHalf.reactMol} + ${multRed>1?multRed+' ':''}${redHalf.reactMol} → ${multOx>1?multOx+' ':''}${oxHalf.prodMol} + ${multRed>1?multRed+' ':''}${redHalf.prodMol}
+        </div>
+        <div style="color:var(--muted);font-size:11px;margin-top:6px">Electrones transferidos: <b style="color:var(--chem)">${totalE} e⁻</b></div>
+      </div>
+    </div>`;
+
+  let steps=[
+    {t:'Paso 1: identificar elementos que cambian N° ox',v:''},
+    {t:`${oxHalf.s} se OXIDA: ${oxStr(oxHalf.oxBefore)} → ${oxStr(oxHalf.oxAfter)}`,v:`pierde ${nOx} e⁻`},
+    {t:`${redHalf.s} se REDUCE: ${oxStr(redHalf.oxBefore)} → ${oxStr(redHalf.oxAfter)}`,v:`gana ${nRed} e⁻`},
+    {t:'Paso 2: igualar electrones (MCM)',v:`${totalE} e⁻`},
+    {t:`Multiplicar oxidación × ${multOx}, reducción × ${multRed}`,v:''},
+    {t:'Paso 3: balancear O y H con '+acidBase,v:''},
+    {t:'Paso 4: sumar y cancelar electrones',v:''},
+  ];
+  setChem(out,steps);
 }
 
 // TABLA PERIÓDICA
