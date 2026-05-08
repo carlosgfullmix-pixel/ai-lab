@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -28,69 +29,69 @@ html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
 
 body::before{
-  content:'';position:fixed;inset:0;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(56,189,248,0.06),transparent),
-    linear-gradient(rgba(56,189,248,0.02) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(56,189,248,0.02) 1px,transparent 1px);
-  background-size:100% 100%,48px 48px,48px 48px;
-  pointer-events:none;z-index:0;
+content:’’;position:fixed;inset:0;
+background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(56,189,248,0.06),transparent),
+linear-gradient(rgba(56,189,248,0.02) 1px,transparent 1px),
+linear-gradient(90deg,rgba(56,189,248,0.02) 1px,transparent 1px);
+background-size:100% 100%,48px 48px,48px 48px;
+pointer-events:none;z-index:0;
 }
 
 /* ── HEADER ── */
 header{
-  position:relative;z-index:2;
-  padding:20px 28px;
-  background:rgba(8,15,28,0.8);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+position:relative;z-index:2;
+padding:20px 28px;
+background:rgba(8,15,28,0.8);
+backdrop-filter:blur(12px);
+border-bottom:1px solid var(–border);
+display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
 }
 .logo{display:flex;align-items:center;gap:14px}
 .logo-mark{
-  width:42px;height:42px;border-radius:10px;
-  background:linear-gradient(135deg,var(--math),#0ea5e9);
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-family:var(--mono);font-weight:700;color:#000;
-  box-shadow:0 0 20px rgba(56,189,248,0.3);
+width:42px;height:42px;border-radius:10px;
+background:linear-gradient(135deg,var(–math),#0ea5e9);
+display:flex;align-items:center;justify-content:center;
+font-size:20px;font-family:var(–mono);font-weight:700;color:#000;
+box-shadow:0 0 20px rgba(56,189,248,0.3);
 }
-.logo-text h1{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:-0.5px}
-.logo-text h1 em{color:var(--math);font-style:normal}
-.logo-text p{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.06em}
+.logo-text h1{font-family:var(–mono);font-size:18px;font-weight:700;letter-spacing:-0.5px}
+.logo-text h1 em{color:var(–math);font-style:normal}
+.logo-text p{font-size:11px;color:var(–muted);margin-top:2px;letter-spacing:.06em}
 .badges{display:flex;gap:8px;flex-wrap:wrap}
 .badge{
-  font-family:var(--mono);font-size:10px;padding:4px 10px;
-  border-radius:20px;border:1px solid;letter-spacing:.06em;font-weight:600;
+font-family:var(–mono);font-size:10px;padding:4px 10px;
+border-radius:20px;border:1px solid;letter-spacing:.06em;font-weight:600;
 }
-.badge-math{border-color:var(--math);color:var(--math);background:rgba(56,189,248,.06)}
-.badge-chem{border-color:var(--chem);color:var(--chem);background:rgba(52,211,153,.06)}
-.badge-phys{border-color:var(--phys);color:var(--phys);background:rgba(249,115,22,.06)}
-.badge-v{border-color:var(--muted);color:var(--muted)}
+.badge-math{border-color:var(–math);color:var(–math);background:rgba(56,189,248,.06)}
+.badge-chem{border-color:var(–chem);color:var(–chem);background:rgba(52,211,153,.06)}
+.badge-phys{border-color:var(–phys);color:var(–phys);background:rgba(249,115,22,.06)}
+.badge-v{border-color:var(–muted);color:var(–muted)}
 
 /* ── TABS ── */
 .tab-bar{
-  position:relative;z-index:2;
-  display:flex;gap:2px;padding:0 28px;
-  background:rgba(8,15,28,0.6);backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--border);overflow-x:auto;
+position:relative;z-index:2;
+display:flex;gap:2px;padding:0 28px;
+background:rgba(8,15,28,0.6);backdrop-filter:blur(8px);
+border-bottom:1px solid var(–border);overflow-x:auto;
 }
 .tab{
-  padding:14px 18px;border:none;background:transparent;
-  color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;
-  cursor:pointer;border-bottom:2px solid transparent;
-  transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:7px;
+padding:14px 18px;border:none;background:transparent;
+color:var(–muted);font-family:var(–sans);font-size:13px;font-weight:500;
+cursor:pointer;border-bottom:2px solid transparent;
+transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:7px;
 }
-.tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
-.tab.active-math{color:var(--math);border-bottom-color:var(--math);background:rgba(56,189,248,.05)}
-.tab.active-chem{color:var(--chem);border-bottom-color:var(--chem);background:rgba(52,211,153,.05)}
-.tab.active-phys{color:var(--phys);border-bottom-color:var(--phys);background:rgba(249,115,22,.05)}
+.tab:hover{color:var(–text);background:rgba(255,255,255,.03)}
+.tab.active-math{color:var(–math);border-bottom-color:var(–math);background:rgba(56,189,248,.05)}
+.tab.active-chem{color:var(–chem);border-bottom-color:var(–chem);background:rgba(52,211,153,.05)}
+.tab.active-phys{color:var(–phys);border-bottom-color:var(–phys);background:rgba(249,115,22,.05)}
 
 /* ── LAYOUT ── */
 .layout{
-  position:relative;z-index:1;
-  display:grid;grid-template-columns:420px 1fr;
-  min-height:calc(100vh - 108px);
+position:relative;z-index:1;
+display:grid;grid-template-columns:420px 1fr;
+min-height:calc(100vh - 108px);
 }
-.left-panel{padding:20px;border-right:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 108px)}
+.left-panel{padding:20px;border-right:1px solid var(–border);overflow-y:auto;max-height:calc(100vh - 108px)}
 .right-panel{padding:20px;overflow-y:auto;max-height:calc(100vh - 108px)}
 
 /* ── PAGES ── */
@@ -99,116 +100,116 @@ header{
 
 /* ── CARDS ── */
 .card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:18px;margin-bottom:14px;
+background:var(–card);border:1px solid var(–border);
+border-radius:12px;padding:18px;margin-bottom:14px;
 }
 .card-title{
-  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
-  text-transform:uppercase;margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
+font-family:var(–mono);font-size:10px;letter-spacing:.12em;
+text-transform:uppercase;margin-bottom:14px;
+display:flex;align-items:center;gap:8px;
 }
 .card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.math-title .dot{background:var(--math)}
-.chem-title .dot{background:var(--chem)}
-.phys-title .dot{background:var(--phys)}
-.math-title{color:var(--math)}
-.chem-title{color:var(--chem)}
-.phys-title{color:var(--phys)}
+.math-title .dot{background:var(–math)}
+.chem-title .dot{background:var(–chem)}
+.phys-title .dot{background:var(–phys)}
+.math-title{color:var(–math)}
+.chem-title{color:var(–chem)}
+.phys-title{color:var(–phys)}
 
 /* ── INPUTS ── */
 textarea,input[type=text],input[type=number],select{
-  width:100%;background:var(--surface);border:1px solid var(--border);
-  border-radius:8px;color:var(--text);font-family:var(--mono);font-size:14px;
-  padding:11px 14px;outline:none;transition:border-color .2s;
+width:100%;background:var(–surface);border:1px solid var(–border);
+border-radius:8px;color:var(–text);font-family:var(–mono);font-size:14px;
+padding:11px 14px;outline:none;transition:border-color .2s;
 }
 textarea{resize:vertical;min-height:80px}
-textarea:focus,input:focus,select:focus{border-color:var(--border2);box-shadow:0 0 0 3px rgba(56,189,248,.06)}
+textarea:focus,input:focus,select:focus{border-color:var(–border2);box-shadow:0 0 0 3px rgba(56,189,248,.06)}
 select{cursor:pointer}
 
 /* ── BUTTONS ── */
 .btn{
-  padding:10px 18px;border:none;border-radius:8px;
-  font-family:var(--sans);font-size:13px;font-weight:600;
-  cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px;
+padding:10px 18px;border:none;border-radius:8px;
+font-family:var(–sans);font-size:13px;font-weight:600;
+cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px;
 }
-.btn-math{background:linear-gradient(135deg,var(--math),#0ea5e9);color:#000}
+.btn-math{background:linear-gradient(135deg,var(–math),#0ea5e9);color:#000}
 .btn-math:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(56,189,248,.3)}
-.btn-chem{background:linear-gradient(135deg,var(--chem),#059669);color:#000}
+.btn-chem{background:linear-gradient(135deg,var(–chem),#059669);color:#000}
 .btn-chem:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(52,211,153,.3)}
-.btn-phys{background:linear-gradient(135deg,var(--phys),#dc2626);color:#000}
+.btn-phys{background:linear-gradient(135deg,var(–phys),#dc2626);color:#000}
 .btn-phys:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(249,115,22,.3)}
-.btn-ghost{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border)}
-.btn-ghost:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.btn-ghost{background:rgba(255,255,255,.04);color:var(–muted);border:1px solid var(–border)}
+.btn-ghost:hover{background:rgba(255,255,255,.08);color:var(–text)}
 .btn-sm{padding:7px 12px;font-size:12px}
 .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 
 /* ── TAGS ── */
 .tag{
-  display:inline-block;padding:4px 10px;border-radius:6px;
-  font-size:11px;font-family:var(--mono);margin:3px;cursor:pointer;
-  transition:all .15s;border:1px solid;
+display:inline-block;padding:4px 10px;border-radius:6px;
+font-size:11px;font-family:var(–mono);margin:3px;cursor:pointer;
+transition:all .15s;border:1px solid;
 }
-.tag-math{background:rgba(56,189,248,.07);color:var(--math);border-color:rgba(56,189,248,.15)}
+.tag-math{background:rgba(56,189,248,.07);color:var(–math);border-color:rgba(56,189,248,.15)}
 .tag-math:hover{background:rgba(56,189,248,.15);transform:scale(1.04)}
-.tag-chem{background:rgba(52,211,153,.07);color:var(--chem);border-color:rgba(52,211,153,.15)}
+.tag-chem{background:rgba(52,211,153,.07);color:var(–chem);border-color:rgba(52,211,153,.15)}
 .tag-chem:hover{background:rgba(52,211,153,.15);transform:scale(1.04)}
-.tag-phys{background:rgba(249,115,22,.07);color:var(--phys);border-color:rgba(249,115,22,.15)}
+.tag-phys{background:rgba(249,115,22,.07);color:var(–phys);border-color:rgba(249,115,22,.15)}
 .tag-phys:hover{background:rgba(249,115,22,.15);transform:scale(1.04)}
 
 /* ── RESULT ── */
 .result-box{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:16px 18px;font-family:var(--mono);
-  font-size:14px;line-height:1.9;min-height:56px;position:relative;
+background:var(–surface);border:1px solid var(–border);
+border-radius:10px;padding:16px 18px;font-family:var(–mono);
+font-size:14px;line-height:1.9;min-height:56px;position:relative;
 }
 .result-box.ok-math{border-color:rgba(56,189,248,.3)}
 .result-box.ok-chem{border-color:rgba(52,211,153,.3)}
 .result-box.ok-phys{border-color:rgba(249,115,22,.3)}
 .result-box.err{border-color:rgba(248,113,113,.3);color:#f87171}
 .copy-btn{
-  position:absolute;top:10px;right:10px;
-  padding:4px 10px;font-size:11px;border-radius:6px;
-  background:rgba(56,189,248,.1);color:var(--math);
-  border:1px solid rgba(56,189,248,.2);cursor:pointer;
-  font-family:var(--mono);transition:all .15s;
+position:absolute;top:10px;right:10px;
+padding:4px 10px;font-size:11px;border-radius:6px;
+background:rgba(56,189,248,.1);color:var(–math);
+border:1px solid rgba(56,189,248,.2);cursor:pointer;
+font-family:var(–mono);transition:all .15s;
 }
 .copy-btn:hover{background:rgba(56,189,248,.2)}
 
 /* ── STEPS ── */
 .steps{display:flex;flex-direction:column;gap:1px}
 .step{
-  display:flex;gap:12px;align-items:flex-start;
-  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);
-  font-size:13px;line-height:1.6;color:var(--muted);
-  animation:fadeUp .3s ease both;
+display:flex;gap:12px;align-items:flex-start;
+padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);
+font-size:13px;line-height:1.6;color:var(–muted);
+animation:fadeUp .3s ease both;
 }
 .step:last-child{border-bottom:none}
 .step-n{
-  min-width:22px;height:22px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:10px;flex-shrink:0;margin-top:1px;
+min-width:22px;height:22px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+font-family:var(–mono);font-size:10px;flex-shrink:0;margin-top:1px;
 }
-.step-n.math{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--math)}
-.step-n.chem{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--chem)}
-.step-n.phys{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(--phys)}
-.step span{color:var(--text)}
+.step-n.math{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(–math)}
+.step-n.chem{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(–chem)}
+.step-n.phys{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);color:var(–phys)}
+.step span{color:var(–text)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── CHIPS ── */
 .chips{display:flex;flex-wrap:wrap;gap:10px}
 .chip{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:10px 14px;min-width:90px;
+background:var(–surface);border:1px solid var(–border);
+border-radius:10px;padding:10px 14px;min-width:90px;
 }
-.chip .lbl{font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
-.chip .val{font-size:18px;font-family:var(--mono);font-weight:700;margin-top:2px}
-.chip.math .val{color:var(--math)}
-.chip.chem .val{color:var(--chem)}
-.chip.phys .val{color:var(--phys)}
+.chip .lbl{font-size:10px;color:var(–muted);font-family:var(–mono);text-transform:uppercase;letter-spacing:.06em}
+.chip .val{font-size:18px;font-family:var(–mono);font-weight:700;margin-top:2px}
+.chip.math .val{color:var(–math)}
+.chip.chem .val{color:var(–chem)}
+.chip.phys .val{color:var(–phys)}
 
 /* ── TABLE ── */
-.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:8px}
-.tbl th{padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.tbl{width:100%;border-collapse:collapse;font-family:var(–mono);font-size:13px;margin-top:8px}
+.tbl th{padding:8px 12px;text-align:left;color:var(–muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(–border)}
 .tbl td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:rgba(255,255,255,.02)}
@@ -217,18 +218,18 @@ select{cursor:pointer}
 .periodic-wrap{overflow-x:auto;padding-bottom:8px}
 .periodic-grid{display:grid;grid-template-columns:repeat(18,36px);gap:2px;min-width:680px}
 .el-cell{
-  width:36px;height:36px;border-radius:4px;border:1px solid transparent;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .15s;font-size:11px;font-family:var(--mono);
+width:36px;height:36px;border-radius:4px;border:1px solid transparent;
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+cursor:pointer;transition:all .15s;font-size:11px;font-family:var(–mono);
 }
-.el-cell:hover{transform:scale(1.15);z-index:10;border-color:var(--chem)}
+.el-cell:hover{transform:scale(1.15);z-index:10;border-color:var(–chem)}
 .el-cell .sym{font-weight:700;font-size:12px;line-height:1}
 .el-cell .num{font-size:8px;color:rgba(255,255,255,.5);margin-top:1px}
-.el-nonmetal{background:rgba(52,211,153,.12);color:var(--chem)}
-.el-metal{background:rgba(56,189,248,.12);color:var(--math)}
+.el-nonmetal{background:rgba(52,211,153,.12);color:var(–chem)}
+.el-metal{background:rgba(56,189,248,.12);color:var(–math)}
 .el-noble{background:rgba(167,139,250,.12);color:#a78bfa}
 .el-metalloid{background:rgba(251,191,36,.12);color:#fbbf24}
-.el-transition{background:rgba(249,115,22,.12);color:var(--phys)}
+.el-transition{background:rgba(249,115,22,.12);color:var(–phys)}
 .el-empty{background:transparent;border:none;cursor:default}
 
 /* ── CHART ── */
@@ -240,35 +241,36 @@ select{cursor:pointer}
 .mat-grid input{width:58px;text-align:center;padding:7px;font-size:13px}
 .mat-bracket{display:flex;align-items:center;gap:3px}
 .mat-brace{font-size:52px;font-weight:100;line-height:1;user-select:none}
-.mat-brace.math{color:var(--math)}
-.mat-res-tbl{border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:8px}
-.mat-res-tbl td{padding:6px 12px;border:1px solid var(--border);text-align:center;color:var(--chem)}
+.mat-brace.math{color:var(–math)}
+.mat-res-tbl{border-collapse:collapse;font-family:var(–mono);font-size:13px;margin-top:8px}
+.mat-res-tbl td{padding:6px 12px;border:1px solid var(–border);text-align:center;color:var(–chem)}
 
 /* ── MISC ── */
-.divider{height:1px;background:var(--border);margin:14px 0}
-.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;font-family:var(--mono)}
+.divider{height:1px;background:var(–border);margin:14px 0}
+.hint{font-size:12px;color:var(–muted);margin-top:8px;line-height:1.6;font-family:var(–mono)}
 .h-list{display:flex;flex-direction:column;gap:7px;max-height:400px;overflow-y:auto}
 .h-item{
-  background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  padding:10px 13px;display:flex;justify-content:space-between;align-items:flex-start;
-  gap:10px;cursor:pointer;transition:border-color .2s;
+background:var(–surface);border:1px solid var(–border);border-radius:8px;
+padding:10px 13px;display:flex;justify-content:space-between;align-items:flex-start;
+gap:10px;cursor:pointer;transition:border-color .2s;
 }
-.h-item:hover{border-color:var(--border2)}
-.h-item .hi{font-family:var(--mono);font-size:12px;color:var(--math)}
-.h-item .hr{font-size:11px;color:var(--muted);margin-top:2px}
-.h-item .ht{font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
-.empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
+.h-item:hover{border-color:var(–border2)}
+.h-item .hi{font-family:var(–mono);font-size:12px;color:var(–math)}
+.h-item .hr{font-size:11px;color:var(–muted);margin-top:2px}
+.h-item .ht{font-size:10px;color:var(–muted);font-family:var(–mono);white-space:nowrap}
+.empty{text-align:center;padding:32px 16px;color:var(–muted);font-size:13px}
 .empty .ei{font-size:32px;margin-bottom:8px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb{background:var(–border);border-radius:4px}
 
 @media(max-width:860px){
-  .layout{grid-template-columns:1fr}
-  .left-panel,.right-panel{max-height:none}
-  .left-panel{border-right:none;border-bottom:1px solid var(--border)}
+.layout{grid-template-columns:1fr}
+.left-panel,.right-panel{max-height:none}
+.left-panel{border-right:none;border-bottom:1px solid var(–border)}
 }
 </style>
+
 </head>
 <body>
 
@@ -302,6 +304,7 @@ select{cursor:pointer}
 <div class="left-panel">
 
 <!-- ══════════ CALCULADORA ══════════ -->
+
 <div id="page-calc" class="page active">
   <div class="card">
     <div class="card-title math-title"><div class="dot"></div>Expresión matemática</div>
@@ -345,6 +348,7 @@ raiz(144)                 → raíz"></textarea>
 </div>
 
 <!-- ══════════ GRÁFICOS ══════════ -->
+
 <div id="page-graph" class="page">
   <div class="card">
     <div class="card-title math-title"><div class="dot"></div>Funciones</div>
@@ -376,6 +380,7 @@ raiz(144)                 → raíz"></textarea>
 </div>
 
 <!-- ══════════ MATRICES ══════════ -->
+
 <div id="page-matrix" class="page">
   <div class="card">
     <div class="card-title math-title"><div class="dot"></div>Configuración</div>
@@ -414,6 +419,7 @@ raiz(144)                 → raíz"></textarea>
 </div>
 
 <!-- ══════════ ESTADÍSTICA ══════════ -->
+
 <div id="page-stats" class="page">
   <div class="card">
     <div class="card-title math-title"><div class="dot"></div>Datos</div>
@@ -427,6 +433,7 @@ raiz(144)                 → raíz"></textarea>
 </div>
 
 <!-- ══════════ QUÍMICA ══════════ -->
+
 <div id="page-chem" class="page">
   <div class="card">
     <div class="card-title chem-title"><div class="dot"></div>Herramienta</div>
@@ -522,6 +529,7 @@ raiz(144)                 → raíz"></textarea>
 </div>
 
 <!-- ══════════ FÍSICA ══════════ -->
+
 <div id="page-phys" class="page">
   <div class="card">
     <div class="card-title phys-title"><div class="dot"></div>Módulo</div>
@@ -537,6 +545,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- CINEMÁTICA -->
+
   <div id="phys-kine" class="phys-panel">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Cinemática</div>
@@ -552,6 +561,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- DINÁMICA -->
+
   <div id="phys-dyn" class="phys-panel" style="display:none">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Dinámica — F = ma</div>
@@ -566,6 +576,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- ENERGÍA -->
+
   <div id="phys-energy" class="phys-panel" style="display:none">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Energía y trabajo</div>
@@ -581,6 +592,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- TERMODINÁMICA -->
+
   <div id="phys-thermo" class="phys-panel" style="display:none">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Termodinámica</div>
@@ -595,6 +607,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- OHM -->
+
   <div id="phys-ohm" class="phys-panel" style="display:none">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Electricidad</div>
@@ -610,6 +623,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- ONDAS -->
+
   <div id="phys-waves" class="phys-panel" style="display:none">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Ondas — v = λ·f</div>
@@ -628,6 +642,7 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
   <!-- ÓPTICA -->
+
   <div id="phys-optics" class="phys-panel" style="display:none">
     <div class="card">
       <div class="card-title phys-title"><div class="dot"></div>Óptica — Ecuación de lentes</div>
@@ -643,6 +658,7 @@ raiz(144)                 → raíz"></textarea>
 </div>
 
 <!-- ══════════ HISTORIAL ══════════ -->
+
 <div id="page-history" class="page">
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -656,6 +672,7 @@ raiz(144)                 → raíz"></textarea>
 </div><!-- /left-panel -->
 
 <!-- ══════════ RIGHT PANEL ══════════ -->
+
 <div class="right-panel">
 
 <div id="right-calc" class="page active">
@@ -1305,7 +1322,7 @@ function resetRange(){['xmin','xmax','ymin','ymax'].forEach((id,i)=>document.get
 
 function runGraph(){
   if(multiChart){multiChart.destroy();multiChart=null;}
-  let xmin=Number(document.getElementById('xmin').value)||−10;
+  let xmin=Number(document.getElementById('xmin').value)||-10;
   let xmax=Number(document.getElementById('xmax').value)||10;
   let ymin=Number(document.getElementById('ymin').value);
   let ymax=Number(document.getElementById('ymax').value);
@@ -2010,5 +2027,6 @@ window.onload=()=>{
   updatePhysUI();
 };
 </script>
+
 </body>
 </html>
