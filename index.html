@@ -1547,51 +1547,140 @@ function runMolar(){
   ]);
 }
 
-// BALANCEO
+// BALANCEO — álgebra lineal (null-space) soporta reacciones complejas
 function runBalance(){
   let eq=document.getElementById('balance-input').value.trim();
-  eq=eq.replace('→','->').replace('→','->');
+  eq=eq.replace(/→|->|=>/g,'->').replace(/\s+/g,' ');
   let[left,right]=eq.split('->');
-  if(!right){setChem('<span style="color:#f87171">Formato: H2 + O2 → H2O</span>',[]);return;}
+  if(!left||!right){setChem('<span style="color:#f87171">Formato: H2 + O2 → H2O</span>',[]);return;}
 
-  let parseEl=(s)=>{
-    let parts=s.split('+').map(t=>t.trim());
-    return parts.map(p=>{let m=p.match(/^(\d*)([A-Z].*)$/);return{coef:m[1]?Number(m[1]):1,mol:m[2]};});
-  };
+  // Parsear lado: devuelve [{coef, mol}]
+  let parseSide=(s)=>s.split('+').map(t=>{
+    t=t.trim();
+    let m=t.match(/^(\d+)?\s*([A-Z].*)$/);
+    return m?{coef:m[1]?Number(m[1]):1, mol:m[2].trim()}:null;
+  }).filter(Boolean);
 
-  // Balanceo simple por inspeccion para reacciones comunes
-  let react=parseEl(left),prod=parseEl(right);
+  let reactants=parseSide(left), products=parseSide(right);
+  if(!reactants.length||!products.length){setChem('<span style="color:#f87171">No se pudo leer la ecuación</span>',[]);return;}
 
-  // Contar átomos lado izquierdo y derecho con coeficientes 1
-  let countAtoms=(mols,coefs)=>{
-    let atoms={};
-    mols.forEach((m,i)=>{
-      let elems=parseMolar(m.mol);
-      for(let sym in elems) atoms[sym]=(atoms[sym]||0)+elems[sym]*coefs[i];
-    });
-    return atoms;
-  };
+  // Recopilar todos los elementos únicos
+  let allMols=[...reactants,...products];
+  let elemSet=new Set();
+  allMols.forEach(m=>{let e=parseMolar(m.mol);Object.keys(e).forEach(k=>elemSet.add(k));});
+  let elems=[...elemSet];
+  let nMols=allMols.length, nElems=elems.length;
 
-  // Búsqueda por fuerza bruta coeficientes 1..6
-  let found=null;
-  outer:for(let a=1;a<=6;a++) for(let b=1;b<=6;b++) for(let c=1;c<=6;c++) for(let d=1;d<=6;d++){
-    if(react.length===2&&prod.length===1){
-      let L=countAtoms(react,[a,b]),R=countAtoms(prod,[c]);
-      if(JSON.stringify(L)===JSON.stringify(R)){found={r:[a,b],p:[c]};break outer;}
-    }
-    if(react.length===2&&prod.length===2){
-      let L=countAtoms(react,[a,b]),R=countAtoms(prod,[c,d]);
-      if(JSON.stringify(L)===JSON.stringify(R)){found={r:[a,b],p:[c,d]};break outer;}
-    }
-  }
-  if(react.length===1&&prod.length===2){
-    outer2:for(let a=1;a<=6;a++) for(let b=1;b<=6;b++) for(let c=1;c<=6;c++){
-      let L=countAtoms(react,[a]),R=countAtoms(prod,[b,c]);
-      if(JSON.stringify(L)===JSON.stringify(R)){found={r:[a],p:[b,c]};break outer2;}
-    }
+  // Construir matriz: filas=elementos, columnas=moléculas
+  // reactivos positivos, productos negativos
+  let M=[];
+  for(let e of elems){
+    let row=[];
+    reactants.forEach(m=>{let at=parseMolar(m.mol);row.push(at[e]||0);});
+    products.forEach(m=>{let at=parseMolar(m.mol);row.push(-(at[e]||0));});
+    M.push(row);
   }
 
-  if(!found){setChem('<span style="color:#f87171">No se pudo balancear automáticamente (reacción compleja)</span>',[]);return;}
+  // Eliminación gaussiana con fracciones (trabajamos con racionales escalados)
+  // Aumentamos con columna de ceros para hallar null-space
+  let rows=M.length, cols=nMols;
+  let mat=M.map(r=>[...r.map(v=>v*1000)]); // escalar para evitar flotantes
+
+  // Reducción de fila: necesitamos nMols-1 variables libres = 1 solución
+  // Usamos eliminación gaussiana y backsubstitution
+  function rref(m){
+    let A=m.map(r=>[...r]);
+    let nr=A.length,nc=A[0].length;
+    let pivCols=[];
+    let r=0;
+    for(let c=0;c<nc&&r<nr;c++){
+      let piv=-1;
+      for(let i=r;i<nr;i++){if(Math.abs(A[i][c])>1e-9){piv=i;break;}}
+      if(piv===-1) continue;
+      [A[r],A[piv]]=[A[piv],A[r]];
+      let s=A[r][c];
+      for(let j=0;j<nc;j++) A[r][j]/=s;
+      for(let i=0;i<nr;i++){
+        if(i===r) continue;
+        let f=A[i][c];
+        for(let j=0;j<nc;j++) A[i][j]-=f*A[r][j];
+      }
+      pivCols.push(c);
+      r++;
+    }
+    return{A,pivCols};
+  }
+
+  let{A:R,pivCols}=rref(mat);
+  let freeCols=[];
+  for(let c=0;c<cols;c++) if(!pivCols.includes(c)) freeCols.push(c);
+
+  if(freeCols.length===0){
+    // Sistema determinado — único coeficiente = 0, trivial
+    setChem('<span style="color:#f87171">No tiene solución no trivial</span>',[]);return;
+  }
+
+  // Fijar variable libre = 1, resolver pivotes
+  let x=Array(cols).fill(0);
+  freeCols.forEach(fc=>x[fc]=1);
+  for(let i=pivCols.length-1;i>=0;i--){
+    let pc=pivCols[i];
+    let sum=0;
+    for(let j=0;j<cols;j++) if(j!==pc) sum+=R[i][j]*x[j];
+    x[pc]=-sum;
+  }
+
+  // Convertir a enteros positivos con mínimo común múltiplo
+  function gcd(a,b){a=Math.abs(Math.round(a));b=Math.abs(Math.round(b));return b===0?a:gcd(b,a%b);}
+  function lcm(a,b){return a*b/gcd(a,b);}
+
+  // Escalar para que todos sean enteros
+  let scale=1;
+  x.forEach(v=>{
+    let frac=v-Math.round(v);
+    if(Math.abs(frac)>1e-6){
+      // aproximar denominador hasta 20
+      for(let d=2;d<=20;d++){
+        if(Math.abs(v*d-Math.round(v*d))<1e-4){scale=lcm(scale,d);break;}
+      }
+    }
+  });
+  x=x.map(v=>Math.round(v*scale));
+
+  // Si hay negativos, negar todo
+  if(x.some(v=>v<0)) x=x.map(v=>-v);
+
+  // Reducir por MCD global
+  let g=x.reduce((a,b)=>gcd(a,b));
+  x=x.map(v=>Math.round(v/g));
+
+  // Verificar que todos sean positivos
+  if(x.some(v=>v<=0)){setChem('<span style="color:#f87171">No se pudo balancear (coeficientes inválidos)</span>',[]);return;}
+
+  // Verificar balance
+  let ok=elems.every(e=>{
+    let L=reactants.reduce((s,m,i)=>{let at=parseMolar(m.mol);return s+(at[e]||0)*x[i];},0);
+    let R2=products.reduce((s,m,i)=>{let at=parseMolar(m.mol);return s+(at[e]||0)*x[reactants.length+i];},0);
+    return Math.abs(L-R2)<1e-6;
+  });
+  if(!ok){setChem('<span style="color:#f87171">No se pudo balancear esta reacción</span>',[]);return;}
+
+  let fmt2=(mols,coefs)=>mols.map((m,i)=>(coefs[i]>1?coefs[i]:'')+m.mol).join(' + ');
+  let rCoefs=x.slice(0,reactants.length);
+  let pCoefs=x.slice(reactants.length);
+  let balanced=fmt2(reactants,rCoefs)+' → '+fmt2(products,pCoefs);
+
+  let steps=[
+    {t:'Método: álgebra lineal (espacio nulo)',v:''},
+    {t:'Elementos considerados: '+elems.join(', '),v:''},
+    {t:'Coeficientes reactivos:',v:rCoefs.join(', ')},
+    {t:'Coeficientes productos:',v:pCoefs.join(', ')},
+  ];
+
+  let out=`<b style="color:var(--chem)">Ecuación balanceada</b><br><br>`+
+    `<span style="font-size:18px;font-family:var(--mono);line-height:2">${balanced}</span>`;
+  setChem(out,steps);
+}
 
   let fmt2=(mols,coefs)=>mols.map((m,i)=>(coefs[i]>1?coefs[i]:'')+m.mol).join(' + ');
   let balanced=fmt2(react,found.r)+' → '+fmt2(prod,found.p);
