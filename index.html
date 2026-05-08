@@ -1682,12 +1682,6 @@ function runBalance(){
   setChem(out,steps);
 }
 
-  let fmt2=(mols,coefs)=>mols.map((m,i)=>(coefs[i]>1?coefs[i]:'')+m.mol).join(' + ');
-  let balanced=fmt2(react,found.r)+' → '+fmt2(prod,found.p);
-  let out=`<b style="color:var(--chem)">Ecuación balanceada</b><br><br><span style="font-size:18px;font-family:var(--mono)">${balanced}</span>`;
-  setChem(out,[{t:'Coeficientes encontrados por balance de átomos',v:''},{t:'Reactivos:',v:found.r.join(', ')},{t:'Productos:',v:found.p.join(', ')}]);
-}
-
 // pH
 function runPH(){
   let type=document.getElementById('ph-type').value;
