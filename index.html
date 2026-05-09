@@ -449,6 +449,7 @@ raiz(144)                 → raíz"></textarea>
       <option value="buffer">Soluciones buffer (Henderson-Hasselbalch)</option>
       <option value="stoich">Estequiometría / Reactivo limitante</option>
       <option value="ksp">Solubilidad (Ksp)</option>
+      <option value="equil">Equilibrio químico (Ka / Kb)</option>
 
     </select>
   </div>
@@ -652,6 +653,25 @@ raiz(144)                 → raíz"></textarea>
         <span class="tag tag-chem" onclick="setKspEx('PbI2')">PbI₂</span>
         <span class="tag tag-chem" onclick="setKspEx('Mg_OH_2')">Mg(OH)₂</span>
         <span class="tag tag-chem" onclick="setKspEx('CaCO3')">CaCO₃</span>
+      </div>
+    </div>
+  </div>
+  <div id="chem-equil" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Equilibrio químico</div>
+      <select id="equil-type" style="margin-bottom:10px" onchange="updateEquilUI()">
+        <option value="ka">Ácido débil (Ka) → pH</option>
+        <option value="kb">Base débil (Kb) → pOH / pH</option>
+        <option value="kc">Constante de equilibrio Kc</option>
+        <option value="ice">Tabla ICE completa</option>
+      </select>
+      <div id="equil-fields"></div>
+      <div class="btn-row"><button class="btn btn-chem" onclick="runEquil()">▶ Calcular</button></div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="setEquilEx('ka','1.8e-5','0.1')">Ác. acético Ka</span>
+        <span class="tag tag-chem" onclick="setEquilEx('ka','6.3e-8','0.05')">H₂CO₃ Ka</span>
+        <span class="tag tag-chem" onclick="setEquilEx('kb','1.8e-5','0.1')">NH₃ Kb</span>
+        <span class="tag tag-chem" onclick="setEquilEx('ice','1.8e-5','0.1')">ICE ácido acético</span>
       </div>
     </div>
   </div>
@@ -2703,6 +2723,184 @@ function runKsp(){
       {t:`Ion común [${ionLabel}] = ${commonConc} M`,v:''},
       {t:'Solubilidad con ion común:',v:sCommon.toExponential(3)+' mol/L'},
       {t:'Reducción:',v:factor.toFixed(1)+'×'},
+    ];
+  }
+  setChem(out,steps);
+}
+// ═══════════════════════════════════════════════
+// EQUILIBRIO QUÍMICO
+// ═══════════════════════════════════════════════
+function updateEquilUI(){
+  let type=document.getElementById('equil-type').value;
+  let html='';
+  if(type==='ka'||type==='ice'){
+    html=`<div style="display:grid;gap:8px">
+      <div><div class="hint" style="margin-bottom:4px">Ka del ácido débil</div>
+        <input type="text" id="eq-ka" placeholder="ej: 1.8e-5 (ác. acético)"></div>
+      <div><div class="hint" style="margin-bottom:4px">Concentración inicial C₀ (mol/L)</div>
+        <input type="text" id="eq-c0" placeholder="ej: 0.1"></div>
+    </div>`;
+  } else if(type==='kb'){
+    html=`<div style="display:grid;gap:8px">
+      <div><div class="hint" style="margin-bottom:4px">Kb de la base débil</div>
+        <input type="text" id="eq-kb" placeholder="ej: 1.8e-5 (NH₃)"></div>
+      <div><div class="hint" style="margin-bottom:4px">Concentración inicial C₀ (mol/L)</div>
+        <input type="text" id="eq-c0" placeholder="ej: 0.1"></div>
+    </div>`;
+  } else if(type==='kc'){
+    html=`<div style="display:grid;gap:8px">
+      <p class="hint">aA + bB ⇌ cC + dD — ingresá concentraciones de equilibrio</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><div class="hint" style="margin-bottom:4px">[A] (mol/L)</div><input type="text" id="eq-A" placeholder="0.5"></div>
+        <div><div class="hint" style="margin-bottom:4px">coef. a</div><input type="text" id="eq-a" placeholder="1"></div>
+        <div><div class="hint" style="margin-bottom:4px">[B] (mol/L)</div><input type="text" id="eq-B" placeholder="0.5"></div>
+        <div><div class="hint" style="margin-bottom:4px">coef. b</div><input type="text" id="eq-b" placeholder="1"></div>
+        <div><div class="hint" style="margin-bottom:4px">[C] (mol/L)</div><input type="text" id="eq-C" placeholder="0.5"></div>
+        <div><div class="hint" style="margin-bottom:4px">coef. c</div><input type="text" id="eq-c2" placeholder="1"></div>
+        <div><div class="hint" style="margin-bottom:4px">[D] (mol/L)</div><input type="text" id="eq-D" placeholder="0.5"></div>
+        <div><div class="hint" style="margin-bottom:4px">coef. d</div><input type="text" id="eq-d" placeholder="1"></div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('equil-fields').innerHTML=html;
+}
+
+function setEquilEx(type,k,c){
+  document.getElementById('equil-type').value=type;
+  updateEquilUI();
+  setTimeout(()=>{
+    let ka=document.getElementById('eq-ka'),kb=document.getElementById('eq-kb'),c0=document.getElementById('eq-c0');
+    if(ka)ka.value=k;if(kb)kb.value=k;if(c0)c0.value=c;
+  },50);
+}
+
+function runEquil(){
+  let type=document.getElementById('equil-type').value;
+  let out='',steps=[];
+  const gve=id=>{let el=document.getElementById(id);return el&&el.value?Number(el.value):null;};
+
+  if(type==='ka'){
+    let Ka=gve('eq-ka'),C0=gve('eq-c0');
+    if(!Ka||!C0){setChem('<span style="color:#f87171">Completá Ka y C₀</span>',[]);return;}
+    // Resolver cuadrática exacta: x² + Ka·x - Ka·C0 = 0
+    let x=(-Ka+Math.sqrt(Ka*Ka+4*Ka*C0))/2;
+    let pH=-Math.log10(x);
+    let pct=x/C0*100;
+    let pKa=-Math.log10(Ka);
+    // Aproximación válida si C0/Ka > 100
+    let approxOk=C0/Ka>100;
+    let xApprox=Math.sqrt(Ka*C0);
+    let phColor=pH<7?'#f97316':pH>7?'#38bdf8':'#34d399';
+    out=`<b style="color:var(--chem)">Ácido débil — Equilibrio</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:28px;font-family:var(--mono);font-weight:700;color:${phColor}">pH = ${pH.toFixed(3)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${pH<7?'Ácido 🔴':pH>7?'Básico 🔵':'Neutro ⚪'}</div>
+      </div>
+      <table class="tbl"><tbody>
+        <tr><td>Ka</td><td style="color:var(--chem)">${Ka.toExponential(2)}</td></tr>
+        <tr><td>pKa</td><td style="color:var(--chem)">${pKa.toFixed(3)}</td></tr>
+        <tr><td>C₀</td><td style="color:var(--chem)">${C0} mol/L</td></tr>
+        <tr><td>[H⁺] = [A⁻]</td><td style="color:var(--chem)">${x.toExponential(3)} mol/L</td></tr>
+        <tr><td>[HA] equilibrio</td><td style="color:var(--chem)">${(C0-x).toExponential(3)} mol/L</td></tr>
+        <tr><td>% disociación</td><td style="color:var(--chem)">${pct.toFixed(2)}%</td></tr>
+        <tr><td>Aprox. √(Ka·C₀)</td><td style="color:var(--muted)">${xApprox.toExponential(3)} ${approxOk?'✓ válida':'⚠ usar exacta'}</td></tr>
+      </tbody></table>`;
+    steps=[
+      {t:'HA ⇌ H⁺ + A⁻',v:''},
+      {t:'x² + Ka·x − Ka·C₀ = 0 (cuadrática exacta)',v:''},
+      {t:`x = [H⁺] = ${x.toExponential(3)} mol/L`,v:''},
+      {t:'pH = −log[H⁺]',v:pH.toFixed(3)},
+      {t:'% disociación = x/C₀ × 100',v:pct.toFixed(2)+'%'},
+    ];
+
+  } else if(type==='kb'){
+    let Kb=gve('eq-kb'),C0=gve('eq-c0');
+    if(!Kb||!C0){setChem('<span style="color:#f87171">Completá Kb y C₀</span>',[]);return;}
+    let x=(-Kb+Math.sqrt(Kb*Kb+4*Kb*C0))/2;
+    let pOH=-Math.log10(x);
+    let pH=14-pOH;
+    let pct=x/C0*100;
+    let pKb=-Math.log10(Kb);
+    let Ka_conj=1e-14/Kb;
+    let phColor='#38bdf8';
+    out=`<b style="color:var(--chem)">Base débil — Equilibrio</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:28px;font-family:var(--mono);font-weight:700;color:${phColor}">pH = ${pH.toFixed(3)}</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:4px">pOH = ${pOH.toFixed(3)}</div>
+      </div>
+      <table class="tbl"><tbody>
+        <tr><td>Kb</td><td style="color:var(--chem)">${Kb.toExponential(2)}</td></tr>
+        <tr><td>pKb</td><td style="color:var(--chem)">${pKb.toFixed(3)}</td></tr>
+        <tr><td>Ka ácido conjugado</td><td style="color:var(--chem)">${Ka_conj.toExponential(2)}</td></tr>
+        <tr><td>[OH⁻]</td><td style="color:var(--chem)">${x.toExponential(3)} mol/L</td></tr>
+        <tr><td>[B] equilibrio</td><td style="color:var(--chem)">${(C0-x).toExponential(3)} mol/L</td></tr>
+        <tr><td>% disociación</td><td style="color:var(--chem)">${pct.toFixed(2)}%</td></tr>
+      </tbody></table>`;
+    steps=[
+      {t:'B + H₂O ⇌ BH⁺ + OH⁻',v:''},
+      {t:`[OH⁻] = ${x.toExponential(3)} mol/L`,v:''},
+      {t:'pOH = −log[OH⁻]',v:pOH.toFixed(3)},
+      {t:'pH = 14 − pOH',v:pH.toFixed(3)},
+      {t:'Ka·Kb = Kw = 1×10⁻¹⁴',v:`Ka conjugado = ${Ka_conj.toExponential(2)}`},
+    ];
+
+  } else if(type==='kc'){
+    let A=gve('eq-A'),a=gve('eq-a')||1,B=gve('eq-B'),b=gve('eq-b')||1;
+    let C=gve('eq-C'),c=gve('eq-c2')||1,D=gve('eq-D'),d=gve('eq-d')||1;
+    if(!A||!B||!C||!D){setChem('<span style="color:#f87171">Completá todas las concentraciones</span>',[]);return;}
+    let Kc=(Math.pow(C,c)*Math.pow(D,d))/(Math.pow(A,a)*Math.pow(B,b));
+    let favorable=Kc>1;
+    out=`<b style="color:var(--chem)">Constante de equilibrio Kc</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Kc = [C]ᶜ·[D]ᵈ / [A]ᵃ·[B]ᵇ</div>
+        <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--chem)">Kc = ${Kc.toExponential(3)}</div>
+      </div>
+      <table class="tbl"><tbody>
+        <tr><td>Numerador [C]ᶜ·[D]ᵈ</td><td style="color:var(--chem)">${(Math.pow(C,c)*Math.pow(D,d)).toExponential(3)}</td></tr>
+        <tr><td>Denominador [A]ᵃ·[B]ᵇ</td><td style="color:var(--chem)">${(Math.pow(A,a)*Math.pow(B,b)).toExponential(3)}</td></tr>
+        <tr><td>Interpretación</td><td style="color:var(--chem)">${Kc>1000?'Productos muy favorecidos':Kc>1?'Productos favorecidos':Kc>0.001?'Reactivos favorecidos':'Reactivos muy favorecidos'}</td></tr>
+      </tbody></table>`;
+    steps=[
+      {t:'Kc = productos/reactivos (concentraciones de equilibrio)',v:''},
+      {t:'Kc:',v:Kc.toExponential(3)},
+      {t:Kc>1?'Kc > 1 → equilibrio hacia productos':'Kc < 1 → equilibrio hacia reactivos',v:''},
+    ];
+
+  } else if(type==='ice'){
+    let Ka=gve('eq-ka'),C0=gve('eq-c0');
+    if(!Ka||!C0){setChem('<span style="color:#f87171">Completá Ka y C₀</span>',[]);return;}
+    let x=(-Ka+Math.sqrt(Ka*Ka+4*Ka*C0))/2;
+    let pH=-Math.log10(x);
+    let pct=x/C0*100;
+    out=`<b style="color:var(--chem)">Tabla ICE</b><br><br>
+      <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th></th><th>HA</th><th>⇌</th><th>H⁺</th><th>A⁻</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--math);font-family:var(--mono)">I</td>
+            <td>${C0}</td><td></td><td>≈ 0</td><td>0</td></tr>
+          <tr><td style="color:var(--phys);font-family:var(--mono)">C</td>
+            <td style="color:var(--phys)">− x</td><td></td>
+            <td style="color:var(--phys)">+ x</td>
+            <td style="color:var(--phys)">+ x</td></tr>
+          <tr><td style="color:var(--chem);font-family:var(--mono)">E</td>
+            <td style="color:var(--chem)">${(C0-x).toExponential(3)}</td><td></td>
+            <td style="color:var(--chem)">${x.toExponential(3)}</td>
+            <td style="color:var(--chem)">${x.toExponential(3)}</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:24px;font-family:var(--mono);font-weight:700;color:var(--phys)">pH = ${pH.toFixed(3)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">% disociación = ${pct.toFixed(2)}%</div>
+      </div>`;
+    steps=[
+      {t:'I: concentraciones iniciales',v:''},
+      {t:'C: cambio (−x reactivo, +x productos)',v:''},
+      {t:'E: equilibrio = I + C',v:''},
+      {t:`x = [H⁺] = ${x.toExponential(3)}`,v:''},
+      {t:'pH:',v:pH.toFixed(3)},
     ];
   }
   setChem(out,steps);
