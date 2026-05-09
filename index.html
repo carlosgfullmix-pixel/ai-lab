@@ -447,6 +447,7 @@ raiz(144)                 → raíz"></textarea>
       <option value="redox">Números de oxidación / Redox</option>
       <option value="halfcell">Hemirreacciones y potencial de celda</option>
       <option value="buffer">Soluciones buffer (Henderson-Hasselbalch)</option>
+      <option value="stoich">Estequiometría / Reactivo limitante</option>
 
     </select>
   </div>
@@ -616,6 +617,23 @@ raiz(144)                 → raíz"></textarea>
   </div>
 
 </div>
+  <div id="chem-stoich" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Estequiometría y reactivo limitante</div>
+      <input type="text" id="stoich-eq" placeholder="ej: 2H2 + O2 → 2H2O" style="margin-bottom:10px" onchange="buildStoichFields()">
+      <div class="btn-row" style="margin-top:0;margin-bottom:10px">
+        <button class="btn btn-ghost btn-sm" onclick="buildStoichFields()">⟳ Cargar reactivos</button>
+      </div>
+      <div id="stoich-fields"></div>
+      <div class="btn-row"><button class="btn btn-chem" onclick="runStoich()">▶ Calcular</button></div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="setStoichEx('2H2 + O2 → 2H2O')">H₂+O₂</span>
+        <span class="tag tag-chem" onclick="setStoichEx('N2 + 3H2 → 2NH3')">N₂+H₂</span>
+        <span class="tag tag-chem" onclick="setStoichEx('Fe2O3 + 3CO → 2Fe + 3CO2')">Fe₂O₃+CO</span>
+        <span class="tag tag-chem" onclick="setStoichEx('C6H12O6 + 6O2 → 6CO2 + 6H2O')">Glucosa</span>
+      </div>
+    </div>
+  </div>
 
 <!-- ══════════ FÍSICA ══════════ -->
 
@@ -1589,6 +1607,7 @@ function updateChemUI(){
   if(tool==='periodic') buildPeriodic();
   if(tool==='halfcell') buildHalfCellSelects();
   if(tool==='buffer') updateBufferUI();
+  if(tool==='stoich') buildStoichFields();
 
 }
 
@@ -2394,6 +2413,110 @@ function runBuffer(){
       <br><p class="hint">Mejor buffer cuando pKa ≈ pH deseado (relación ≈ 1:1)</p>`;
     steps=[{t:`pH objetivo: ${phTarget}`,v:''},{t:'Rango útil del buffer: pKa ± 1',v:''},...suitable.map(([k,v])=>({t:v.name,v:`pKa ${v.pKa}`}))];
   }
+  setChem(out,steps);
+}
+// ═══════════════════════════════════════════════
+// ESTEQUIOMETRÍA
+// ═══════════════════════════════════════════════
+function setStoichEx(eq){
+  document.getElementById('stoich-eq').value=eq;
+  buildStoichFields();
+}
+
+function buildStoichFields(){
+  let eqRaw=document.getElementById('stoich-eq')?.value?.trim();
+  if(!eqRaw){document.getElementById('stoich-fields').innerHTML='';return;}
+  let eq=eqRaw.replace(/→|->|=>/g,'->');
+  let[left]=eq.split('->');
+  if(!left){return;}
+  let reactants=left.split('+').map(t=>{
+    t=t.trim();
+    let m=t.match(/^(\d+)?\s*([A-Z][^\s+]*)/);
+    return m?{coef:m[1]?Number(m[1]):1,mol:m[2].trim()}:null;
+  }).filter(Boolean);
+  let html='<div style="display:grid;gap:8px">';
+  reactants.forEach((r,i)=>{
+    html+=`<div><div class="hint" style="margin-bottom:4px">Masa de ${r.mol} (g) — coeficiente: ${r.coef}</div>
+    <input type="text" id="stoich-m${i}" placeholder="gramos disponibles"></div>`;
+  });
+  html+='</div>';
+  document.getElementById('stoich-fields').innerHTML=html;
+}
+
+function runStoich(){
+  let eqRaw=document.getElementById('stoich-eq').value.trim();
+  if(!eqRaw){setChem('<span style="color:#f87171">Ingresá una ecuación</span>',[]);return;}
+  let eq=eqRaw.replace(/→|->|=>/g,'->');
+  let[left,right]=eq.split('->');
+  if(!left||!right){setChem('<span style="color:#f87171">Formato: 2H2 + O2 → 2H2O</span>',[]);return;}
+
+  let parseSideS=s=>s.split('+').map(t=>{
+    t=t.trim();
+    let m=t.match(/^(\d+)?\s*([A-Z][^\s+]*)/);
+    return m?{coef:m[1]?Number(m[1]):1,mol:m[2].trim()}:null;
+  }).filter(Boolean);
+
+  let reactants=parseSideS(left),products=parseSideS(right);
+
+  let moles=reactants.map((r,i)=>{
+    let mass=Number(document.getElementById('stoich-m'+i)?.value||0);
+    let elems=parseMolar(r.mol);
+    let mm=Object.entries(elems).reduce((s,[sym,cnt])=>s+(ATOMIC[sym]?.mass||0)*cnt,0);
+    return{...r,mass,mm,molesDisp:mm>0?mass/mm:0,molesPorCoef:mm>0?(mass/mm)/r.coef:0};
+  });
+
+  if(moles.some(m=>m.mass===0)){setChem('<span style="color:#f87171">Ingresá las masas disponibles y presioná Calcular</span>',[]);buildStoichFields();return;}
+
+  let limiting=moles.reduce((a,b)=>a.molesPorCoef<b.molesPorCoef?a:b);
+  let baseMoles=limiting.molesPorCoef;
+
+  let prodResults=products.map(p=>{
+    let elems=parseMolar(p.mol);
+    let mm=Object.entries(elems).reduce((s,[sym,cnt])=>s+(ATOMIC[sym]?.mass||0)*cnt,0);
+    let molesProduced=baseMoles*p.coef;
+    return{...p,mm,molesProduced,massProduced:molesProduced*mm};
+  });
+
+  // Exceso de reactivos
+  let excessRows=moles.filter(r=>r.mol!==limiting.mol).map(r=>{
+    let molesUsed=baseMoles*r.coef;
+    let molesExcess=r.molesDisp-molesUsed;
+    let massExcess=molesExcess*r.mm;
+    return`<tr><td style="color:var(--muted)">${r.mol}</td><td>${fmt(r.molesDisp,4)}</td><td>${fmt(molesUsed,4)}</td><td style="color:var(--chem)">${fmt(molesExcess,4)} mol (${fmt(massExcess,3)} g)</td></tr>`;
+  }).join('');
+
+  let reactRows=moles.map(r=>`<tr>
+    <td style="color:${r.mol===limiting.mol?'#f97316':'var(--chem)'}">${r.mol}${r.mol===limiting.mol?' ⚠️':''}</td>
+    <td>${r.coef}</td><td>${fmt(r.mm,3)}</td><td>${r.mass}</td>
+    <td>${fmt(r.molesDisp,4)}</td><td>${fmt(r.molesPorCoef,4)}</td>
+  </tr>`).join('');
+
+  let prodRows=prodResults.map(p=>`<tr>
+    <td style="color:var(--chem)">${p.mol}</td><td>${p.coef}</td>
+    <td>${fmt(p.mm,3)}</td>
+    <td style="color:var(--chem);font-weight:700">${fmt(p.molesProduced,4)}</td>
+    <td style="color:var(--chem);font-weight:700">${fmt(p.massProduced,3)}</td>
+  </tr>`).join('');
+
+  let out=`<b style="color:var(--chem)">Estequiometría</b><br><br>
+    <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px;text-align:center;margin-bottom:14px">
+      <div style="font-size:10px;color:var(--phys);font-family:var(--mono)">REACTIVO LIMITANTE</div>
+      <div style="font-size:22px;font-family:var(--mono);font-weight:700;color:var(--phys);margin-top:4px">${limiting.mol}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmt(limiting.molesDisp,4)} mol disponibles</div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">REACTIVOS</div>
+    <table class="tbl"><thead><tr><th>Compuesto</th><th>Coef</th><th>MM</th><th>Masa(g)</th><th>Moles</th><th>Mol/coef</th></tr></thead>
+    <tbody>${reactRows}</tbody></table>
+    ${excessRows?`<br><div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">REACTIVOS EN EXCESO</div><table class="tbl"><thead><tr><th>Compuesto</th><th>Disponible</th><th>Usado</th><th>Exceso</th></tr></thead><tbody>${excessRows}</tbody></table>`:''}
+    <br><div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">PRODUCTOS TEÓRICOS</div>
+    <table class="tbl"><thead><tr><th>Producto</th><th>Coef</th><th>MM</th><th>Moles</th><th>Masa(g)</th></tr></thead>
+    <tbody>${prodRows}</tbody></table>`;
+
+  let steps=[
+    {t:'Reactivo limitante: '+limiting.mol,v:fmt(limiting.molesPorCoef,4)+' mol/coef'},
+    {t:'Base de cálculo: '+fmt(baseMoles,4)+' mol (por coeficiente)',v:''},
+    ...prodResults.map(p=>({t:'Producto '+p.mol+':',v:fmt(p.massProduced,3)+' g'})),
+  ];
   setChem(out,steps);
 }
 
