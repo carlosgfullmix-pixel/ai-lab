@@ -1371,39 +1371,126 @@ let fnRows=[];
 let histData=[];
 
 const ATOMIC={
-  H:{name:'Hidrógeno',mass:1.008,num:1,cat:'nonmetal'},
-  He:{name:'Helio',mass:4.003,num:2,cat:'noble'},
-  Li:{name:'Litio',mass:6.941,num:3,cat:'metal'},
-  Be:{name:'Berilio',mass:9.012,num:4,cat:'metal'},
-  B:{name:'Boro',mass:10.811,num:5,cat:'metalloid'},
-  C:{name:'Carbono',mass:12.011,num:6,cat:'nonmetal'},
-  N:{name:'Nitrógeno',mass:14.007,num:7,cat:'nonmetal'},
-  O:{name:'Oxígeno',mass:15.999,num:8,cat:'nonmetal'},
-  F:{name:'Flúor',mass:18.998,num:9,cat:'nonmetal'},
-  Ne:{name:'Neón',mass:20.18,num:10,cat:'noble'},
-  Na:{name:'Sodio',mass:22.99,num:11,cat:'metal'},
-  Mg:{name:'Magnesio',mass:24.305,num:12,cat:'metal'},
-  Al:{name:'Aluminio',mass:26.982,num:13,cat:'metal'},
-  Si:{name:'Silicio',mass:28.086,num:14,cat:'metalloid'},
-  P:{name:'Fósforo',mass:30.974,num:15,cat:'nonmetal'},
-  S:{name:'Azufre',mass:32.06,num:16,cat:'nonmetal'},
-  Cl:{name:'Cloro',mass:35.453,num:17,cat:'nonmetal'},
-  Ar:{name:'Argón',mass:39.948,num:18,cat:'noble'},
-  K:{name:'Potasio',mass:39.098,num:19,cat:'metal'},
-  Ca:{name:'Calcio',mass:40.078,num:20,cat:'metal'},
-  Fe:{name:'Hierro',mass:55.845,num:26,cat:'transition'},
-  Cu:{name:'Cobre',mass:63.546,num:29,cat:'transition'},
-  Zn:{name:'Zinc',mass:65.38,num:30,cat:'transition'},
-  Ag:{name:'Plata',mass:107.868,num:47,cat:'transition'},
-  Au:{name:'Oro',mass:196.967,num:79,cat:'transition'},
-  Hg:{name:'Mercurio',mass:200.59,num:80,cat:'transition'},
-  Pb:{name:'Plomo',mass:207.2,num:82,cat:'metal'},
-  I:{name:'Yodo',mass:126.904,num:53,cat:'nonmetal'},
-  Br:{name:'Bromo',mass:79.904,num:35,cat:'nonmetal'},
-  Mn:{name:'Manganeso',mass:54.938,num:25,cat:'transition'},
-  Ni:{name:'Níquel',mass:58.693,num:28,cat:'transition'},
-  Cr:{name:'Cromo',mass:51.996,num:24,cat:'transition'},
+  H:{name:'Hidrógeno',mass:1.008,num:1,cat:'nonmetal',group:1,period:1},
+  He:{name:'Helio',mass:4.003,num:2,cat:'noble',group:18,period:1},
+  Li:{name:'Litio',mass:6.941,num:3,cat:'metal',group:1,period:2},
+  Be:{name:'Berilio',mass:9.012,num:4,cat:'metal',group:2,period:2},
+  B:{name:'Boro',mass:10.811,num:5,cat:'metalloid',group:13,period:2},
+  C:{name:'Carbono',mass:12.011,num:6,cat:'nonmetal',group:14,period:2},
+  N:{name:'Nitrógeno',mass:14.007,num:7,cat:'nonmetal',group:15,period:2},
+  O:{name:'Oxígeno',mass:15.999,num:8,cat:'nonmetal',group:16,period:2},
+  F:{name:'Flúor',mass:18.998,num:9,cat:'nonmetal',group:17,period:2},
+  Ne:{name:'Neón',mass:20.180,num:10,cat:'noble',group:18,period:2},
+  Na:{name:'Sodio',mass:22.990,num:11,cat:'metal',group:1,period:3},
+  Mg:{name:'Magnesio',mass:24.305,num:12,cat:'metal',group:2,period:3},
+  Al:{name:'Aluminio',mass:26.982,num:13,cat:'metal',group:13,period:3},
+  Si:{name:'Silicio',mass:28.086,num:14,cat:'metalloid',group:14,period:3},
+  P:{name:'Fósforo',mass:30.974,num:15,cat:'nonmetal',group:15,period:3},
+  S:{name:'Azufre',mass:32.060,num:16,cat:'nonmetal',group:16,period:3},
+  Cl:{name:'Cloro',mass:35.453,num:17,cat:'nonmetal',group:17,period:3},
+  Ar:{name:'Argón',mass:39.948,num:18,cat:'noble',group:18,period:3},
+  K:{name:'Potasio',mass:39.098,num:19,cat:'metal',group:1,period:4},
+  Ca:{name:'Calcio',mass:40.078,num:20,cat:'metal',group:2,period:4},
+  Sc:{name:'Escandio',mass:44.956,num:21,cat:'transition',group:3,period:4},
+  Ti:{name:'Titanio',mass:47.867,num:22,cat:'transition',group:4,period:4},
+  V:{name:'Vanadio',mass:50.942,num:23,cat:'transition',group:5,period:4},
+  Cr:{name:'Cromo',mass:51.996,num:24,cat:'transition',group:6,period:4},
+  Mn:{name:'Manganeso',mass:54.938,num:25,cat:'transition',group:7,period:4},
+  Fe:{name:'Hierro',mass:55.845,num:26,cat:'transition',group:8,period:4},
+  Co:{name:'Cobalto',mass:58.933,num:27,cat:'transition',group:9,period:4},
+  Ni:{name:'Níquel',mass:58.693,num:28,cat:'transition',group:10,period:4},
+  Cu:{name:'Cobre',mass:63.546,num:29,cat:'transition',group:11,period:4},
+  Zn:{name:'Zinc',mass:65.380,num:30,cat:'transition',group:12,period:4},
+  Ga:{name:'Galio',mass:69.723,num:31,cat:'metal',group:13,period:4},
+  Ge:{name:'Germanio',mass:72.630,num:32,cat:'metalloid',group:14,period:4},
+  As:{name:'Arsénico',mass:74.922,num:33,cat:'metalloid',group:15,period:4},
+  Se:{name:'Selenio',mass:78.971,num:34,cat:'nonmetal',group:16,period:4},
+  Br:{name:'Bromo',mass:79.904,num:35,cat:'nonmetal',group:17,period:4},
+  Kr:{name:'Kriptón',mass:83.798,num:36,cat:'noble',group:18,period:4},
+  Rb:{name:'Rubidio',mass:85.468,num:37,cat:'metal',group:1,period:5},
+  Sr:{name:'Estroncio',mass:87.620,num:38,cat:'metal',group:2,period:5},
+  Y:{name:'Itrio',mass:88.906,num:39,cat:'transition',group:3,period:5},
+  Zr:{name:'Circonio',mass:91.224,num:40,cat:'transition',group:4,period:5},
+  Nb:{name:'Niobio',mass:92.906,num:41,cat:'transition',group:5,period:5},
+  Mo:{name:'Molibdeno',mass:95.960,num:42,cat:'transition',group:6,period:5},
+  Tc:{name:'Tecnecio',mass:98.000,num:43,cat:'transition',group:7,period:5},
+  Ru:{name:'Rutenio',mass:101.07,num:44,cat:'transition',group:8,period:5},
+  Rh:{name:'Rodio',mass:102.91,num:45,cat:'transition',group:9,period:5},
+  Pd:{name:'Paladio',mass:106.42,num:46,cat:'transition',group:10,period:5},
+  Ag:{name:'Plata',mass:107.87,num:47,cat:'transition',group:11,period:5},
+  Cd:{name:'Cadmio',mass:112.41,num:48,cat:'transition',group:12,period:5},
+  In:{name:'Indio',mass:114.82,num:49,cat:'metal',group:13,period:5},
+  Sn:{name:'Estaño',mass:118.71,num:50,cat:'metal',group:14,period:5},
+  Sb:{name:'Antimonio',mass:121.76,num:51,cat:'metalloid',group:15,period:5},
+  Te:{name:'Teluro',mass:127.60,num:52,cat:'metalloid',group:16,period:5},
+  I:{name:'Yodo',mass:126.90,num:53,cat:'nonmetal',group:17,period:5},
+  Xe:{name:'Xenón',mass:131.29,num:54,cat:'noble',group:18,period:5},
+  Cs:{name:'Cesio',mass:132.91,num:55,cat:'metal',group:1,period:6},
+  Ba:{name:'Bario',mass:137.33,num:56,cat:'metal',group:2,period:6},
+  La:{name:'Lantano',mass:138.91,num:57,cat:'lanthanide',group:3,period:6},
+  Ce:{name:'Cerio',mass:140.12,num:58,cat:'lanthanide',group:3,period:6},
+  Pr:{name:'Praseodimio',mass:140.91,num:59,cat:'lanthanide',group:3,period:6},
+  Nd:{name:'Neodimio',mass:144.24,num:60,cat:'lanthanide',group:3,period:6},
+  Pm:{name:'Prometio',mass:145.00,num:61,cat:'lanthanide',group:3,period:6},
+  Sm:{name:'Samario',mass:150.36,num:62,cat:'lanthanide',group:3,period:6},
+  Eu:{name:'Europio',mass:151.96,num:63,cat:'lanthanide',group:3,period:6},
+  Gd:{name:'Gadolinio',mass:157.25,num:64,cat:'lanthanide',group:3,period:6},
+  Tb:{name:'Terbio',mass:158.93,num:65,cat:'lanthanide',group:3,period:6},
+  Dy:{name:'Disprosio',mass:162.50,num:66,cat:'lanthanide',group:3,period:6},
+  Ho:{name:'Holmio',mass:164.93,num:67,cat:'lanthanide',group:3,period:6},
+  Er:{name:'Erbio',mass:167.26,num:68,cat:'lanthanide',group:3,period:6},
+  Tm:{name:'Tulio',mass:168.93,num:69,cat:'lanthanide',group:3,period:6},
+  Yb:{name:'Iterbio',mass:173.04,num:70,cat:'lanthanide',group:3,period:6},
+  Lu:{name:'Lutecio',mass:174.97,num:71,cat:'lanthanide',group:3,period:6},
+  Hf:{name:'Hafnio',mass:178.49,num:72,cat:'transition',group:4,period:6},
+  Ta:{name:'Tantalio',mass:180.95,num:73,cat:'transition',group:5,period:6},
+  W:{name:'Wolframio',mass:183.84,num:74,cat:'transition',group:6,period:6},
+  Re:{name:'Renio',mass:186.21,num:75,cat:'transition',group:7,period:6},
+  Os:{name:'Osmio',mass:190.23,num:76,cat:'transition',group:8,period:6},
+  Ir:{name:'Iridio',mass:192.22,num:77,cat:'transition',group:9,period:6},
+  Pt:{name:'Platino',mass:195.08,num:78,cat:'transition',group:10,period:6},
+  Au:{name:'Oro',mass:196.97,num:79,cat:'transition',group:11,period:6},
+  Hg:{name:'Mercurio',mass:200.59,num:80,cat:'transition',group:12,period:6},
+  Tl:{name:'Talio',mass:204.38,num:81,cat:'metal',group:13,period:6},
+  Pb:{name:'Plomo',mass:207.20,num:82,cat:'metal',group:14,period:6},
+  Bi:{name:'Bismuto',mass:208.98,num:83,cat:'metal',group:15,period:6},
+  Po:{name:'Polonio',mass:209.00,num:84,cat:'metalloid',group:16,period:6},
+  At:{name:'Astato',mass:210.00,num:85,cat:'nonmetal',group:17,period:6},
+  Rn:{name:'Radón',mass:222.00,num:86,cat:'noble',group:18,period:6},
+  Fr:{name:'Francio',mass:223.00,num:87,cat:'metal',group:1,period:7},
+  Ra:{name:'Radio',mass:226.00,num:88,cat:'metal',group:2,period:7},
+  Ac:{name:'Actinio',mass:227.00,num:89,cat:'actinide',group:3,period:7},
+  Th:{name:'Torio',mass:232.04,num:90,cat:'actinide',group:3,period:7},
+  Pa:{name:'Protactinio',mass:231.04,num:91,cat:'actinide',group:3,period:7},
+  U:{name:'Uranio',mass:238.03,num:92,cat:'actinide',group:3,period:7},
+  Np:{name:'Neptunio',mass:237.00,num:93,cat:'actinide',group:3,period:7},
+  Pu:{name:'Plutonio',mass:244.00,num:94,cat:'actinide',group:3,period:7},
+  Am:{name:'Americio',mass:243.00,num:95,cat:'actinide',group:3,period:7},
+  Cm:{name:'Curio',mass:247.00,num:96,cat:'actinide',group:3,period:7},
+  Bk:{name:'Berkelio',mass:247.00,num:97,cat:'actinide',group:3,period:7},
+  Cf:{name:'Californio',mass:251.00,num:98,cat:'actinide',group:3,period:7},
+  Es:{name:'Einsteinio',mass:252.00,num:99,cat:'actinide',group:3,period:7},
+  Fm:{name:'Fermio',mass:257.00,num:100,cat:'actinide',group:3,period:7},
+  Md:{name:'Mendelevio',mass:258.00,num:101,cat:'actinide',group:3,period:7},
+  No:{name:'Nobelio',mass:259.00,num:102,cat:'actinide',group:3,period:7},
+  Lr:{name:'Laurencio',mass:266.00,num:103,cat:'actinide',group:3,period:7},
+  Rf:{name:'Rutherfordio',mass:267.00,num:104,cat:'transition',group:4,period:7},
+  Db:{name:'Dubnio',mass:268.00,num:105,cat:'transition',group:5,period:7},
+  Sg:{name:'Seaborgio',mass:269.00,num:106,cat:'transition',group:6,period:7},
+  Bh:{name:'Bohrio',mass:270.00,num:107,cat:'transition',group:7,period:7},
+  Hs:{name:'Hassio',mass:277.00,num:108,cat:'transition',group:8,period:7},
+  Mt:{name:'Meitnerio',mass:278.00,num:109,cat:'transition',group:9,period:7},
+  Ds:{name:'Darmstadtio',mass:281.00,num:110,cat:'transition',group:10,period:7},
+  Rg:{name:'Roentgenio',mass:282.00,num:111,cat:'transition',group:11,period:7},
+  Cn:{name:'Copernicio',mass:285.00,num:112,cat:'transition',group:12,period:7},
+  Nh:{name:'Nihonio',mass:286.00,num:113,cat:'metal',group:13,period:7},
+  Fl:{name:'Flerovio',mass:289.00,num:114,cat:'metal',group:14,period:7},
+  Mc:{name:'Moscovio',mass:290.00,num:115,cat:'metal',group:15,period:7},
+  Lv:{name:'Livermorio',mass:293.00,num:116,cat:'metal',group:16,period:7},
+  Ts:{name:'Teneso',mass:294.00,num:117,cat:'nonmetal',group:17,period:7},
+  Og:{name:'Oganesón',mass:294.00,num:118,cat:'noble',group:18,period:7},
 };
+
 
 // ═══════════════════════════════════════════════
 // TABS
@@ -3515,30 +3602,7 @@ const PERIODIC_LAYOUT=[
   [19,20,21,22,23,24,25,26,27,28,29,30,13,14,15,16,17,36],
 ];
 
-function buildPeriodic(){
-  let grid=document.getElementById('periodic-grid');
-  if(grid.children.length>0) return;
-  let byNum={};
-  for(let sym in ATOMIC) byNum[ATOMIC[sym].num]={sym,...ATOMIC[sym]};
 
-  // Construir grilla simplificada
-  let els=Object.entries(ATOMIC).sort((a,b)=>a[1].num-b[1].num);
-  let positions={};
-  // posición fija para elementos principales
-  const pos={
-    H:[0,0],He:[0,17],Li:[1,0],Be:[1,1],B:[1,12],C:[1,13],N:[1,14],O:[1,15],F:[1,16],Ne:[1,17],
-    Na:[2,0],Mg:[2,1],Al:[2,12],Si:[2,13],P:[2,14],S:[2,15],Cl:[2,16],Ar:[2,17],
-    K:[3,0],Ca:[3,1],Fe:[3,8],Cu:[3,11],Zn:[3,12],Mn:[3,7],Cr:[3,6],Ni:[3,10],
-    Br:[4,17],I:[5,17],Ag:[5,11],Pb:[6,14],Au:[6,11],Hg:[6,12],
-  };
-  const catCls={nonmetal:'el-nonmetal',metal:'el-metal',noble:'el-noble',metalloid:'el-metalloid',transition:'el-transition'};
-
-  // 8 filas × 18 cols
-  let cells=Array.from({length:8},()=>Array(18).fill(null));
-  for(let sym in pos){
-    let[r,c]=pos[sym];
-    if(ATOMIC[sym]) cells[r][c]={sym,...ATOMIC[sym]};
-  }
 
   grid.innerHTML='';
   for(let r=0;r<8;r++) for(let c=0;c<18;c++){
@@ -3554,21 +3618,96 @@ function buildPeriodic(){
     grid.appendChild(div);
   }
 }
+function buildPeriodic(){
+  let grid=document.getElementById('periodic-grid');
+  if(grid.children.length>0) return;
+
+  // Layout estándar 18 columnas × 10 filas (+ lantánidos y actínidos separados)
+  // Posición [period-1][group-1], lantánidos en fila 8, actínidos en fila 9
+  const catCls={
+    nonmetal:'el-nonmetal',metal:'el-metal',noble:'el-noble',
+    metalloid:'el-metalloid',transition:'el-transition',
+    lanthanide:'el-lanthanide',actinide:'el-actinide'
+  };
+
+  // Construir mapa por número atómico
+  let byNum={};
+  for(let sym in ATOMIC) byNum[ATOMIC[sym].num]={sym,...ATOMIC[sym]};
+
+  // Grilla 10 filas × 18 cols (filas 8-9 para lantánidos/actínidos)
+  let grid10=Array.from({length:10},()=>Array(18).fill(null));
+
+  for(let sym in ATOMIC){
+    let el=ATOMIC[sym];
+    let r=el.period-1;
+    let c=el.group-1;
+    // Lantánidos (57-71): fila 8, cols 2-16
+    if(el.cat==='lanthanide'){
+      r=7; c=2+(el.num-57);
+    }
+    // Actínidos (89-103): fila 9, cols 2-16
+    else if(el.cat==='actinide'){
+      r=8; c=2+(el.num-89);
+    }
+    if(r>=0&&r<10&&c>=0&&c<18) grid10[r][c]={sym,...el};
+  }
+
+  // CSS para nuevas categorías
+  if(!document.getElementById('periodic-extra-css')){
+    let style=document.createElement('style');
+    style.id='periodic-extra-css';
+    style.textContent=`
+      .el-lanthanide{background:rgba(167,139,250,.12);color:#a78bfa}
+      .el-actinide{background:rgba(251,113,133,.12);color:#fb7185}
+      .periodic-grid{grid-template-columns:repeat(18,36px)!important}
+    `;
+    document.head.appendChild(style);
+  }
+
+  grid.innerHTML='';
+  for(let r=0;r<10;r++){
+    // Separador entre periodo 7 y lantánidos
+    if(r===7){
+      let sep=document.createElement('div');
+      sep.style.cssText='grid-column:1/-1;height:6px';
+      grid.appendChild(sep);
+    }
+    for(let c=0;c<18;c++){
+      let el=grid10[r][c];
+      let div=document.createElement('div');
+      if(el){
+        div.className=`el-cell ${catCls[el.cat]||'el-nonmetal'}`;
+        div.innerHTML=`<div class="sym">${el.sym}</div><div class="num">${el.num}</div>`;
+        div.title=`${el.name} — ${el.mass} g/mol`;
+        div.onclick=()=>showElement(el.sym);
+      } else {
+        div.className='el-cell el-empty';
+      }
+      grid.appendChild(div);
+    }
+  }
+}
 
 function showElement(sym){
   let el=ATOMIC[sym];if(!el) return;
-  let detail=document.getElementById('el-detail');
   document.getElementById('el-detail-content').innerHTML=`
     <div class="chips">
       <div class="chip chem"><div class="lbl">Símbolo</div><div class="val">${sym}</div></div>
       <div class="chip chem"><div class="lbl">Número atómico</div><div class="val">${el.num}</div></div>
-      <div class="chip chem"><div class="lbl">Masa atómica</div><div class="val">${el.mass}</div></div>
-      <div class="chip chem"><div class="lbl">Categoría</div><div class="val" style="font-size:13px">${el.cat}</div></div>
+      <div class="chip chem"><div class="lbl">Masa atómica</div><div class="val" style="font-size:14px">${el.mass}</div></div>
+      <div class="chip chem"><div class="lbl">Grupo</div><div class="val">${el.group}</div></div>
+      <div class="chip chem"><div class="lbl">Período</div><div class="val">${el.period}</div></div>
+      <div class="chip chem"><div class="lbl">Categoría</div><div class="val" style="font-size:12px">${el.cat}</div></div>
     </div>
-    <div style="margin-top:10px;font-size:14px;color:var(--muted)">${el.name}</div>
+    <div style="margin-top:12px;font-size:16px;color:var(--text);font-family:var(--mono)">${el.name}</div>
+    <div style="margin-top:6px">
+      <button class="btn btn-chem btn-sm" onclick="document.getElementById('molar-input').value='${sym}';updateChemUI();document.getElementById('chem-tool').value='molar';runMolar()">Ver masa molar</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="tryShow3D('${sym}')">🔬 Ver 3D</button>
+    </div>
   `;
-  detail.style.display='block';
+  document.getElementById('el-detail').style.display='block';
 }
+
 
 // ═══════════════════════════════════════════════
 // FÍSICA
