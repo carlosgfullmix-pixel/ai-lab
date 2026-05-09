@@ -574,6 +574,56 @@ raiz(144)                 → raíz"></textarea>
   </div>
 </div>
 
+  <!-- ══════════ CONVERSIONES ══════════ -->
+
+<div id="page-convert" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Categoría</div>
+    <select id="conv-cat" onchange="updateConvUI()">
+      <option value="length">📏 Longitud</option>
+      <option value="mass">⚖️ Masa</option>
+      <option value="temp">🌡️ Temperatura</option>
+      <option value="time">⏱️ Tiempo</option>
+      <option value="area">⬛ Área</option>
+      <option value="volume">🧪 Volumen</option>
+      <option value="speed">💨 Velocidad</option>
+      <option value="energy">⚡ Energía</option>
+      <option value="pressure">🔵 Presión</option>
+      <option value="power">💡 Potencia</option>
+      <option value="data">💾 Datos digitales</option>
+      <option value="angle">📐 Ángulos</option>
+      <option value="force">🔧 Fuerza</option>
+      <option value="conc_chem">🧬 Concentración química</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Convertir</div>
+    <div style="display:grid;gap:10px">
+      <div>
+        <div class="hint" style="margin-bottom:4px">Valor</div>
+        <input type="number" id="conv-value" placeholder="Ingresá el valor" oninput="runConvert()">
+      </div>
+      <div>
+        <div class="hint" style="margin-bottom:4px">De</div>
+        <select id="conv-from" onchange="runConvert()"></select>
+      </div>
+      <div>
+        <div class="hint" style="margin-bottom:4px">A</div>
+        <select id="conv-to" onchange="runConvert()"></select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-math" onclick="runConvert()">▶ Convertir</button>
+      <button class="btn btn-ghost btn-sm" onclick="swapConv()">⇅ Invertir</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Conversiones rápidas</div>
+    <div id="conv-quick"></div>
+  </div>
+</div>
+
+
 <!-- ══════════ HISTORIAL ══════════ -->
 
 <div id="page-history" class="page">
