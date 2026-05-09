@@ -7,7 +7,8 @@
 <title>Science Engine v3</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
+<script src="https://cdn.jsdelivr.net/npm/3dmol@2.0.3/build/3Dmol-min.js"></script>
+  <style>
 :root {
   --bg:#03070f;
   --surface:#080f1c;
@@ -260,7 +261,14 @@ gap:10px;cursor:pointer;transition:border-color .2s;
 .h-item .ht{font-size:10px;color:var(–muted);font-family:var(–mono);white-space:nowrap}
 .empty{text-align:center;padding:32px 16px;color:var(–muted);font-size:13px}
 .empty .ei{font-size:32px;margin-bottom:8px}
-::-webkit-scrollbar{width:5px;height:5px}
+#mol3d-loading{
+  flex-direction:column;gap:12px;
+  font-size:12px;color:var(--muted);
+  font-family:var(--mono);text-align:center;
+  padding:20px;
+}
+
+    ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(–border);border-radius:4px}
 
@@ -434,25 +442,43 @@ raiz(144)                 → raíz"></textarea>
 
 <!-- ══════════ QUÍMICA ══════════ -->
 
-<div id="page-chem" class="page">
+<div id="right-chem" class="page">
   <div class="card">
-    <div class="card-title chem-title"><div class="dot"></div>Herramienta</div>
-    <select id="chem-tool" onchange="updateChemUI()">
-      <option value="molar">Masa molar</option>
-      <option value="balance">Balanceo de ecuaciones</option>
-      <option value="ph">pH / pOH</option>
-      <option value="gas">Ley del gas ideal (PV=nRT)</option>
-      <option value="conc">Concentración molar</option>
-      <option value="periodic">Tabla periódica</option>
-      <option value="redox">Números de oxidación / Redox</option>
-      <option value="halfcell">Hemirreacciones y potencial de celda</option>
-      <option value="buffer">Soluciones buffer (Henderson-Hasselbalch)</option>
-      <option value="stoich">Estequiometría / Reactivo limitante</option>
-      <option value="ksp">Solubilidad (Ksp)</option>
-      <option value="equil">Equilibrio químico (Ka / Kb)</option>
-
-    </select>
+    <div class="card-title chem-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="chem-result">Seleccioná una herramienta y calculá</div>
   </div>
+  <div class="card" id="chem-steps-card" style="display:none">
+    <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
+    <div class="steps" id="chem-steps"></div>
+  </div>
+  <div class="card" id="mol3d-card" style="display:none">
+    <div class="card-title chem-title"><div class="dot"></div>Estructura molecular 3D</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <span id="mol3d-name" style="font-family:var(--mono);font-size:13px;color:var(--chem)"></span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('stick')">Barras</button>
+        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('sphere')">Esferas</button>
+        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('cartoon')">Cartoon</button>
+        <button class="btn btn-ghost btn-sm" onclick="mol3dViewer?.spin(!mol3dSpin);mol3dSpin=!mol3dSpin">⟳ Rotar</button>
+      </div>
+    </div>
+    <div id="mol3d-container" style="width:100%;height:350px;border-radius:8px;overflow:hidden;background:#050d1a;position:relative">
+      <div id="mol3d-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--mono);font-size:12px">Cargando estructura...</div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap" id="mol3d-info"></div>
+  </div>
+  <div id="periodic-display" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
+      <div class="periodic-wrap"><div id="periodic-grid" class="periodic-grid"></div></div>
+    </div>
+    <div class="card" id="el-detail" style="display:none">
+      <div class="card-title chem-title"><div class="dot"></div>Elemento seleccionado</div>
+      <div id="el-detail-content"></div>
+    </div>
+  </div>
+</div>
+
 
   <div id="chem-molar" class="chem-panel">
     <div class="card">
@@ -1694,6 +1720,8 @@ function runMolar(){
     <table class="tbl"><thead><tr><th>Elemento</th><th>Cantidad</th><th>Masa (g/mol)</th><th>Contribución</th></tr></thead>
     <tbody>${rows}</tbody></table>
     <br><b style="color:var(--chem)">Masa molar total: ${fmt(total)} g/mol</b>`;
+    tryShow3D(formula);
+
   setChem(out,[
     {t:'Fórmula: '+formula,v:''},
     ...Object.entries(elems).map(([s,n])=>({t:`${s}: ${n} × ${ATOMIC[s]?.mass||'?'} =`,v:fmt((ATOMIC[s]?.mass||0)*n)})),
@@ -1834,6 +1862,9 @@ function runBalance(){
   let out=`<b style="color:var(--chem)">Ecuación balanceada</b><br><br>`+
     `<span style="font-size:18px;font-family:var(--mono);line-height:2">${balanced}</span>`;
   setChem(out,steps);
+    // Mostrar primera molécula del producto
+  if(products.length>0) tryShow3D(products[0].mol);
+
 }
 
 // pH
@@ -2905,6 +2936,153 @@ function runEquil(){
     ];
   }
   setChem(out,steps);
+}
+// ═══════════════════════════════════════════════
+// VISUALIZADOR 3D — 3Dmol.js + PubChem
+// ═══════════════════════════════════════════════
+let mol3dViewer=null;
+let mol3dSpin=true;
+let mol3dCurrentStyle='stick';
+
+// Fórmulas que tienen nombre IUPAC directo para PubChem
+const MOL_NAMES={
+  'H2O':'water','H2O2':'hydrogen peroxide',
+  'CO2':'carbon dioxide','CO':'carbon monoxide',
+  'NH3':'ammonia','CH4':'methane',
+  'C2H5OH':'ethanol','C2H6O':'ethanol',
+  'C6H12O6':'glucose','C6H6':'benzene',
+  'NaCl':'sodium chloride','HCl':'hydrochloric acid',
+  'H2SO4':'sulfuric acid','HNO3':'nitric acid',
+  'NaOH':'sodium hydroxide','KOH':'potassium hydroxide',
+  'Ca3PO42':'calcium phosphate','CaCO3':'calcium carbonate',
+  'CH3COOH':'acetic acid','C3H8':'propane',
+  'C2H4':'ethylene','C2H2':'acetylene',
+  'O3':'ozone','N2':'nitrogen','O2':'oxygen',
+  'H2':'hydrogen','Cl2':'chlorine',
+  'CH2O':'formaldehyde','C6H5OH':'phenol',
+  'C2H6':'ethane','CH3OH':'methanol',
+  'HF':'hydrogen fluoride','H2S':'hydrogen sulfide',
+  'SO2':'sulfur dioxide','SO3':'sulfur trioxide',
+  'NO2':'nitrogen dioxide','NO':'nitric oxide',
+  'NH4Cl':'ammonium chloride','Na2CO3':'sodium carbonate',
+  'MgSO4':'magnesium sulfate','FeCl3':'iron(III) chloride',
+  'CuSO4':'copper sulfate','KMnO4':'potassium permanganate',
+  'Na2SO4':'sodium sulfate','K2Cr2O7':'potassium dichromate',
+};
+
+async function load3DMol(formula){
+  let card=document.getElementById('mol3d-card');
+  let container=document.getElementById('mol3d-container');
+  let loading=document.getElementById('mol3d-loading');
+  let nameEl=document.getElementById('mol3d-name');
+  let infoEl=document.getElementById('mol3d-info');
+
+  card.style.display='block';
+  loading.style.display='flex';
+  loading.textContent='Buscando estructura en PubChem...';
+
+  // Limpiar viewer anterior
+  if(mol3dViewer){try{mol3dViewer.clear();}catch{}}
+  mol3dViewer=null;
+
+  // Buscar por nombre común o por fórmula
+  let searchTerm=MOL_NAMES[formula]||formula;
+  let cid=null;
+
+  try{
+    // 1. Buscar CID en PubChem
+    let searchUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchTerm)}/cids/JSON`;
+    let r=await fetch(searchUrl);
+    if(!r.ok){
+      // Intentar por fórmula directamente
+      searchUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/formula/${encodeURIComponent(formula)}/cids/JSON?MaxRecords=1`;
+      r=await fetch(searchUrl);
+    }
+    if(!r.ok) throw new Error('No encontrado');
+    let data=await r.json();
+    cid=data.IdentifierList?.CID?.[0];
+    if(!cid) throw new Error('Sin CID');
+
+    loading.textContent='Descargando estructura 3D...';
+
+    // 2. Obtener SDF con coordenadas 3D
+    let sdfUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`;
+    let sdfR=await fetch(sdfUrl);
+    if(!sdfR.ok){
+      // Fallback a 2D
+      sdfUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF`;
+      sdfR=await fetch(sdfUrl);
+    }
+    if(!sdfR.ok) throw new Error('Sin SDF');
+    let sdf=await sdfR.text();
+
+    // 3. Obtener info del compuesto
+    let propUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
+    let propR=await fetch(propUrl);
+    let props=propR.ok?(await propR.json())?.PropertyTable?.Properties?.[0]:null;
+
+    // 4. Renderizar con 3Dmol
+    loading.style.display='none';
+    mol3dViewer=$3Dmol.createViewer(container,{
+      backgroundColor:'0x050d1a',
+      antialias:true,
+    });
+    mol3dViewer.addModel(sdf,'sdf');
+    applyMolStyle(mol3dCurrentStyle);
+    mol3dViewer.zoomTo();
+    mol3dViewer.spin(true);
+    mol3dSpin=true;
+    mol3dViewer.render();
+
+    // Info
+    nameEl.textContent=props?.IUPACName||searchTerm;
+    if(props){
+      infoEl.innerHTML=`
+        <div class="chip chem"><div class="lbl">Fórmula</div><div class="val" style="font-size:13px">${props.MolecularFormula||formula}</div></div>
+        <div class="chip chem"><div class="lbl">Masa molar</div><div class="val" style="font-size:13px">${props.MolecularWeight||'—'} g/mol</div></div>
+        <div class="chip chem"><div class="lbl">CID PubChem</div><div class="val" style="font-size:13px">${cid}</div></div>
+      `;
+    }
+
+  } catch(e){
+    loading.style.display='flex';
+    loading.innerHTML=`<div style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🔬</div><div style="color:var(--muted)">No se encontró estructura 3D para <b style="color:var(--chem)">${formula}</b></div><div style="font-size:11px;margin-top:6px;color:var(--muted)">Probá con H2O, NH3, CO2, C6H6, etc.</div></div>`;
+    nameEl.textContent='';
+    infoEl.innerHTML='';
+  }
+}
+
+function applyMolStyle(style){
+  if(!mol3dViewer) return;
+  mol3dViewer.setStyle({});
+  if(style==='stick'){
+    mol3dViewer.setStyle({},{stick:{radius:0.15},sphere:{scale:0.25}});
+  } else if(style==='sphere'){
+    mol3dViewer.setStyle({},{sphere:{scale:0.5}});
+  } else if(style==='cartoon'){
+    mol3dViewer.setStyle({},{stick:{radius:0.1},sphere:{scale:0.3}});
+    mol3dViewer.addSurface($3Dmol.SurfaceType.VDW,{opacity:0.6,colorscheme:'whiteCarbon'});
+  }
+  mol3dViewer.render();
+}
+
+function setMolStyle(style){
+  mol3dCurrentStyle=style;
+  if(!mol3dViewer) return;
+  mol3dViewer.removeAllSurfaces();
+  applyMolStyle(style);
+}
+
+// Extraer fórmula del resultado y mostrar 3D automáticamente
+function tryShow3D(formula){
+  if(!formula) return;
+  // Limpiar fórmula: quitar espacios, subíndices unicode → números
+  let clean=formula.trim()
+    .replace(/[₀]/g,'0').replace(/[₁]/g,'1').replace(/[₂]/g,'2')
+    .replace(/[₃]/g,'3').replace(/[₄]/g,'4').replace(/[₅]/g,'5')
+    .replace(/[₆]/g,'6').replace(/[₇]/g,'7').replace(/[₈]/g,'8')
+    .replace(/[₉]/g,'9').replace(/\s/g,'');
+  if(clean.length>=2) load3DMol(clean);
 }
 
 // TABLA PERIÓDICA
