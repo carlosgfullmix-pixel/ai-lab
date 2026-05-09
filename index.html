@@ -446,196 +446,6 @@ raiz(144)                 → raíz"></textarea>
   </div>
 </div>
 
-<!-- ══════════ FÍSICA ══════════ -->
-
-<div id="page-phys" class="page">
-  <div class="card">
-    <div class="card-title phys-title"><div class="dot"></div>Módulo</div>
-    <select id="phys-tool" onchange="updatePhysUI()">
-      <option value="kine">Cinemática (MRU / MRUA)</option>
-      <option value="dyn">Dinámica (F = ma)</option>
-      <option value="energy">Energía y trabajo</option>
-      <option value="thermo">Termodinámica</option>
-      <option value="ohm">Ley de Ohm y circuitos</option>
-      <option value="waves">Ondas</option>
-      <option value="optics">Óptica (lentes)</option>
-    </select>
-  </div>
-
-  <!-- CINEMÁTICA -->
-
-  <div id="phys-kine" class="phys-panel">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Cinemática</div>
-      <select id="kine-type" style="margin-bottom:10px">
-        <option value="mru">MRU — v = cte</option>
-        <option value="mrua">MRUA — aceleración cte</option>
-        <option value="caida">Caída libre</option>
-        <option value="tiro">Tiro parabólico</option>
-      </select>
-      <div id="kine-fields"></div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runKine()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <!-- DINÁMICA -->
-
-  <div id="phys-dyn" class="phys-panel" style="display:none">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Dinámica — F = ma</div>
-      <p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-        <div><div class="hint" style="margin-bottom:4px">F (N)</div><input type="text" id="dyn-f" placeholder="fuerza"></div>
-        <div><div class="hint" style="margin-bottom:4px">m (kg)</div><input type="text" id="dyn-m" placeholder="masa"></div>
-        <div><div class="hint" style="margin-bottom:4px">a (m/s²)</div><input type="text" id="dyn-a" placeholder="aceleración"></div>
-      </div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runDyn()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <!-- ENERGÍA -->
-
-  <div id="phys-energy" class="phys-panel" style="display:none">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Energía y trabajo</div>
-      <select id="energy-type" style="margin-bottom:10px">
-        <option value="ke">Energía cinética: Ec = ½mv²</option>
-        <option value="pe">Energía potencial: Ep = mgh</option>
-        <option value="work">Trabajo: W = F·d·cos(θ)</option>
-        <option value="power">Potencia: P = W/t</option>
-      </select>
-      <div id="energy-fields"></div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runEnergy()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <!-- TERMODINÁMICA -->
-
-  <div id="phys-thermo" class="phys-panel" style="display:none">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Termodinámica</div>
-      <select id="thermo-type" style="margin-bottom:10px">
-        <option value="q">Calor: Q = m·c·ΔT</option>
-        <option value="conv">Conversión de temperatura</option>
-        <option value="exp">Dilatación lineal: ΔL = α·L₀·ΔT</option>
-      </select>
-      <div id="thermo-fields"></div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runThermo()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <!-- OHM -->
-
-  <div id="phys-ohm" class="phys-panel" style="display:none">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Electricidad</div>
-      <select id="ohm-type" style="margin-bottom:10px">
-        <option value="ohm">Ley de Ohm: V = I·R</option>
-        <option value="serie">Resistencias en serie</option>
-        <option value="paralelo">Resistencias en paralelo</option>
-        <option value="potencia">Potencia eléctrica: P = V·I</option>
-      </select>
-      <div id="ohm-fields"></div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runOhm()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <!-- ONDAS -->
-
-  <div id="phys-waves" class="phys-panel" style="display:none">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Ondas — v = λ·f</div>
-      <p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-        <div><div class="hint" style="margin-bottom:4px">v (m/s)</div><input type="text" id="wave-v" placeholder="velocidad"></div>
-        <div><div class="hint" style="margin-bottom:4px">λ (m)</div><input type="text" id="wave-l" placeholder="long. de onda"></div>
-        <div><div class="hint" style="margin-bottom:4px">f (Hz)</div><input type="text" id="wave-f" placeholder="frecuencia"></div>
-      </div>
-      <div style="margin-top:10px">
-        <div class="hint" style="margin-bottom:4px">T (s) — Período</div>
-        <input type="text" id="wave-t" placeholder="período (opcional)">
-      </div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runWaves()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <!-- ÓPTICA -->
-
-  <div id="phys-optics" class="phys-panel" style="display:none">
-    <div class="card">
-      <div class="card-title phys-title"><div class="dot"></div>Óptica — Ecuación de lentes</div>
-      <p class="hint" style="margin-bottom:10px">1/f = 1/do + 1/di · Dejá en blanco la incógnita</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-        <div><div class="hint" style="margin-bottom:4px">f (focal, cm)</div><input type="text" id="opt-f" placeholder="focal"></div>
-        <div><div class="hint" style="margin-bottom:4px">do (objeto, cm)</div><input type="text" id="opt-do" placeholder="dist. objeto"></div>
-        <div><div class="hint" style="margin-bottom:4px">di (imagen, cm)</div><input type="text" id="opt-di" placeholder="dist. imagen"></div>
-      </div>
-      <div class="btn-row"><button class="btn btn-phys" onclick="runOptics()">▶ Calcular</button></div>
-    </div>
-  </div>
-</div>
-
-  <!-- ══════════ CONVERSIONES ══════════ -->
-
-<div id="page-convert" class="page">
-  <div class="card">
-    <div class="card-title math-title"><div class="dot"></div>Categoría</div>
-    <select id="conv-cat" onchange="updateConvUI()">
-      <option value="length">📏 Longitud</option>
-      <option value="mass">⚖️ Masa</option>
-      <option value="temp">🌡️ Temperatura</option>
-      <option value="time">⏱️ Tiempo</option>
-      <option value="area">⬛ Área</option>
-      <option value="volume">🧪 Volumen</option>
-      <option value="speed">💨 Velocidad</option>
-      <option value="energy">⚡ Energía</option>
-      <option value="pressure">🔵 Presión</option>
-      <option value="power">💡 Potencia</option>
-      <option value="data">💾 Datos digitales</option>
-      <option value="angle">📐 Ángulos</option>
-      <option value="force">🔧 Fuerza</option>
-      <option value="conc_chem">🧬 Concentración química</option>
-    </select>
-  </div>
-  <div class="card">
-    <div class="card-title math-title"><div class="dot"></div>Convertir</div>
-    <div style="display:grid;gap:10px">
-      <div>
-        <div class="hint" style="margin-bottom:4px">Valor</div>
-        <input type="number" id="conv-value" placeholder="Ingresá el valor" oninput="runConvert()">
-      </div>
-      <div>
-        <div class="hint" style="margin-bottom:4px">De</div>
-        <select id="conv-from" onchange="runConvert()"></select>
-      </div>
-      <div>
-        <div class="hint" style="margin-bottom:4px">A</div>
-        <select id="conv-to" onchange="runConvert()"></select>
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-math" onclick="runConvert()">▶ Convertir</button>
-      <button class="btn btn-ghost btn-sm" onclick="swapConv()">⇅ Invertir</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title math-title"><div class="dot"></div>Conversiones rápidas</div>
-    <div id="conv-quick"></div>
-  </div>
-</div>
-
-<!-- ══════════ HISTORIAL ══════════ -->
-
-<div id="page-history" class="page">
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="card-title math-title" style="margin-bottom:0"><div class="dot"></div>Historial</div>
-      <button class="btn btn-ghost btn-sm" onclick="clearHist()">✕ Limpiar</button>
-    </div>
-    <div id="hist-list"><div class="empty"><div class="ei">📭</div>Sin cálculos aún</div></div>
-  </div>
-</div>
-
 <!-- ══════════ QUÍMICA ══════════ -->
 
 <div id="page-chem" class="page">
@@ -862,6 +672,196 @@ raiz(144)                 → raíz"></textarea>
         <span class="tag tag-chem" onclick="setEquilEx('ice','1.8e-5','0.1')">Tabla ICE</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════ FÍSICA ══════════ -->
+
+<div id="page-phys" class="page">
+  <div class="card">
+    <div class="card-title phys-title"><div class="dot"></div>Módulo</div>
+    <select id="phys-tool" onchange="updatePhysUI()">
+      <option value="kine">Cinemática (MRU / MRUA)</option>
+      <option value="dyn">Dinámica (F = ma)</option>
+      <option value="energy">Energía y trabajo</option>
+      <option value="thermo">Termodinámica</option>
+      <option value="ohm">Ley de Ohm y circuitos</option>
+      <option value="waves">Ondas</option>
+      <option value="optics">Óptica (lentes)</option>
+    </select>
+  </div>
+
+  <!-- CINEMÁTICA -->
+
+  <div id="phys-kine" class="phys-panel">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Cinemática</div>
+      <select id="kine-type" style="margin-bottom:10px">
+        <option value="mru">MRU — v = cte</option>
+        <option value="mrua">MRUA — aceleración cte</option>
+        <option value="caida">Caída libre</option>
+        <option value="tiro">Tiro parabólico</option>
+      </select>
+      <div id="kine-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runKine()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- DINÁMICA -->
+
+  <div id="phys-dyn" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Dinámica — F = ma</div>
+      <p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">F (N)</div><input type="text" id="dyn-f" placeholder="fuerza"></div>
+        <div><div class="hint" style="margin-bottom:4px">m (kg)</div><input type="text" id="dyn-m" placeholder="masa"></div>
+        <div><div class="hint" style="margin-bottom:4px">a (m/s²)</div><input type="text" id="dyn-a" placeholder="aceleración"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runDyn()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- ENERGÍA -->
+
+  <div id="phys-energy" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Energía y trabajo</div>
+      <select id="energy-type" style="margin-bottom:10px">
+        <option value="ke">Energía cinética: Ec = ½mv²</option>
+        <option value="pe">Energía potencial: Ep = mgh</option>
+        <option value="work">Trabajo: W = F·d·cos(θ)</option>
+        <option value="power">Potencia: P = W/t</option>
+      </select>
+      <div id="energy-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runEnergy()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- TERMODINÁMICA -->
+
+  <div id="phys-thermo" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Termodinámica</div>
+      <select id="thermo-type" style="margin-bottom:10px">
+        <option value="q">Calor: Q = m·c·ΔT</option>
+        <option value="conv">Conversión de temperatura</option>
+        <option value="exp">Dilatación lineal: ΔL = α·L₀·ΔT</option>
+      </select>
+      <div id="thermo-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runThermo()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- OHM -->
+
+  <div id="phys-ohm" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Electricidad</div>
+      <select id="ohm-type" style="margin-bottom:10px">
+        <option value="ohm">Ley de Ohm: V = I·R</option>
+        <option value="serie">Resistencias en serie</option>
+        <option value="paralelo">Resistencias en paralelo</option>
+        <option value="potencia">Potencia eléctrica: P = V·I</option>
+      </select>
+      <div id="ohm-fields"></div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runOhm()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- ONDAS -->
+
+  <div id="phys-waves" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Ondas — v = λ·f</div>
+      <p class="hint" style="margin-bottom:10px">Dejá en blanco la variable a calcular</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">v (m/s)</div><input type="text" id="wave-v" placeholder="velocidad"></div>
+        <div><div class="hint" style="margin-bottom:4px">λ (m)</div><input type="text" id="wave-l" placeholder="long. de onda"></div>
+        <div><div class="hint" style="margin-bottom:4px">f (Hz)</div><input type="text" id="wave-f" placeholder="frecuencia"></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="hint" style="margin-bottom:4px">T (s) — Período</div>
+        <input type="text" id="wave-t" placeholder="período (opcional)">
+      </div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runWaves()">▶ Calcular</button></div>
+    </div>
+  </div>
+
+  <!-- ÓPTICA -->
+
+  <div id="phys-optics" class="phys-panel" style="display:none">
+    <div class="card">
+      <div class="card-title phys-title"><div class="dot"></div>Óptica — Ecuación de lentes</div>
+      <p class="hint" style="margin-bottom:10px">1/f = 1/do + 1/di · Dejá en blanco la incógnita</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">f (focal, cm)</div><input type="text" id="opt-f" placeholder="focal"></div>
+        <div><div class="hint" style="margin-bottom:4px">do (objeto, cm)</div><input type="text" id="opt-do" placeholder="dist. objeto"></div>
+        <div><div class="hint" style="margin-bottom:4px">di (imagen, cm)</div><input type="text" id="opt-di" placeholder="dist. imagen"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-phys" onclick="runOptics()">▶ Calcular</button></div>
+    </div>
+  </div>
+</div>
+
+  <!-- ══════════ CONVERSIONES ══════════ -->
+
+<div id="page-convert" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Categoría</div>
+    <select id="conv-cat" onchange="updateConvUI()">
+      <option value="length">📏 Longitud</option>
+      <option value="mass">⚖️ Masa</option>
+      <option value="temp">🌡️ Temperatura</option>
+      <option value="time">⏱️ Tiempo</option>
+      <option value="area">⬛ Área</option>
+      <option value="volume">🧪 Volumen</option>
+      <option value="speed">💨 Velocidad</option>
+      <option value="energy">⚡ Energía</option>
+      <option value="pressure">🔵 Presión</option>
+      <option value="power">💡 Potencia</option>
+      <option value="data">💾 Datos digitales</option>
+      <option value="angle">📐 Ángulos</option>
+      <option value="force">🔧 Fuerza</option>
+      <option value="conc_chem">🧬 Concentración química</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Convertir</div>
+    <div style="display:grid;gap:10px">
+      <div>
+        <div class="hint" style="margin-bottom:4px">Valor</div>
+        <input type="number" id="conv-value" placeholder="Ingresá el valor" oninput="runConvert()">
+      </div>
+      <div>
+        <div class="hint" style="margin-bottom:4px">De</div>
+        <select id="conv-from" onchange="runConvert()"></select>
+      </div>
+      <div>
+        <div class="hint" style="margin-bottom:4px">A</div>
+        <select id="conv-to" onchange="runConvert()"></select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-math" onclick="runConvert()">▶ Convertir</button>
+      <button class="btn btn-ghost btn-sm" onclick="swapConv()">⇅ Invertir</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Conversiones rápidas</div>
+    <div id="conv-quick"></div>
+  </div>
+</div>
+
+<!-- ══════════ HISTORIAL ══════════ -->
+
+<div id="page-history" class="page">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="card-title math-title" style="margin-bottom:0"><div class="dot"></div>Historial</div>
+      <button class="btn btn-ghost btn-sm" onclick="clearHist()">✕ Limpiar</button>
+    </div>
+    <div id="hist-list"><div class="empty"><div class="ei">📭</div>Sin cálculos aún</div></div>
   </div>
 </div>
 
