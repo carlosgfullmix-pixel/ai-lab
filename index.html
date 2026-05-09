@@ -308,6 +308,8 @@ padding:20px;
   <button class="tab" onclick="goTab('stats')">📊 Estadística</button>
   <button class="tab" onclick="goTab('chem')">⚗️ Química</button>
   <button class="tab" onclick="goTab('phys')">⚡ Física</button>
+  <button class="tab" onclick="goTab('convert')">🔄 Conversiones</button>
+
   <button class="tab" onclick="goTab('history')">🕓 Historial</button>
 </div>
 
@@ -973,8 +975,8 @@ const ATOMIC={
 // ═══════════════════════════════════════════════
 // TABS
 // ═══════════════════════════════════════════════
-const TABS=['calc','graph','matrix','stats','chem','phys','history'];
-const TAB_CLASS={calc:'active-math',graph:'active-math',matrix:'active-math',stats:'active-math',chem:'active-chem',phys:'active-phys',history:'active-math'};
+const TABS=['calc','graph','matrix','stats','chem','phys','convert','history'];
+const TAB_CLASS={calc:'active-math',graph:'active-math',matrix:'active-math',stats:'active-math',chem:'active-chem',phys:'active-phys',convert:'active-math',history:'active-math'};
 
 function goTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.className='tab');
