@@ -3667,23 +3667,33 @@ function buildPeriodic(){
 
 function showElement(sym){
   let el=ATOMIC[sym];if(!el) return;
-  document.getElementById('el-detail-content').innerHTML=`
+  let detail=document.getElementById('el-detail');
+  let content=document.getElementById('el-detail-content');
+  if(!detail||!content) return;
+  content.innerHTML=`
     <div class="chips">
       <div class="chip chem"><div class="lbl">Símbolo</div><div class="val">${sym}</div></div>
       <div class="chip chem"><div class="lbl">Número atómico</div><div class="val">${el.num}</div></div>
-      <div class="chip chem"><div class="lbl">Masa atómica</div><div class="val" style="font-size:14px">${el.mass}</div></div>
+      <div class="chip chem"><div class="lbl">Masa atómica</div><div class="val" style="font-size:14px">${el.mass} g/mol</div></div>
       <div class="chip chem"><div class="lbl">Grupo</div><div class="val">${el.group}</div></div>
       <div class="chip chem"><div class="lbl">Período</div><div class="val">${el.period}</div></div>
-      <div class="chip chem"><div class="lbl">Categoría</div><div class="val" style="font-size:12px">${el.cat}</div></div>
+      <div class="chip chem"><div class="lbl">Categoría</div><div class="val" style="font-size:11px">${el.cat}</div></div>
     </div>
-    <div style="margin-top:12px;font-size:16px;color:var(--text);font-family:var(--mono)">${el.name}</div>
-    <div style="margin-top:6px">
-      <button class="btn btn-chem btn-sm" onclick="document.getElementById('molar-input').value='${sym}';updateChemUI();document.getElementById('chem-tool').value='molar';runMolar()">Ver masa molar</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="tryShow3D('${sym}')">🔬 Ver 3D</button>
+    <div style="margin-top:12px;font-size:17px;color:var(--text);font-family:var(--mono);font-weight:600">${el.name}</div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-chem btn-sm" onclick="
+        document.getElementById('chem-tool').value='molar';
+        updateChemUI();
+        document.getElementById('molar-input').value='${sym}';
+        runMolar();
+      ">⚗️ Masa molar</button>
+      <button class="btn btn-ghost btn-sm" onclick="tryShow3D('${sym}')">🔬 Ver 3D</button>
     </div>
   `;
-  document.getElementById('el-detail').style.display='block';
+  detail.style.display='block';
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+
 
 
 // ═══════════════════════════════════════════════
