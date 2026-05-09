@@ -904,6 +904,22 @@ raiz(144)                 → raíz"></textarea>
     <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
     <div class="steps" id="chem-steps"></div>
   </div>
+  <div class="card" id="mol3d-card" style="display:none">
+    <div class="card-title chem-title"><div class="dot"></div>Estructura molecular 3D</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <span id="mol3d-name" style="font-family:var(--mono);font-size:13px;color:var(--chem)"></span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('stick')">Barras</button>
+        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('sphere')">Esferas</button>
+        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('surface')">Superficie</button>
+        <button class="btn btn-ghost btn-sm" onclick="mol3dViewer?.spin(!mol3dSpin);mol3dSpin=!mol3dSpin">⟳ Rotar</button>
+      </div>
+    </div>
+    <div id="mol3d-container" style="width:100%;height:350px;border-radius:8px;overflow:hidden;background:#050d1a;position:relative">
+      <div id="mol3d-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--mono);font-size:12px;flex-direction:column;gap:12px;padding:20px;text-align:center">Cargando estructura...</div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap" id="mol3d-info"></div>
+  </div>
   <div id="periodic-display" style="display:none">
     <div class="card">
       <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
@@ -915,6 +931,7 @@ raiz(144)                 → raíz"></textarea>
     </div>
   </div>
 </div>
+
 
 <div id="right-phys" class="page">
   <div class="card">
