@@ -446,6 +446,8 @@ raiz(144)                 → raíz"></textarea>
       <option value="periodic">Tabla periódica</option>
       <option value="redox">Números de oxidación / Redox</option>
       <option value="halfcell">Hemirreacciones y potencial de celda</option>
+      <option value="buffer">Soluciones buffer (Henderson-Hasselbalch)</option>
+
     </select>
   </div>
 
@@ -593,6 +595,26 @@ raiz(144)                 → raíz"></textarea>
       </div>
     </div>
   </div>
+  <div id="chem-buffer" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Buffer — Henderson-Hasselbalch</div>
+      <select id="buf-mode" style="margin-bottom:10px" onchange="updateBufferUI()">
+        <option value="calc">Calcular pH del buffer</option>
+        <option value="ratio">Calcular relación [A⁻]/[HA] desde pH</option>
+        <option value="design">Diseñar buffer (elegir par ácido/base)</option>
+      </select>
+      <div id="buf-fields"></div>
+      <div class="btn-row"><button class="btn btn-chem" onclick="runBuffer()">▶ Calcular</button></div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="setBufExample('nh3')">NH₃/NH₄⁺</span>
+        <span class="tag tag-chem" onclick="setBufExample('acetato')">CH₃COOH/CH₃COO⁻</span>
+        <span class="tag tag-chem" onclick="setBufExample('fosfato')">H₂PO₄⁻/HPO₄²⁻</span>
+        <span class="tag tag-chem" onclick="setBufExample('carbonato')">H₂CO₃/HCO₃⁻</span>
+        <span class="tag tag-chem" onclick="setBufExample('custom')">Personalizado</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══════════ FÍSICA ══════════ -->
@@ -1566,6 +1588,8 @@ function updateChemUI(){
   document.getElementById('periodic-display').style.display=tool==='periodic'?'block':'none';
   if(tool==='periodic') buildPeriodic();
   if(tool==='halfcell') buildHalfCellSelects();
+  if(tool==='buffer') updateBufferUI();
+
 }
 
 // MASA MOLAR
@@ -2230,6 +2254,146 @@ function runHalfBalance(){
     {t:'Paso 3: balancear O y H con '+acidBase,v:''},
     {t:'Paso 4: sumar y cancelar electrones',v:''},
   ];
+  setChem(out,steps);
+}
+
+  // ═══════════════════════════════════════════════
+// BUFFER — HENDERSON-HASSELBALCH
+// ═══════════════════════════════════════════════
+const BUFFER_PAIRS={
+  nh3:      {name:'NH₃/NH₄⁺',          acid:'NH4+',    base:'NH3',      pKa:9.25},
+  acetato:  {name:'CH₃COOH/CH₃COO⁻',   acid:'CH3COOH', base:'CH3COO-',  pKa:4.76},
+  fosfato:  {name:'H₂PO₄⁻/HPO₄²⁻',    acid:'H2PO4-',  base:'HPO42-',   pKa:7.21},
+  carbonato:{name:'H₂CO₃/HCO₃⁻',       acid:'H2CO3',   base:'HCO3-',    pKa:6.35},
+  citrato:  {name:'Citrato (pH 6)',      acid:'H2Cit-',  base:'HCit2-',   pKa:6.40},
+  fosfato2: {name:'HPO₄²⁻/PO₄³⁻',     acid:'HPO42-',  base:'PO43-',    pKa:12.35},
+  tris:     {name:'Tris (bioquímica)',   acid:'TrisH+',  base:'Tris',     pKa:8.06},
+  hepes:    {name:'HEPES (bioquímica)',  acid:'HEPESH',  base:'HEPES-',   pKa:7.55},
+};
+
+function updateBufferUI(){
+  let mode=document.getElementById('buf-mode').value;
+  let pairOpts=Object.entries(BUFFER_PAIRS).map(([k,v])=>`<option value="${k}">${v.name} (pKa=${v.pKa})</option>`).join('')+`<option value="custom">Personalizado (ingresar pKa)</option>`;
+  let html='';
+  if(mode==='calc'){
+    html=`<div style="display:grid;gap:10px">
+      <div><div class="hint" style="margin-bottom:4px">Par ácido/base conjugado</div>
+        <select id="buf-pair" style="width:100%" onchange="document.getElementById('buf-pka-custom').style.display=this.value==='custom'?'block':'none'">${pairOpts}</select>
+      </div>
+      <div id="buf-pka-custom" style="display:none"><div class="hint" style="margin-bottom:4px">pKa del ácido</div><input type="text" id="buf-pka" placeholder="ej: 9.25"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="hint" style="margin-bottom:4px">[ácido HA] (mol/L)</div><input type="text" id="buf-acid" placeholder="ej: 0.1"></div>
+        <div><div class="hint" style="margin-bottom:4px">[base A⁻] (mol/L)</div><input type="text" id="buf-base" placeholder="ej: 0.1"></div>
+      </div></div>`;
+  } else if(mode==='ratio'){
+    html=`<div style="display:grid;gap:10px">
+      <div><div class="hint" style="margin-bottom:4px">Par ácido/base</div>
+        <select id="buf-pair" style="width:100%" onchange="document.getElementById('buf-pka-custom').style.display=this.value==='custom'?'block':'none'">${pairOpts}</select>
+      </div>
+      <div id="buf-pka-custom" style="display:none"><div class="hint" style="margin-bottom:4px">pKa</div><input type="text" id="buf-pka" placeholder="pKa"></div>
+      <div><div class="hint" style="margin-bottom:4px">pH deseado</div><input type="text" id="buf-ph" placeholder="ej: 7.4"></div>
+    </div>`;
+  } else {
+    html=`<div style="display:grid;gap:8px">
+      <div><div class="hint" style="margin-bottom:4px">pH objetivo del buffer</div><input type="text" id="buf-ph-target" placeholder="ej: 7.4"></div>
+      <p class="hint">Mostrará los pares con pKa ± 1 del pH deseado (rango útil del buffer)</p>
+    </div>`;
+  }
+  document.getElementById('buf-fields').innerHTML=html;
+}
+
+function setBufExample(key){
+  document.getElementById('buf-mode').value='calc';
+  updateBufferUI();
+  setTimeout(()=>{
+    let sel=document.getElementById('buf-pair');
+    if(sel){sel.value=key==='custom'?'custom':key;document.getElementById('buf-pka-custom').style.display=key==='custom'?'block':'none';}
+    let a=document.getElementById('buf-acid'),b=document.getElementById('buf-base');
+    if(a)a.value='0.1';if(b)b.value='0.1';
+  },50);
+}
+
+function runBuffer(){
+  let mode=document.getElementById('buf-mode').value;
+  let out='',steps=[];
+
+  if(mode==='calc'){
+    let pairKey=document.getElementById('buf-pair')?.value;
+    let pKa=pairKey==='custom'?Number(document.getElementById('buf-pka')?.value):BUFFER_PAIRS[pairKey]?.pKa;
+    let cAcid=Number(document.getElementById('buf-acid')?.value);
+    let cBase=Number(document.getElementById('buf-base')?.value);
+    if(!pKa||!cAcid||!cBase){setChem('<span style="color:#f87171">Completá todos los campos</span>',[]);return;}
+    let ratio=cBase/cAcid;
+    let pH=pKa+Math.log10(ratio);
+    let pairName=pairKey==='custom'?'Personalizado':BUFFER_PAIRS[pairKey].name;
+    let beta=2.303*cAcid*cBase/(cAcid+cBase);
+    let phColor=pH<7?'#f97316':pH>7?'#38bdf8':'#34d399';
+    out=`<b style="color:var(--chem)">Buffer — Henderson-Hasselbalch</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">pH = pKa + log([A⁻]/[HA])</div>
+        <div style="font-size:40px;font-family:var(--mono);font-weight:700;color:${phColor}">${pH.toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${pH<7?'Ácido 🔴':pH>7?'Básico 🔵':'Neutro ⚪'}</div>
+      </div>
+      <table class="tbl"><tbody>
+        <tr><td>Par buffer</td><td style="color:var(--chem)">${pairName}</td></tr>
+        <tr><td>pKa</td><td style="color:var(--chem)">${pKa}</td></tr>
+        <tr><td>[ácido HA]</td><td style="color:var(--chem)">${cAcid} mol/L</td></tr>
+        <tr><td>[base A⁻]</td><td style="color:var(--chem)">${cBase} mol/L</td></tr>
+        <tr><td>[A⁻]/[HA]</td><td style="color:var(--chem)">${ratio.toFixed(4)}</td></tr>
+        <tr><td>Capacidad buffer (β)</td><td style="color:var(--chem)">${beta.toFixed(4)} mol/L</td></tr>
+      </tbody></table>`;
+    steps=[
+      {t:'pH = pKa + log([A⁻]/[HA])',v:''},
+      {t:`pKa = ${pKa}`,v:''},
+      {t:`[A⁻]/[HA] = ${cBase}/${cAcid} = ${ratio.toFixed(4)}`,v:''},
+      {t:`log(${ratio.toFixed(4)}) = ${Math.log10(ratio).toFixed(4)}`,v:''},
+      {t:'pH =',v:pH.toFixed(4)},
+      {t:'β = 2.303·[HA]·[A⁻]/([HA]+[A⁻])',v:beta.toFixed(4)+' mol/L'},
+    ];
+
+  } else if(mode==='ratio'){
+    let pairKey=document.getElementById('buf-pair')?.value;
+    let pKa=pairKey==='custom'?Number(document.getElementById('buf-pka')?.value):BUFFER_PAIRS[pairKey]?.pKa;
+    let pH=Number(document.getElementById('buf-ph')?.value);
+    if(!pKa||!pH){setChem('<span style="color:#f87171">Completá todos los campos</span>',[]);return;}
+    let logRatio=pH-pKa,ratio=Math.pow(10,logRatio);
+    let pairName=pairKey==='custom'?'Personalizado':BUFFER_PAIRS[pairKey].name;
+    let total=100,base_ml,acid_ml;
+    if(ratio>=1){base_ml=(ratio/(1+ratio)*100).toFixed(1);acid_ml=(100-Number(base_ml)).toFixed(1);}
+    else{acid_ml=(1/(1+ratio)*100).toFixed(1);base_ml=(100-Number(acid_ml)).toFixed(1);}
+    out=`<b style="color:var(--chem)">Relación para pH ${pH}</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">[A⁻]/[HA] = 10^(pH − pKa)</div>
+        <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--chem)">${ratio.toFixed(4)}</div>
+      </div>
+      <table class="tbl"><tbody>
+        <tr><td>Par buffer</td><td style="color:var(--chem)">${pairName}</td></tr>
+        <tr><td>pKa</td><td style="color:var(--chem)">${pKa}</td></tr>
+        <tr><td>pH objetivo</td><td style="color:var(--chem)">${pH}</td></tr>
+        <tr><td>[A⁻]/[HA]</td><td style="color:var(--chem)">${ratio.toFixed(4)}</td></tr>
+        <tr><td>Preparación práctica (100 mL)</td><td style="color:var(--chem)">${acid_ml} mL ácido + ${base_ml} mL base</td></tr>
+      </tbody></table>`;
+    steps=[
+      {t:'[A⁻]/[HA] = 10^(pH − pKa)',v:''},
+      {t:`10^(${pH}−${pKa}) = 10^${logRatio.toFixed(3)}`,v:ratio.toFixed(4)},
+      {t:'Preparación (100 mL):',v:`${acid_ml} mL ácido + ${base_ml} mL base`},
+    ];
+
+  } else {
+    let phTarget=Number(document.getElementById('buf-ph-target')?.value);
+    if(!phTarget){setChem('<span style="color:#f87171">Ingresá el pH objetivo</span>',[]);return;}
+    let suitable=Object.entries(BUFFER_PAIRS).filter(([k,v])=>Math.abs(v.pKa-phTarget)<=1).sort((a,b)=>Math.abs(a[1].pKa-phTarget)-Math.abs(b[1].pKa-phTarget));
+    if(!suitable.length){setChem('<span style="color:#f87171">No hay pares con pKa cercano. Probá un pH entre 3 y 13.</span>',[]);return;}
+    let rows=suitable.map(([k,v])=>{
+      let ratio=Math.pow(10,phTarget-v.pKa);
+      let quality=Math.abs(v.pKa-phTarget)<0.3?'⭐ Óptimo':'✓ Aceptable';
+      return`<tr><td style="color:var(--chem)">${v.name}</td><td>${v.pKa}</td><td>${ratio.toFixed(3)}</td><td>${quality}</td></tr>`;
+    }).join('');
+    out=`<b style="color:var(--chem)">Pares buffer para pH ${phTarget}</b><br><br>
+      <table class="tbl"><thead><tr><th>Par</th><th>pKa</th><th>[A⁻]/[HA]</th><th>Calidad</th></tr></thead><tbody>${rows}</tbody></table>
+      <br><p class="hint">Mejor buffer cuando pKa ≈ pH deseado (relación ≈ 1:1)</p>`;
+    steps=[{t:`pH objetivo: ${phTarget}`,v:''},{t:'Rango útil del buffer: pKa ± 1',v:''},...suitable.map(([k,v])=>({t:v.name,v:`pKa ${v.pKa}`}))];
+  }
   setChem(out,steps);
 }
 
