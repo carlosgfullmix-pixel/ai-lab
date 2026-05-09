@@ -7,8 +7,7 @@
 <title>Science Engine v3</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/3dmol@2.0.3/build/3Dmol-min.js"></script>
-  <style>
+<style>
 :root {
   --bg:#03070f;
   --surface:#080f1c;
@@ -261,12 +260,6 @@ gap:10px;cursor:pointer;transition:border-color .2s;
 .h-item .ht{font-size:10px;color:var(–muted);font-family:var(–mono);white-space:nowrap}
 .empty{text-align:center;padding:32px 16px;color:var(–muted);font-size:13px}
 .empty .ei{font-size:32px;margin-bottom:8px}
-#mol3d-loading{
-  flex-direction:column;gap:12px;
-  font-size:12px;color:var(--muted);
-  font-family:var(--mono);text-align:center;
-  padding:20px;
-}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(–border);border-radius:4px}
@@ -441,43 +434,24 @@ raiz(144)                 → raíz"></textarea>
 
 <!-- ══════════ QUÍMICA ══════════ -->
 
-<div id="right-chem" class="page">
+<div id="page-chem" class="page">
   <div class="card">
-    <div class="card-title chem-title"><div class="dot"></div>Resultado</div>
-    <div class="result-box" id="chem-result">Seleccioná una herramienta y calculá</div>
-  </div>
-  <div class="card" id="chem-steps-card" style="display:none">
-    <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
-    <div class="steps" id="chem-steps"></div>
-  </div>
-  <div class="card" id="mol3d-card" style="display:none">
-    <div class="card-title chem-title"><div class="dot"></div>Estructura molecular 3D</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <span id="mol3d-name" style="font-family:var(--mono);font-size:13px;color:var(--chem)"></span>
-      <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('stick')">Barras</button>
-        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('sphere')">Esferas</button>
-        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('cartoon')">Cartoon</button>
-        <button class="btn btn-ghost btn-sm" onclick="mol3dViewer?.spin(!mol3dSpin);mol3dSpin=!mol3dSpin">⟳ Rotar</button>
-      </div>
-    </div>
-    <div id="mol3d-container" style="width:100%;height:350px;border-radius:8px;overflow:hidden;background:#050d1a;position:relative">
-      <div id="mol3d-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--mono);font-size:12px">Cargando estructura...</div>
-    </div>
-    <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap" id="mol3d-info"></div>
-  </div>
-  <div id="periodic-display" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
-      <div class="periodic-wrap"><div id="periodic-grid" class="periodic-grid"></div></div>
-    </div>
-    <div class="card" id="el-detail" style="display:none">
-      <div class="card-title chem-title"><div class="dot"></div>Elemento seleccionado</div>
-      <div id="el-detail-content"></div>
-    </div>
-  </div>
-</div>
+    <div class="card-title chem-title"><div class="dot"></div>Herramienta</div>
+    <select id="chem-tool" onchange="updateChemUI()">
+      <option value="molar">Masa molar</option>
+      <option value="balance">Balanceo de ecuaciones</option>
+      <option value="ph">pH / pOH</option>
+      <option value="gas">Ley del gas ideal (PV=nRT)</option>
+      <option value="conc">Concentración molar</option>
+      <option value="periodic">Tabla periódica</option>
+      <option value="redox">Números de oxidación / Redox</option>
+      <option value="halfcell">Hemirreacciones y potencial de celda</option>
+      <option value="buffer">Soluciones buffer (Henderson-Hasselbalch)</option>
+      <option value="stoich">Estequiometría / Reactivo limitante</option>
+      <option value="ksp">Solubilidad (Ksp)</option>
 
+    </select>
+  </div>
 
   <div id="chem-molar" class="chem-panel">
     <div class="card">
@@ -642,6 +616,8 @@ raiz(144)                 → raíz"></textarea>
       </div>
     </div>
   </div>
+
+</div>
   <div id="chem-stoich" class="chem-panel" style="display:none">
     <div class="card">
       <div class="card-title chem-title"><div class="dot"></div>Estequiometría y reactivo limitante</div>
@@ -679,45 +655,7 @@ raiz(144)                 → raíz"></textarea>
       </div>
     </div>
   </div>
-  <div id="chem-equil" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Equilibrio químico</div>
-      <select id="equil-type" style="margin-bottom:10px" onchange="updateEquilUI()">
-        <option value="ka">Ácido débil (Ka) → pH</option>
-        <option value="kb">Base débil (Kb) → pOH / pH</option>
-        <option value="kc">Constante de equilibrio Kc</option>
-        <option value="ice">Tabla ICE completa</option>
-      </select>
-      <div id="equil-fields"></div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runEquil()">▶ Calcular</button></div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="setEquilEx('ka','1.8e-5','0.1')">Ác. acético Ka</span>
-        <span class="tag tag-chem" onclick="setEquilEx('ka','6.3e-8','0.05')">H₂CO₃ Ka</span>
-        <span class="tag tag-chem" onclick="setEquilEx('kb','1.8e-5','0.1')">NH₃ Kb</span>
-        <span class="tag tag-chem" onclick="setEquilEx('ice','1.8e-5','0.1')">ICE ácido acético</span>
-      </div>
-    </div>
-  </div>
-<div id="right-chem" class="page">
-  <div class="card">
-    <div class="card-title chem-title"><div class="dot"></div>Resultado</div>
-    <div class="result-box" id="chem-result">Seleccioná una herramienta y calculá</div>
-  </div>
-  <div class="card" id="chem-steps-card" style="display:none">
-    <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
-    <div class="steps" id="chem-steps"></div>
-  </div>
-  <div id="periodic-display" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
-      <div class="periodic-wrap"><div id="periodic-grid" class="periodic-grid"></div></div>
-    </div>
-    <div class="card" id="el-detail" style="display:none">
-      <div class="card-title chem-title"><div class="dot"></div>Elemento seleccionado</div>
-      <div id="el-detail-content"></div>
-    </div>
-  </div>
-</div>
+
 <!-- ══════════ FÍSICA ══════════ -->
 
 <div id="page-phys" class="page">
@@ -911,7 +849,26 @@ raiz(144)                 → raíz"></textarea>
   </div>
 </div>
 
-
+<div id="right-chem" class="page">
+  <div class="card">
+    <div class="card-title chem-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="chem-result">Seleccioná una herramienta y calculá</div>
+  </div>
+  <div class="card" id="chem-steps-card" style="display:none">
+    <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
+    <div class="steps" id="chem-steps"></div>
+  </div>
+  <div id="periodic-display" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
+      <div class="periodic-wrap"><div id="periodic-grid" class="periodic-grid"></div></div>
+    </div>
+    <div class="card" id="el-detail" style="display:none">
+      <div class="card-title chem-title"><div class="dot"></div>Elemento seleccionado</div>
+      <div id="el-detail-content"></div>
+    </div>
+  </div>
+</div>
 
 <div id="right-phys" class="page">
   <div class="card">
@@ -1673,7 +1630,6 @@ function updateChemUI(){
   if(tool==='buffer') updateBufferUI();
   if(tool==='stoich') buildStoichFields();
   if(tool==='ksp') updateKspUI();
-  if(tool==='equil') updateEquilUI();
 
 }
 
@@ -1717,8 +1673,6 @@ function runMolar(){
     <table class="tbl"><thead><tr><th>Elemento</th><th>Cantidad</th><th>Masa (g/mol)</th><th>Contribución</th></tr></thead>
     <tbody>${rows}</tbody></table>
     <br><b style="color:var(--chem)">Masa molar total: ${fmt(total)} g/mol</b>`;
-   tryShow3D(formula);
-
   setChem(out,[
     {t:'Fórmula: '+formula,v:''},
     ...Object.entries(elems).map(([s,n])=>({t:`${s}: ${n} × ${ATOMIC[s]?.mass||'?'} =`,v:fmt((ATOMIC[s]?.mass||0)*n)})),
@@ -1758,9 +1712,6 @@ function runBalance(){
     reactants.forEach(m=>{let at=parseMolar(m.mol);row.push(at[e]||0);});
     products.forEach(m=>{let at=parseMolar(m.mol);row.push(-(at[e]||0));});
     M.push(row);
-   // Mostrar primera molécula del producto
-  if(products.length>0) tryShow3D(products[0].mol);
-
   }
 
   // Eliminación gaussiana con fracciones (trabajamos con racionales escalados)
@@ -2755,331 +2706,6 @@ function runKsp(){
     ];
   }
   setChem(out,steps);
-}
-// ═══════════════════════════════════════════════
-// EQUILIBRIO QUÍMICO
-// ═══════════════════════════════════════════════
-function updateEquilUI(){
-  let type=document.getElementById('equil-type').value;
-  let html='';
-  if(type==='ka'||type==='ice'){
-    html=`<div style="display:grid;gap:8px">
-      <div><div class="hint" style="margin-bottom:4px">Ka del ácido débil</div>
-        <input type="text" id="eq-ka" placeholder="ej: 1.8e-5 (ác. acético)"></div>
-      <div><div class="hint" style="margin-bottom:4px">Concentración inicial C₀ (mol/L)</div>
-        <input type="text" id="eq-c0" placeholder="ej: 0.1"></div>
-    </div>`;
-  } else if(type==='kb'){
-    html=`<div style="display:grid;gap:8px">
-      <div><div class="hint" style="margin-bottom:4px">Kb de la base débil</div>
-        <input type="text" id="eq-kb" placeholder="ej: 1.8e-5 (NH₃)"></div>
-      <div><div class="hint" style="margin-bottom:4px">Concentración inicial C₀ (mol/L)</div>
-        <input type="text" id="eq-c0" placeholder="ej: 0.1"></div>
-    </div>`;
-  } else if(type==='kc'){
-    html=`<div style="display:grid;gap:8px">
-      <p class="hint">aA + bB ⇌ cC + dD — ingresá concentraciones de equilibrio</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div><div class="hint" style="margin-bottom:4px">[A] (mol/L)</div><input type="text" id="eq-A" placeholder="0.5"></div>
-        <div><div class="hint" style="margin-bottom:4px">coef. a</div><input type="text" id="eq-a" placeholder="1"></div>
-        <div><div class="hint" style="margin-bottom:4px">[B] (mol/L)</div><input type="text" id="eq-B" placeholder="0.5"></div>
-        <div><div class="hint" style="margin-bottom:4px">coef. b</div><input type="text" id="eq-b" placeholder="1"></div>
-        <div><div class="hint" style="margin-bottom:4px">[C] (mol/L)</div><input type="text" id="eq-C" placeholder="0.5"></div>
-        <div><div class="hint" style="margin-bottom:4px">coef. c</div><input type="text" id="eq-c2" placeholder="1"></div>
-        <div><div class="hint" style="margin-bottom:4px">[D] (mol/L)</div><input type="text" id="eq-D" placeholder="0.5"></div>
-        <div><div class="hint" style="margin-bottom:4px">coef. d</div><input type="text" id="eq-d" placeholder="1"></div>
-      </div>
-    </div>`;
-  }
-  document.getElementById('equil-fields').innerHTML=html;
-}
-
-function setEquilEx(type,k,c){
-  document.getElementById('equil-type').value=type;
-  updateEquilUI();
-  setTimeout(()=>{
-    let ka=document.getElementById('eq-ka'),kb=document.getElementById('eq-kb'),c0=document.getElementById('eq-c0');
-    if(ka)ka.value=k;if(kb)kb.value=k;if(c0)c0.value=c;
-  },50);
-}
-
-function runEquil(){
-  let type=document.getElementById('equil-type').value;
-  let out='',steps=[];
-  const gve=id=>{let el=document.getElementById(id);return el&&el.value?Number(el.value):null;};
-
-  if(type==='ka'){
-    let Ka=gve('eq-ka'),C0=gve('eq-c0');
-    if(!Ka||!C0){setChem('<span style="color:#f87171">Completá Ka y C₀</span>',[]);return;}
-    // Resolver cuadrática exacta: x² + Ka·x - Ka·C0 = 0
-    let x=(-Ka+Math.sqrt(Ka*Ka+4*Ka*C0))/2;
-    let pH=-Math.log10(x);
-    let pct=x/C0*100;
-    let pKa=-Math.log10(Ka);
-    // Aproximación válida si C0/Ka > 100
-    let approxOk=C0/Ka>100;
-    let xApprox=Math.sqrt(Ka*C0);
-    let phColor=pH<7?'#f97316':pH>7?'#38bdf8':'#34d399';
-    out=`<b style="color:var(--chem)">Ácido débil — Equilibrio</b><br><br>
-      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
-        <div style="font-size:28px;font-family:var(--mono);font-weight:700;color:${phColor}">pH = ${pH.toFixed(3)}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px">${pH<7?'Ácido 🔴':pH>7?'Básico 🔵':'Neutro ⚪'}</div>
-      </div>
-      <table class="tbl"><tbody>
-        <tr><td>Ka</td><td style="color:var(--chem)">${Ka.toExponential(2)}</td></tr>
-        <tr><td>pKa</td><td style="color:var(--chem)">${pKa.toFixed(3)}</td></tr>
-        <tr><td>C₀</td><td style="color:var(--chem)">${C0} mol/L</td></tr>
-        <tr><td>[H⁺] = [A⁻]</td><td style="color:var(--chem)">${x.toExponential(3)} mol/L</td></tr>
-        <tr><td>[HA] equilibrio</td><td style="color:var(--chem)">${(C0-x).toExponential(3)} mol/L</td></tr>
-        <tr><td>% disociación</td><td style="color:var(--chem)">${pct.toFixed(2)}%</td></tr>
-        <tr><td>Aprox. √(Ka·C₀)</td><td style="color:var(--muted)">${xApprox.toExponential(3)} ${approxOk?'✓ válida':'⚠ usar exacta'}</td></tr>
-      </tbody></table>`;
-    steps=[
-      {t:'HA ⇌ H⁺ + A⁻',v:''},
-      {t:'x² + Ka·x − Ka·C₀ = 0 (cuadrática exacta)',v:''},
-      {t:`x = [H⁺] = ${x.toExponential(3)} mol/L`,v:''},
-      {t:'pH = −log[H⁺]',v:pH.toFixed(3)},
-      {t:'% disociación = x/C₀ × 100',v:pct.toFixed(2)+'%'},
-    ];
-
-  } else if(type==='kb'){
-    let Kb=gve('eq-kb'),C0=gve('eq-c0');
-    if(!Kb||!C0){setChem('<span style="color:#f87171">Completá Kb y C₀</span>',[]);return;}
-    let x=(-Kb+Math.sqrt(Kb*Kb+4*Kb*C0))/2;
-    let pOH=-Math.log10(x);
-    let pH=14-pOH;
-    let pct=x/C0*100;
-    let pKb=-Math.log10(Kb);
-    let Ka_conj=1e-14/Kb;
-    let phColor='#38bdf8';
-    out=`<b style="color:var(--chem)">Base débil — Equilibrio</b><br><br>
-      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
-        <div style="font-size:28px;font-family:var(--mono);font-weight:700;color:${phColor}">pH = ${pH.toFixed(3)}</div>
-        <div style="font-size:14px;color:var(--muted);margin-top:4px">pOH = ${pOH.toFixed(3)}</div>
-      </div>
-      <table class="tbl"><tbody>
-        <tr><td>Kb</td><td style="color:var(--chem)">${Kb.toExponential(2)}</td></tr>
-        <tr><td>pKb</td><td style="color:var(--chem)">${pKb.toFixed(3)}</td></tr>
-        <tr><td>Ka ácido conjugado</td><td style="color:var(--chem)">${Ka_conj.toExponential(2)}</td></tr>
-        <tr><td>[OH⁻]</td><td style="color:var(--chem)">${x.toExponential(3)} mol/L</td></tr>
-        <tr><td>[B] equilibrio</td><td style="color:var(--chem)">${(C0-x).toExponential(3)} mol/L</td></tr>
-        <tr><td>% disociación</td><td style="color:var(--chem)">${pct.toFixed(2)}%</td></tr>
-      </tbody></table>`;
-    steps=[
-      {t:'B + H₂O ⇌ BH⁺ + OH⁻',v:''},
-      {t:`[OH⁻] = ${x.toExponential(3)} mol/L`,v:''},
-      {t:'pOH = −log[OH⁻]',v:pOH.toFixed(3)},
-      {t:'pH = 14 − pOH',v:pH.toFixed(3)},
-      {t:'Ka·Kb = Kw = 1×10⁻¹⁴',v:`Ka conjugado = ${Ka_conj.toExponential(2)}`},
-    ];
-
-  } else if(type==='kc'){
-    let A=gve('eq-A'),a=gve('eq-a')||1,B=gve('eq-B'),b=gve('eq-b')||1;
-    let C=gve('eq-C'),c=gve('eq-c2')||1,D=gve('eq-D'),d=gve('eq-d')||1;
-    if(!A||!B||!C||!D){setChem('<span style="color:#f87171">Completá todas las concentraciones</span>',[]);return;}
-    let Kc=(Math.pow(C,c)*Math.pow(D,d))/(Math.pow(A,a)*Math.pow(B,b));
-    let favorable=Kc>1;
-    out=`<b style="color:var(--chem)">Constante de equilibrio Kc</b><br><br>
-      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Kc = [C]ᶜ·[D]ᵈ / [A]ᵃ·[B]ᵇ</div>
-        <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--chem)">Kc = ${Kc.toExponential(3)}</div>
-      </div>
-      <table class="tbl"><tbody>
-        <tr><td>Numerador [C]ᶜ·[D]ᵈ</td><td style="color:var(--chem)">${(Math.pow(C,c)*Math.pow(D,d)).toExponential(3)}</td></tr>
-        <tr><td>Denominador [A]ᵃ·[B]ᵇ</td><td style="color:var(--chem)">${(Math.pow(A,a)*Math.pow(B,b)).toExponential(3)}</td></tr>
-        <tr><td>Interpretación</td><td style="color:var(--chem)">${Kc>1000?'Productos muy favorecidos':Kc>1?'Productos favorecidos':Kc>0.001?'Reactivos favorecidos':'Reactivos muy favorecidos'}</td></tr>
-      </tbody></table>`;
-    steps=[
-      {t:'Kc = productos/reactivos (concentraciones de equilibrio)',v:''},
-      {t:'Kc:',v:Kc.toExponential(3)},
-      {t:Kc>1?'Kc > 1 → equilibrio hacia productos':'Kc < 1 → equilibrio hacia reactivos',v:''},
-    ];
-
-  } else if(type==='ice'){
-    let Ka=gve('eq-ka'),C0=gve('eq-c0');
-    if(!Ka||!C0){setChem('<span style="color:#f87171">Completá Ka y C₀</span>',[]);return;}
-    let x=(-Ka+Math.sqrt(Ka*Ka+4*Ka*C0))/2;
-    let pH=-Math.log10(x);
-    let pct=x/C0*100;
-    out=`<b style="color:var(--chem)">Tabla ICE</b><br><br>
-      <div style="overflow-x:auto">
-      <table class="tbl">
-        <thead><tr><th></th><th>HA</th><th>⇌</th><th>H⁺</th><th>A⁻</th></tr></thead>
-        <tbody>
-          <tr><td style="color:var(--math);font-family:var(--mono)">I</td>
-            <td>${C0}</td><td></td><td>≈ 0</td><td>0</td></tr>
-          <tr><td style="color:var(--phys);font-family:var(--mono)">C</td>
-            <td style="color:var(--phys)">− x</td><td></td>
-            <td style="color:var(--phys)">+ x</td>
-            <td style="color:var(--phys)">+ x</td></tr>
-          <tr><td style="color:var(--chem);font-family:var(--mono)">E</td>
-            <td style="color:var(--chem)">${(C0-x).toExponential(3)}</td><td></td>
-            <td style="color:var(--chem)">${x.toExponential(3)}</td>
-            <td style="color:var(--chem)">${x.toExponential(3)}</td></tr>
-        </tbody>
-      </table>
-      </div>
-      <br>
-      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:12px;text-align:center">
-        <div style="font-size:24px;font-family:var(--mono);font-weight:700;color:var(--phys)">pH = ${pH.toFixed(3)}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px">% disociación = ${pct.toFixed(2)}%</div>
-      </div>`;
-    steps=[
-      {t:'I: concentraciones iniciales',v:''},
-      {t:'C: cambio (−x reactivo, +x productos)',v:''},
-      {t:'E: equilibrio = I + C',v:''},
-      {t:`x = [H⁺] = ${x.toExponential(3)}`,v:''},
-      {t:'pH:',v:pH.toFixed(3)},
-    ];
-  }
-  setChem(out,steps);
-}
-// ═══════════════════════════════════════════════
-// VISUALIZADOR 3D — 3Dmol.js + PubChem
-// ═══════════════════════════════════════════════
-let mol3dViewer=null;
-let mol3dSpin=true;
-let mol3dCurrentStyle='stick';
-
-// Fórmulas que tienen nombre IUPAC directo para PubChem
-const MOL_NAMES={
-  'H2O':'water','H2O2':'hydrogen peroxide',
-  'CO2':'carbon dioxide','CO':'carbon monoxide',
-  'NH3':'ammonia','CH4':'methane',
-  'C2H5OH':'ethanol','C2H6O':'ethanol',
-  'C6H12O6':'glucose','C6H6':'benzene',
-  'NaCl':'sodium chloride','HCl':'hydrochloric acid',
-  'H2SO4':'sulfuric acid','HNO3':'nitric acid',
-  'NaOH':'sodium hydroxide','KOH':'potassium hydroxide',
-  'Ca3PO42':'calcium phosphate','CaCO3':'calcium carbonate',
-  'CH3COOH':'acetic acid','C3H8':'propane',
-  'C2H4':'ethylene','C2H2':'acetylene',
-  'O3':'ozone','N2':'nitrogen','O2':'oxygen',
-  'H2':'hydrogen','Cl2':'chlorine',
-  'CH2O':'formaldehyde','C6H5OH':'phenol',
-  'C2H6':'ethane','CH3OH':'methanol',
-  'HF':'hydrogen fluoride','H2S':'hydrogen sulfide',
-  'SO2':'sulfur dioxide','SO3':'sulfur trioxide',
-  'NO2':'nitrogen dioxide','NO':'nitric oxide',
-  'NH4Cl':'ammonium chloride','Na2CO3':'sodium carbonate',
-  'MgSO4':'magnesium sulfate','FeCl3':'iron(III) chloride',
-  'CuSO4':'copper sulfate','KMnO4':'potassium permanganate',
-  'Na2SO4':'sodium sulfate','K2Cr2O7':'potassium dichromate',
-};
-
-async function load3DMol(formula){
-  let card=document.getElementById('mol3d-card');
-  let container=document.getElementById('mol3d-container');
-  let loading=document.getElementById('mol3d-loading');
-  let nameEl=document.getElementById('mol3d-name');
-  let infoEl=document.getElementById('mol3d-info');
-
-  card.style.display='block';
-  loading.style.display='flex';
-  loading.textContent='Buscando estructura en PubChem...';
-
-  // Limpiar viewer anterior
-  if(mol3dViewer){try{mol3dViewer.clear();}catch{}}
-  mol3dViewer=null;
-
-  // Buscar por nombre común o por fórmula
-  let searchTerm=MOL_NAMES[formula]||formula;
-  let cid=null;
-
-  try{
-    // 1. Buscar CID en PubChem
-    let searchUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchTerm)}/cids/JSON`;
-    let r=await fetch(searchUrl);
-    if(!r.ok){
-      // Intentar por fórmula directamente
-      searchUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/formula/${encodeURIComponent(formula)}/cids/JSON?MaxRecords=1`;
-      r=await fetch(searchUrl);
-    }
-    if(!r.ok) throw new Error('No encontrado');
-    let data=await r.json();
-    cid=data.IdentifierList?.CID?.[0];
-    if(!cid) throw new Error('Sin CID');
-
-    loading.textContent='Descargando estructura 3D...';
-
-    // 2. Obtener SDF con coordenadas 3D
-    let sdfUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`;
-    let sdfR=await fetch(sdfUrl);
-    if(!sdfR.ok){
-      // Fallback a 2D
-      sdfUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF`;
-      sdfR=await fetch(sdfUrl);
-    }
-    if(!sdfR.ok) throw new Error('Sin SDF');
-    let sdf=await sdfR.text();
-
-    // 3. Obtener info del compuesto
-    let propUrl=`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`;
-    let propR=await fetch(propUrl);
-    let props=propR.ok?(await propR.json())?.PropertyTable?.Properties?.[0]:null;
-
-    // 4. Renderizar con 3Dmol
-    loading.style.display='none';
-    mol3dViewer=$3Dmol.createViewer(container,{
-      backgroundColor:'0x050d1a',
-      antialias:true,
-    });
-    mol3dViewer.addModel(sdf,'sdf');
-    applyMolStyle(mol3dCurrentStyle);
-    mol3dViewer.zoomTo();
-    mol3dViewer.spin(true);
-    mol3dSpin=true;
-    mol3dViewer.render();
-
-    // Info
-    nameEl.textContent=props?.IUPACName||searchTerm;
-    if(props){
-      infoEl.innerHTML=`
-        <div class="chip chem"><div class="lbl">Fórmula</div><div class="val" style="font-size:13px">${props.MolecularFormula||formula}</div></div>
-        <div class="chip chem"><div class="lbl">Masa molar</div><div class="val" style="font-size:13px">${props.MolecularWeight||'—'} g/mol</div></div>
-        <div class="chip chem"><div class="lbl">CID PubChem</div><div class="val" style="font-size:13px">${cid}</div></div>
-      `;
-    }
-
-  } catch(e){
-    loading.style.display='flex';
-    loading.innerHTML=`<div style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🔬</div><div style="color:var(--muted)">No se encontró estructura 3D para <b style="color:var(--chem)">${formula}</b></div><div style="font-size:11px;margin-top:6px;color:var(--muted)">Probá con H2O, NH3, CO2, C6H6, etc.</div></div>`;
-    nameEl.textContent='';
-    infoEl.innerHTML='';
-  }
-}
-
-function applyMolStyle(style){
-  if(!mol3dViewer) return;
-  mol3dViewer.setStyle({});
-  if(style==='stick'){
-    mol3dViewer.setStyle({},{stick:{radius:0.15},sphere:{scale:0.25}});
-  } else if(style==='sphere'){
-    mol3dViewer.setStyle({},{sphere:{scale:0.5}});
-  } else if(style==='cartoon'){
-    mol3dViewer.setStyle({},{stick:{radius:0.1},sphere:{scale:0.3}});
-    mol3dViewer.addSurface($3Dmol.SurfaceType.VDW,{opacity:0.6,colorscheme:'whiteCarbon'});
-  }
-  mol3dViewer.render();
-}
-
-function setMolStyle(style){
-  mol3dCurrentStyle=style;
-  if(!mol3dViewer) return;
-  mol3dViewer.removeAllSurfaces();
-  applyMolStyle(style);
-}
-
-// Extraer fórmula del resultado y mostrar 3D automáticamente
-function tryShow3D(formula){
-  if(!formula) return;
-  // Limpiar fórmula: quitar espacios, subíndices unicode → números
-  let clean=formula.trim()
-    .replace(/[₀]/g,'0').replace(/[₁]/g,'1').replace(/[₂]/g,'2')
-    .replace(/[₃]/g,'3').replace(/[₄]/g,'4').replace(/[₅]/g,'5')
-    .replace(/[₆]/g,'6').replace(/[₇]/g,'7').replace(/[₈]/g,'8')
-    .replace(/[₉]/g,'9').replace(/\s/g,'');
-  if(clean.length>=2) load3DMol(clean);
 }
 
 // TABLA PERIÓDICA
