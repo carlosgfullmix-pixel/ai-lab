@@ -262,13 +262,16 @@ gap:10px;cursor:pointer;transition:border-color .2s;
 .empty{text-align:center;padding:32px 16px;color:var(–muted);font-size:13px}
 .empty .ei{font-size:32px;margin-bottom:8px}
 #mol3d-loading{
-  flex-direction:column;gap:12px;
-  font-size:12px;color:var(--muted);
-  font-family:var(--mono);text-align:center;
-  padding:20px;
+flex-direction:column;gap:12px;
+font-size:12px;color:var(–muted);
+font-family:var(–mono);text-align:center;
+padding:20px;
 }
 
-    ::-webkit-scrollbar{width:5px;height:5px}
+```
+::-webkit-scrollbar{width:5px;height:5px}
+```
+
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(–border);border-radius:4px}
 
@@ -439,268 +442,6 @@ raiz(144)                 → raíz"></textarea>
     </div>
   </div>
 </div>
-
-<!-- ══════════ QUÍMICA ══════════ -->
-
-<div id="right-chem" class="page">
-  <div class="card">
-    <div class="card-title chem-title"><div class="dot"></div>Resultado</div>
-    <div class="result-box" id="chem-result">Seleccioná una herramienta y calculá</div>
-  </div>
-  <div class="card" id="chem-steps-card" style="display:none">
-    <div class="card-title chem-title"><div class="dot"></div>Pasos</div>
-    <div class="steps" id="chem-steps"></div>
-  </div>
-  <div class="card" id="mol3d-card" style="display:none">
-    <div class="card-title chem-title"><div class="dot"></div>Estructura molecular 3D</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <span id="mol3d-name" style="font-family:var(--mono);font-size:13px;color:var(--chem)"></span>
-      <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('stick')">Barras</button>
-        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('sphere')">Esferas</button>
-        <button class="btn btn-ghost btn-sm" onclick="setMolStyle('cartoon')">Cartoon</button>
-        <button class="btn btn-ghost btn-sm" onclick="mol3dViewer?.spin(!mol3dSpin);mol3dSpin=!mol3dSpin">⟳ Rotar</button>
-      </div>
-    </div>
-    <div id="mol3d-container" style="width:100%;height:350px;border-radius:8px;overflow:hidden;background:#050d1a;position:relative">
-      <div id="mol3d-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--mono);font-size:12px">Cargando estructura...</div>
-    </div>
-    <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap" id="mol3d-info"></div>
-  </div>
-  <div id="periodic-display" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
-      <div class="periodic-wrap"><div id="periodic-grid" class="periodic-grid"></div></div>
-    </div>
-    <div class="card" id="el-detail" style="display:none">
-      <div class="card-title chem-title"><div class="dot"></div>Elemento seleccionado</div>
-      <div id="el-detail-content"></div>
-    </div>
-  </div>
-</div>
-
-
-  <div id="chem-molar" class="chem-panel">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Fórmula química</div>
-      <input type="text" id="molar-input" placeholder="ej: H2O, NaCl, H2SO4, C6H12O6">
-      <div class="btn-row">
-        <button class="btn btn-chem" onclick="runMolar()">▶ Calcular masa molar</button>
-      </div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='H2O'">H₂O</span>
-        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='NaCl'">NaCl</span>
-        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='H2SO4'">H₂SO₄</span>
-        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='C6H12O6'">C₆H₁₂O₆</span>
-        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='Fe2O3'">Fe₂O₃</span>
-        <span class="tag tag-chem" onclick="document.getElementById('molar-input').value='Ca3(PO4)2'">Ca₃(PO₄)₂</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="chem-balance" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Ecuación química</div>
-      <input type="text" id="balance-input" placeholder="ej: H2 + O2 → H2O">
-      <div class="btn-row">
-        <button class="btn btn-chem" onclick="runBalance()">▶ Balancear</button>
-      </div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="document.getElementById('balance-input').value='H2 + O2 → H2O'">H₂+O₂→H₂O</span>
-        <span class="tag tag-chem" onclick="document.getElementById('balance-input').value='N2 + H2 → NH3'">N₂+H₂→NH₃</span>
-        <span class="tag tag-chem" onclick="document.getElementById('balance-input').value='Fe + O2 → Fe2O3'">Fe+O₂→Fe₂O₃</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="chem-ph" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Cálculo de pH</div>
-      <select id="ph-type" style="margin-bottom:10px">
-        <option value="conc">Concentración [H⁺] → pH</option>
-        <option value="ph">pH → [H⁺] y pOH</option>
-        <option value="weak">Ácido débil (Ka)</option>
-      </select>
-      <input type="text" id="ph-input" placeholder="Valor...">
-      <div class="btn-row"><button class="btn btn-chem" onclick="runPH()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <div id="chem-gas" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Gas ideal PV = nRT</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Dejá en blanco la variable a calcular</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div class="hint" style="margin-bottom:4px">P (atm)</div><input type="text" id="gas-p" placeholder="presión"></div>
-        <div><div class="hint" style="margin-bottom:4px">V (L)</div><input type="text" id="gas-v" placeholder="volumen"></div>
-        <div><div class="hint" style="margin-bottom:4px">n (mol)</div><input type="text" id="gas-n" placeholder="moles"></div>
-        <div><div class="hint" style="margin-bottom:4px">T (K)</div><input type="text" id="gas-t" placeholder="temperatura"></div>
-      </div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runGas()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <div id="chem-conc" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Concentración molar</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div class="hint" style="margin-bottom:4px">Moles (mol)</div><input type="text" id="conc-n" placeholder="n"></div>
-        <div><div class="hint" style="margin-bottom:4px">Volumen (L)</div><input type="text" id="conc-v" placeholder="V"></div>
-        <div><div class="hint" style="margin-bottom:4px">Masa molar (g/mol)</div><input type="text" id="conc-mm" placeholder="MM"></div>
-        <div><div class="hint" style="margin-bottom:4px">Masa (g)</div><input type="text" id="conc-m" placeholder="m"></div>
-      </div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runConc()">▶ Calcular</button></div>
-    </div>
-  </div>
-
-  <div id="chem-periodic" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Tabla periódica</div>
-      <p class="hint">Hacé clic en un elemento para ver sus propiedades</p>
-    </div>
-  </div>
-
-  <div id="chem-redox" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Números de oxidación y Redox</div>
-      <input type="text" id="redox-input" placeholder="ej: Fe2O3, KMnO4, H2SO4, Cr2O7(2-)">
-      <div class="btn-row">
-        <button class="btn btn-chem" onclick="runRedox()">▶ Analizar</button>
-      </div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='KMnO4'">KMnO₄</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='Fe2O3'">Fe₂O₃</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='H2SO4'">H₂SO₄</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='K2Cr2O7'">K₂Cr₂O₇</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='MnO2'">MnO₂</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-input').value='Na2SO4'">Na₂SO₄</span>
-      </div>
-      <div class="divider"></div>
-      <div class="card-title chem-title" style="margin-top:8px"><div class="dot"></div>Identificar reacción redox</div>
-      <input type="text" id="redox-rxn" placeholder="ej: Fe + CuSO4 → FeSO4 + Cu">
-      <div class="btn-row">
-        <button class="btn btn-chem" onclick="runRedoxRxn()">▶ Identificar oxidación/reducción</button>
-      </div>
-      <div style="margin-top:8px">
-        <span class="tag tag-chem" onclick="document.getElementById('redox-rxn').value='Fe + CuSO4 → FeSO4 + Cu'">Fe+CuSO₄</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-rxn').value='Zn + 2HCl → ZnCl2 + H2'">Zn+HCl</span>
-        <span class="tag tag-chem" onclick="document.getElementById('redox-rxn').value='2Fe + 3Cl2 → 2FeCl3'">Fe+Cl₂</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="chem-halfcell" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Potencial de celda electroquímica</div>
-      <p class="hint" style="margin-bottom:12px">Seleccioná cátodo (reducción) y ánodo (oxidación)</p>
-      <div style="display:grid;gap:10px">
-        <div>
-          <div class="hint" style="margin-bottom:4px">Cátodo — reducción (E° mayor)</div>
-          <select id="hc-cathode" style="width:100%"></select>
-        </div>
-        <div>
-          <div class="hint" style="margin-bottom:4px">Ánodo — oxidación (E° menor)</div>
-          <select id="hc-anode" style="width:100%"></select>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-chem" onclick="runHalfCell()">▶ Calcular potencial</button>
-      </div>
-    </div>
-    <div class="card" style="margin-top:0">
-      <div class="card-title chem-title"><div class="dot"></div>Balance por hemirreacciones</div>
-      <select id="hc-medium" style="margin-bottom:10px;width:100%">
-        <option value="acid">Medio ácido (H⁺ / H₂O)</option>
-        <option value="base">Medio básico (OH⁻ / H₂O)</option>
-      </select>
-      <input type="text" id="hc-rxn" placeholder="ej: MnO4- + Fe2+ → Mn2+ + Fe3+">
-      <div class="btn-row">
-        <button class="btn btn-chem" onclick="runHalfBalance()">▶ Balancear por hemirreacciones</button>
-      </div>
-      <div style="margin-top:8px">
-        <span class="tag tag-chem" onclick="document.getElementById('hc-rxn').value='MnO4- + Fe2+ → Mn2+ + Fe3+'">MnO₄⁻+Fe²⁺</span>
-        <span class="tag tag-chem" onclick="document.getElementById('hc-rxn').value='Cr2O7(2-) + Fe2+ → Cr3+ + Fe3+'">Cr₂O₇²⁻+Fe²⁺</span>
-        <span class="tag tag-chem" onclick="document.getElementById('hc-rxn').value='MnO4- + C2O4(2-) → Mn2+ + CO2'">MnO₄⁻+C₂O₄²⁻</span>
-      </div>
-    </div>
-  </div>
-  <div id="chem-buffer" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Buffer — Henderson-Hasselbalch</div>
-      <select id="buf-mode" style="margin-bottom:10px" onchange="updateBufferUI()">
-        <option value="calc">Calcular pH del buffer</option>
-        <option value="ratio">Calcular relación [A⁻]/[HA] desde pH</option>
-        <option value="design">Diseñar buffer (elegir par ácido/base)</option>
-      </select>
-      <div id="buf-fields"></div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runBuffer()">▶ Calcular</button></div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="setBufExample('nh3')">NH₃/NH₄⁺</span>
-        <span class="tag tag-chem" onclick="setBufExample('acetato')">CH₃COOH/CH₃COO⁻</span>
-        <span class="tag tag-chem" onclick="setBufExample('fosfato')">H₂PO₄⁻/HPO₄²⁻</span>
-        <span class="tag tag-chem" onclick="setBufExample('carbonato')">H₂CO₃/HCO₃⁻</span>
-        <span class="tag tag-chem" onclick="setBufExample('custom')">Personalizado</span>
-      </div>
-    </div>
-  </div>
-
-</div>
-  <div id="chem-stoich" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Estequiometría y reactivo limitante</div>
-      <input type="text" id="stoich-eq" placeholder="ej: 2H2 + O2 → 2H2O" style="margin-bottom:10px" onchange="buildStoichFields()">
-      <div class="btn-row" style="margin-top:0;margin-bottom:10px">
-        <button class="btn btn-ghost btn-sm" onclick="buildStoichFields()">⟳ Cargar reactivos</button>
-      </div>
-      <div id="stoich-fields"></div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runStoich()">▶ Calcular</button></div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="setStoichEx('2H2 + O2 → 2H2O')">H₂+O₂</span>
-        <span class="tag tag-chem" onclick="setStoichEx('N2 + 3H2 → 2NH3')">N₂+H₂</span>
-        <span class="tag tag-chem" onclick="setStoichEx('Fe2O3 + 3CO → 2Fe + 3CO2')">Fe₂O₃+CO</span>
-        <span class="tag tag-chem" onclick="setStoichEx('C6H12O6 + 6O2 → 6CO2 + 6H2O')">Glucosa</span>
-      </div>
-    </div>
-  </div>
-  <div id="chem-ksp" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Solubilidad y Ksp</div>
-      <select id="ksp-mode" style="margin-bottom:10px" onchange="updateKspUI()">
-        <option value="ksp2s">Ksp → Solubilidad (s)</option>
-        <option value="s2ksp">Solubilidad (s) → Ksp</option>
-        <option value="common">Efecto de ion común</option>
-      </select>
-      <div id="ksp-fields"></div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runKsp()">▶ Calcular</button></div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="setKspEx('AgCl')">AgCl</span>
-        <span class="tag tag-chem" onclick="setKspEx('BaSO4')">BaSO₄</span>
-        <span class="tag tag-chem" onclick="setKspEx('CaF2')">CaF₂</span>
-        <span class="tag tag-chem" onclick="setKspEx('PbI2')">PbI₂</span>
-        <span class="tag tag-chem" onclick="setKspEx('Mg_OH_2')">Mg(OH)₂</span>
-        <span class="tag tag-chem" onclick="setKspEx('CaCO3')">CaCO₃</span>
-      </div>
-    </div>
-  </div>
-  <div id="chem-equil" class="chem-panel" style="display:none">
-    <div class="card">
-      <div class="card-title chem-title"><div class="dot"></div>Equilibrio químico</div>
-      <select id="equil-type" style="margin-bottom:10px" onchange="updateEquilUI()">
-        <option value="ka">Ácido débil (Ka) → pH</option>
-        <option value="kb">Base débil (Kb) → pOH / pH</option>
-        <option value="kc">Constante de equilibrio Kc</option>
-        <option value="ice">Tabla ICE completa</option>
-      </select>
-      <div id="equil-fields"></div>
-      <div class="btn-row"><button class="btn btn-chem" onclick="runEquil()">▶ Calcular</button></div>
-      <div style="margin-top:12px">
-        <span class="tag tag-chem" onclick="setEquilEx('ka','1.8e-5','0.1')">Ác. acético Ka</span>
-        <span class="tag tag-chem" onclick="setEquilEx('ka','6.3e-8','0.05')">H₂CO₃ Ka</span>
-        <span class="tag tag-chem" onclick="setEquilEx('kb','1.8e-5','0.1')">NH₃ Kb</span>
-        <span class="tag tag-chem" onclick="setEquilEx('ice','1.8e-5','0.1')">ICE ácido acético</span>
-      </div>
-    </div>
-  </div>
 
 <!-- ══════════ FÍSICA ══════════ -->
 
@@ -1738,6 +1479,7 @@ function runMolar(){
     <br><b style="color:var(--chem)">Masa molar total: ${fmt(total)} g/mol</b>`;
     tryShow3D(formula);
 
+  tryShow3D(formula);
   setChem(out,[
     {t:'Fórmula: '+formula,v:''},
     ...Object.entries(elems).map(([s,n])=>({t:`${s}: ${n} × ${ATOMIC[s]?.mass||'?'} =`,v:fmt((ATOMIC[s]?.mass||0)*n)})),
