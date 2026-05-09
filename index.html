@@ -448,6 +448,7 @@ raiz(144)                 → raíz"></textarea>
       <option value="halfcell">Hemirreacciones y potencial de celda</option>
       <option value="buffer">Soluciones buffer (Henderson-Hasselbalch)</option>
       <option value="stoich">Estequiometría / Reactivo limitante</option>
+      <option value="ksp">Solubilidad (Ksp)</option>
 
     </select>
   </div>
@@ -631,6 +632,26 @@ raiz(144)                 → raíz"></textarea>
         <span class="tag tag-chem" onclick="setStoichEx('N2 + 3H2 → 2NH3')">N₂+H₂</span>
         <span class="tag tag-chem" onclick="setStoichEx('Fe2O3 + 3CO → 2Fe + 3CO2')">Fe₂O₃+CO</span>
         <span class="tag tag-chem" onclick="setStoichEx('C6H12O6 + 6O2 → 6CO2 + 6H2O')">Glucosa</span>
+      </div>
+    </div>
+  </div>
+  <div id="chem-ksp" class="chem-panel" style="display:none">
+    <div class="card">
+      <div class="card-title chem-title"><div class="dot"></div>Solubilidad y Ksp</div>
+      <select id="ksp-mode" style="margin-bottom:10px" onchange="updateKspUI()">
+        <option value="ksp2s">Ksp → Solubilidad (s)</option>
+        <option value="s2ksp">Solubilidad (s) → Ksp</option>
+        <option value="common">Efecto de ion común</option>
+      </select>
+      <div id="ksp-fields"></div>
+      <div class="btn-row"><button class="btn btn-chem" onclick="runKsp()">▶ Calcular</button></div>
+      <div style="margin-top:12px">
+        <span class="tag tag-chem" onclick="setKspEx('AgCl')">AgCl</span>
+        <span class="tag tag-chem" onclick="setKspEx('BaSO4')">BaSO₄</span>
+        <span class="tag tag-chem" onclick="setKspEx('CaF2')">CaF₂</span>
+        <span class="tag tag-chem" onclick="setKspEx('PbI2')">PbI₂</span>
+        <span class="tag tag-chem" onclick="setKspEx('Mg_OH_2')">Mg(OH)₂</span>
+        <span class="tag tag-chem" onclick="setKspEx('CaCO3')">CaCO₃</span>
       </div>
     </div>
   </div>
@@ -2517,6 +2538,172 @@ function runStoich(){
     {t:'Base de cálculo: '+fmt(baseMoles,4)+' mol (por coeficiente)',v:''},
     ...prodResults.map(p=>({t:'Producto '+p.mol+':',v:fmt(p.massProduced,3)+' g'})),
   ];
+  setChem(out,steps);
+}
+// ═══════════════════════════════════════════════
+// SOLUBILIDAD — Ksp
+// ═══════════════════════════════════════════════
+const KSP_DB={
+  AgCl:   {name:'Cloruro de plata',    formula:'AgCl',     ksp:1.8e-10, n1:1,n2:1, ion1:'Ag⁺', ion2:'Cl⁻'},
+  AgBr:   {name:'Bromuro de plata',    formula:'AgBr',     ksp:5.0e-13, n1:1,n2:1, ion1:'Ag⁺', ion2:'Br⁻'},
+  AgI:    {name:'Yoduro de plata',     formula:'AgI',      ksp:8.5e-17, n1:1,n2:1, ion1:'Ag⁺', ion2:'I⁻'},
+  BaSO4:  {name:'Sulfato de bario',    formula:'BaSO₄',    ksp:1.1e-10, n1:1,n2:1, ion1:'Ba²⁺',ion2:'SO₄²⁻'},
+  CaF2:   {name:'Fluoruro de calcio',  formula:'CaF₂',     ksp:3.9e-11, n1:1,n2:2, ion1:'Ca²⁺',ion2:'F⁻'},
+  CaCO3:  {name:'Carbonato de calcio', formula:'CaCO₃',    ksp:3.3e-9,  n1:1,n2:1, ion1:'Ca²⁺',ion2:'CO₃²⁻'},
+  PbI2:   {name:'Yoduro de plomo',     formula:'PbI₂',     ksp:9.8e-9,  n1:1,n2:2, ion1:'Pb²⁺',ion2:'I⁻'},
+  PbSO4:  {name:'Sulfato de plomo',    formula:'PbSO₄',    ksp:6.3e-7,  n1:1,n2:1, ion1:'Pb²⁺',ion2:'SO₄²⁻'},
+  Mg_OH_2:{name:'Hidróxido de magnesio',formula:'Mg(OH)₂', ksp:5.6e-12, n1:1,n2:2, ion1:'Mg²⁺',ion2:'OH⁻'},
+  Fe_OH_3:{name:'Hidróxido de hierro(III)',formula:'Fe(OH)₃',ksp:2.8e-39,n1:1,n2:3,ion1:'Fe³⁺',ion2:'OH⁻'},
+  SrSO4:  {name:'Sulfato de estroncio',formula:'SrSO₄',    ksp:3.4e-7,  n1:1,n2:1, ion1:'Sr²⁺',ion2:'SO₄²⁻'},
+  Ag2CO3: {name:'Carbonato de plata',  formula:'Ag₂CO₃',   ksp:8.5e-12, n1:2,n2:1, ion1:'Ag⁺', ion2:'CO₃²⁻'},
+};
+
+function setKspEx(key){
+  updateKspUI();
+  setTimeout(()=>{
+    let sel=document.getElementById('ksp-compound');
+    if(sel) sel.value=key;
+    toggleKspCustom();
+  },50);
+}
+
+function toggleKspCustom(){
+  let sel=document.getElementById('ksp-compound');
+  let area=document.getElementById('ksp-custom-area');
+  if(sel&&area) area.style.display=sel.value==='custom'?'grid':'none';
+}
+
+function updateKspUI(){
+  let mode=document.getElementById('ksp-mode').value;
+  let opts=Object.entries(KSP_DB).map(([k,v])=>`<option value="${k}">${v.name} — Ksp=${v.ksp.toExponential(1)}</option>`).join('')+`<option value="custom">Personalizado</option>`;
+  let base=`<div><div class="hint" style="margin-bottom:4px">Compuesto</div>
+    <select id="ksp-compound" style="width:100%;margin-bottom:8px" onchange="toggleKspCustom()">${opts}</select>
+    <div id="ksp-custom-area" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><div class="hint" style="margin-bottom:4px">Ksp</div><input type="text" id="ksp-val" placeholder="ej: 1.8e-10"></div>
+      <div><div class="hint" style="margin-bottom:4px">Tipo</div>
+        <select id="ksp-type">
+          <option value="11">AB → A⁺ + B⁻</option>
+          <option value="12">AB₂ → A²⁺ + 2B⁻</option>
+          <option value="21">A₂B → 2A⁺ + B²⁻</option>
+          <option value="13">AB₃ → A³⁺ + 3B⁻</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+
+  let extra='';
+  if(mode==='s2ksp'){
+    extra=`<div><div class="hint" style="margin-bottom:4px">Solubilidad s (mol/L)</div><input type="text" id="ksp-s-val" placeholder="ej: 1.3e-5"></div>`;
+  } else if(mode==='common'){
+    extra=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="hint" style="margin-bottom:4px">Ion común</div>
+        <select id="ksp-common-ion"><option value="1">Primer ion</option><option value="2">Segundo ion</option></select>
+      </div>
+      <div><div class="hint" style="margin-bottom:4px">Concentración (mol/L)</div><input type="text" id="ksp-common-conc" placeholder="ej: 0.01"></div>
+    </div>`;
+  }
+  document.getElementById('ksp-fields').innerHTML=base+extra;
+}
+
+function getKspData(){
+  let key=document.getElementById('ksp-compound')?.value;
+  if(key==='custom'){
+    let ksp=Number(document.getElementById('ksp-val')?.value);
+    let type=document.getElementById('ksp-type')?.value||'11';
+    let map={11:{n1:1,n2:1,ion1:'A⁺',ion2:'B⁻'},12:{n1:1,n2:2,ion1:'A²⁺',ion2:'B⁻'},21:{n1:2,n2:1,ion1:'A⁺',ion2:'B²⁻'},13:{n1:1,n2:3,ion1:'A³⁺',ion2:'B⁻'}};
+    return{name:'Personalizado',formula:'AB',ksp,...(map[type]||map['11'])};
+  }
+  return KSP_DB[key];
+}
+
+function runKsp(){
+  let mode=document.getElementById('ksp-mode').value;
+  let c=getKspData();
+  if(!c||!c.ksp){setChem('<span style="color:#f87171">Seleccioná un compuesto o ingresá el Ksp</span>',[]);return;}
+  let {name,formula,ksp,n1,n2,ion1,ion2}=c;
+  let out='',steps=[];
+
+  if(mode==='ksp2s'){
+    // Ksp = (n1·s)^n1 · (n2·s)^n2 = n1^n1 · n2^n2 · s^(n1+n2)
+    let coeff=Math.pow(n1,n1)*Math.pow(n2,n2);
+    let s=Math.pow(ksp/coeff,1/(n1+n2));
+    let c1=n1*s, c2=n2*s;
+    // Masa por litro (aproximado con MM del compuesto)
+    let elems=parseMolar(formula.replace(/[₀-₉⁰-⁹²³⁴]/g,m=>['0','1','2','3','4','5','6','7','8','9'][['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉','⁰','¹','²','³','⁴'].indexOf(m)]||m));
+    let mm=Object.entries(parseMolar(formula.replace(/[²³⁴₂₃₄]/g,d=>({'²':'2','³':'3','⁴':'4','₂':'2','₃':'3','₄':'4'}[d]||d)))).reduce((t,[sym,cnt])=>t+(ATOMIC[sym]?.mass||0)*cnt,0)||0;
+    let phColor=pH=>pH<7?'#f97316':pH>7?'#38bdf8':'#34d399';
+
+    out=`<b style="color:var(--chem)">Solubilidad desde Ksp</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${name}</div>
+        <div style="font-size:11px;color:var(--muted)">Ksp = ${ksp.toExponential(2)}</div>
+        <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--chem);margin-top:8px">s = ${s.toExponential(3)} mol/L</div>
+        ${mm>0?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${(s*mm).toExponential(3)} g/L</div>`:''}
+      </div>
+      <table class="tbl"><tbody>
+        <tr><td>[${ion1}]</td><td style="color:var(--chem)">${c1.toExponential(3)} mol/L</td></tr>
+        <tr><td>[${ion2}]</td><td style="color:var(--chem)">${c2.toExponential(3)} mol/L</td></tr>
+      </tbody></table>`;
+    steps=[
+      {t:`Ksp = [${ion1}]^${n1} · [${ion2}]^${n2}`,v:''},
+      {t:`Ksp = (${n1}s)^${n1} · (${n2}s)^${n2} = ${coeff}·s^${n1+n2}`,v:''},
+      {t:`s = (Ksp/${coeff})^(1/${n1+n2})`,v:s.toExponential(3)+' mol/L'},
+      {t:`[${ion1}] = ${n1}s`,v:c1.toExponential(3)+' mol/L'},
+      {t:`[${ion2}] = ${n2}s`,v:c2.toExponential(3)+' mol/L'},
+    ];
+
+  } else if(mode==='s2ksp'){
+    let s=Number(document.getElementById('ksp-s-val')?.value);
+    if(!s){setChem('<span style="color:#f87171">Ingresá la solubilidad</span>',[]);return;}
+    let kspCalc=Math.pow(n1*s,n1)*Math.pow(n2*s,n2);
+    out=`<b style="color:var(--chem)">Ksp desde solubilidad</b><br><br>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${name} — s = ${s} mol/L</div>
+        <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--chem);margin-top:8px">Ksp = ${kspCalc.toExponential(3)}</div>
+      </div>`;
+    steps=[
+      {t:`Ksp = (${n1}s)^${n1} · (${n2}s)^${n2}`,v:''},
+      {t:`s = ${s} mol/L`,v:''},
+      {t:'Ksp =',v:kspCalc.toExponential(3)},
+    ];
+
+  } else if(mode==='common'){
+    let commonConc=Number(document.getElementById('ksp-common-conc')?.value);
+    let commonIon=Number(document.getElementById('ksp-common-ion')?.value||1);
+    if(!commonConc){setChem('<span style="color:#f87171">Ingresá la concentración del ion común</span>',[]);return;}
+    // Solubilidad sin ion común
+    let coeff=Math.pow(n1,n1)*Math.pow(n2,n2);
+    let sNormal=Math.pow(ksp/coeff,1/(n1+n2));
+    // Con ion común: si ion común es el 1ro → Ksp=(commonConc)^n1·(n2·s)^n2 → s=(Ksp/commonConc^n1)^(1/n2)/n2
+    let sCommon;
+    if(commonIon===1){
+      sCommon=Math.pow(ksp/Math.pow(commonConc,n1),1/n2)/n2;
+    } else {
+      sCommon=Math.pow(ksp/Math.pow(commonConc,n2),1/n1)/n1;
+    }
+    let ionLabel=commonIon===1?ion1:ion2;
+    let factor=sNormal/sCommon;
+    out=`<b style="color:var(--chem)">Efecto de ion común</b><br><br>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--muted)">Sin ion común</div>
+          <div style="font-size:20px;font-family:var(--mono);color:var(--chem);margin-top:6px;font-weight:700">${sNormal.toExponential(3)}</div>
+          <div style="font-size:11px;color:var(--muted)">mol/L</div>
+        </div>
+        <div style="background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--muted)">[${ionLabel}] = ${commonConc} M</div>
+          <div style="font-size:20px;font-family:var(--mono);color:var(--phys);margin-top:6px;font-weight:700">${sCommon.toExponential(3)}</div>
+          <div style="font-size:11px;color:var(--muted)">mol/L — ${factor.toFixed(0)}× menos soluble</div>
+        </div>
+      </div>
+      <p class="hint">El ion común desplaza el equilibrio → menor solubilidad (Principio de Le Chatelier)</p>`;
+    steps=[
+      {t:'Solubilidad normal:',v:sNormal.toExponential(3)+' mol/L'},
+      {t:`Ion común [${ionLabel}] = ${commonConc} M`,v:''},
+      {t:'Solubilidad con ion común:',v:sCommon.toExponential(3)+' mol/L'},
+      {t:'Reducción:',v:factor.toFixed(1)+'×'},
+    ];
+  }
   setChem(out,steps);
 }
 
