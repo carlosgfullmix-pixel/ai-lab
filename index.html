@@ -968,8 +968,18 @@ raiz(144)                 → raíz"></textarea>
     <div class="chart-wrap sm"><canvas id="phys-chart"></canvas></div>
   </div>
 </div>
+<div id="right-convert" class="page">
+  <div class="card">
+    <div class="card-title math-title"><div class="dot"></div>Resultado</div>
+    <div class="result-box" id="conv-result">Ingresá un valor para convertir</div>
+  </div>
+  <div class="card" id="conv-table-card" style="display:none">
+    <div class="card-title math-title"><div class="dot"></div>Tabla completa</div>
+    <div id="conv-table"></div>
+  </div>
+</div>
 
-<div id="right-history" class="page">
+  <div id="right-history" class="page">
   <div class="card">
     <div class="empty"><div class="ei">🕓</div>Hacé clic en un cálculo del historial para cargarlo</div>
   </div>
@@ -977,6 +987,378 @@ raiz(144)                 → raíz"></textarea>
 
 </div><!-- /right-panel -->
 </div><!-- /layout -->
+// ═══════════════════════════════════════════════
+// CONVERSIONES DE UNIDADES
+// ═══════════════════════════════════════════════
+const CONV_UNITS={
+  length:{
+    name:'Longitud',
+    units:{
+      'm':      {name:'Metro (m)',          factor:1},
+      'km':     {name:'Kilómetro (km)',      factor:1000},
+      'cm':     {name:'Centímetro (cm)',     factor:0.01},
+      'mm':     {name:'Milímetro (mm)',      factor:0.001},
+      'um':     {name:'Micrómetro (μm)',     factor:1e-6},
+      'nm':     {name:'Nanómetro (nm)',      factor:1e-9},
+      'in':     {name:'Pulgada (in)',        factor:0.0254},
+      'ft':     {name:'Pie (ft)',            factor:0.3048},
+      'yd':     {name:'Yarda (yd)',          factor:0.9144},
+      'mi':     {name:'Milla (mi)',          factor:1609.344},
+      'nmi':    {name:'Milla náutica',       factor:1852},
+      'ly':     {name:'Año luz',             factor:9.461e15},
+      'au':     {name:'Unidad astronómica',  factor:1.496e11},
+      'ang':    {name:'Ångström (Å)',        factor:1e-10},
+    }
+  },
+  mass:{
+    name:'Masa',
+    units:{
+      'kg':     {name:'Kilogramo (kg)',      factor:1},
+      'g':      {name:'Gramo (g)',           factor:0.001},
+      'mg':     {name:'Miligramo (mg)',      factor:1e-6},
+      'ug':     {name:'Microgramo (μg)',     factor:1e-9},
+      'lb':     {name:'Libra (lb)',          factor:0.453592},
+      'oz':     {name:'Onza (oz)',           factor:0.028350},
+      't':      {name:'Tonelada métrica',    factor:1000},
+      'ton':    {name:'Tonelada corta (US)', factor:907.185},
+      'st':     {name:'Stone (st)',          factor:6.35029},
+      'ct':     {name:'Quilate (ct)',        factor:0.0002},
+      'u':      {name:'Unidad másica atómica',factor:1.66054e-27},
+    }
+  },
+  temp:{
+    name:'Temperatura',
+    units:{
+      'C':  {name:'Celsius (°C)'},
+      'F':  {name:'Fahrenheit (°F)'},
+      'K':  {name:'Kelvin (K)'},
+      'R':  {name:'Rankine (°R)'},
+    }
+  },
+  time:{
+    name:'Tiempo',
+    units:{
+      's':      {name:'Segundo (s)',         factor:1},
+      'ms':     {name:'Milisegundo (ms)',    factor:0.001},
+      'us':     {name:'Microsegundo (μs)',   factor:1e-6},
+      'ns':     {name:'Nanosegundo (ns)',    factor:1e-9},
+      'min':    {name:'Minuto (min)',        factor:60},
+      'h':      {name:'Hora (h)',            factor:3600},
+      'd':      {name:'Día (d)',             factor:86400},
+      'wk':     {name:'Semana',             factor:604800},
+      'mo':     {name:'Mes (30 días)',       factor:2592000},
+      'yr':     {name:'Año (365 días)',      factor:31536000},
+    }
+  },
+  area:{
+    name:'Área',
+    units:{
+      'm2':     {name:'Metro² (m²)',         factor:1},
+      'km2':    {name:'Kilómetro² (km²)',    factor:1e6},
+      'cm2':    {name:'Centímetro² (cm²)',   factor:1e-4},
+      'mm2':    {name:'Milímetro² (mm²)',    factor:1e-6},
+      'ha':     {name:'Hectárea (ha)',       factor:1e4},
+      'ac':     {name:'Acre (ac)',           factor:4046.86},
+      'ft2':    {name:'Pie² (ft²)',          factor:0.092903},
+      'in2':    {name:'Pulgada² (in²)',      factor:6.4516e-4},
+      'mi2':    {name:'Milla² (mi²)',        factor:2.59e6},
+    }
+  },
+  volume:{
+    name:'Volumen',
+    units:{
+      'm3':     {name:'Metro³ (m³)',         factor:1},
+      'L':      {name:'Litro (L)',           factor:0.001},
+      'mL':     {name:'Mililitro (mL)',      factor:1e-6},
+      'uL':     {name:'Microlitro (μL)',     factor:1e-9},
+      'cm3':    {name:'Centímetro³ (cm³)',   factor:1e-6},
+      'ft3':    {name:'Pie³ (ft³)',          factor:0.028317},
+      'in3':    {name:'Pulgada³ (in³)',      factor:1.6387e-5},
+      'gal':    {name:'Galón US (gal)',      factor:0.003785},
+      'gal_uk': {name:'Galón UK',            factor:0.004546},
+      'qt':     {name:'Cuarto US (qt)',      factor:9.464e-4},
+      'pt':     {name:'Pinta US (pt)',       factor:4.732e-4},
+      'fl_oz':  {name:'Onza fluida US',      factor:2.957e-5},
+      'tsp':    {name:'Cucharadita (tsp)',   factor:4.929e-6},
+      'tbsp':   {name:'Cucharada (tbsp)',    factor:1.479e-5},
+    }
+  },
+  speed:{
+    name:'Velocidad',
+    units:{
+      'm/s':    {name:'Metro/segundo',       factor:1},
+      'km/h':   {name:'Kilómetro/hora',      factor:0.277778},
+      'mph':    {name:'Milla/hora (mph)',     factor:0.44704},
+      'ft/s':   {name:'Pie/segundo',         factor:0.3048},
+      'kn':     {name:'Nudo (kn)',           factor:0.514444},
+      'mach':   {name:'Mach (≈340 m/s)',     factor:340.29},
+      'c':      {name:'Velocidad luz (c)',   factor:299792458},
+    }
+  },
+  energy:{
+    name:'Energía',
+    units:{
+      'J':      {name:'Julio (J)',           factor:1},
+      'kJ':     {name:'Kilojulio (kJ)',      factor:1000},
+      'cal':    {name:'Caloría (cal)',       factor:4.184},
+      'kcal':   {name:'Kilocaloría (kcal)', factor:4184},
+      'Wh':     {name:'Watt-hora (Wh)',      factor:3600},
+      'kWh':    {name:'Kilowatt-hora (kWh)',factor:3.6e6},
+      'eV':     {name:'Electrón-volt (eV)', factor:1.602e-19},
+      'BTU':    {name:'BTU',                factor:1055.06},
+      'erg':    {name:'Ergio (erg)',         factor:1e-7},
+      'ftlb':   {name:'Pie-libra (ft·lb)',  factor:1.35582},
+    }
+  },
+  pressure:{
+    name:'Presión',
+    units:{
+      'Pa':     {name:'Pascal (Pa)',         factor:1},
+      'kPa':    {name:'Kilopascal (kPa)',    factor:1000},
+      'MPa':    {name:'Megapascal (MPa)',    factor:1e6},
+      'bar':    {name:'Bar',                factor:1e5},
+      'mbar':   {name:'Milibar (mbar)',      factor:100},
+      'atm':    {name:'Atmósfera (atm)',     factor:101325},
+      'torr':   {name:'Torr (mmHg)',        factor:133.322},
+      'psi':    {name:'PSI (lb/in²)',       factor:6894.76},
+      'mmHg':   {name:'mmHg',               factor:133.322},
+      'inHg':   {name:'pulgada Hg',         factor:3386.39},
+    }
+  },
+  power:{
+    name:'Potencia',
+    units:{
+      'W':      {name:'Watt (W)',            factor:1},
+      'kW':     {name:'Kilowatt (kW)',       factor:1000},
+      'MW':     {name:'Megawatt (MW)',       factor:1e6},
+      'hp':     {name:'Caballo vapor (hp)', factor:745.7},
+      'BTU/h':  {name:'BTU/hora',           factor:0.29307},
+      'cal/s':  {name:'Caloría/segundo',    factor:4.184},
+      'kcal/h': {name:'kcal/hora',          factor:1.163},
+    }
+  },
+  data:{
+    name:'Datos digitales',
+    units:{
+      'b':      {name:'Bit (b)',             factor:1},
+      'B':      {name:'Byte (B)',            factor:8},
+      'KB':     {name:'Kilobyte (KB)',       factor:8000},
+      'MB':     {name:'Megabyte (MB)',       factor:8e6},
+      'GB':     {name:'Gigabyte (GB)',       factor:8e9},
+      'TB':     {name:'Terabyte (TB)',       factor:8e12},
+      'PB':     {name:'Petabyte (PB)',       factor:8e15},
+      'KiB':    {name:'Kibibyte (KiB)',      factor:8192},
+      'MiB':    {name:'Mebibyte (MiB)',      factor:8388608},
+      'GiB':    {name:'Gibibyte (GiB)',      factor:8589934592},
+    }
+  },
+  angle:{
+    name:'Ángulos',
+    units:{
+      'deg':    {name:'Grado (°)',           factor:1},
+      'rad':    {name:'Radián (rad)',        factor:180/Math.PI},
+      'grad':   {name:'Gradián (grad)',      factor:0.9},
+      'rev':    {name:'Revolución',         factor:360},
+      'arcmin': {name:'Minuto de arco (\')', factor:1/60},
+      'arcsec': {name:'Segundo de arco (")',factor:1/3600},
+    }
+  },
+  force:{
+    name:'Fuerza',
+    units:{
+      'N':      {name:'Newton (N)',          factor:1},
+      'kN':     {name:'Kilonewton (kN)',     factor:1000},
+      'MN':     {name:'Meganewton (MN)',     factor:1e6},
+      'lbf':    {name:'Libra-fuerza (lbf)', factor:4.44822},
+      'kgf':    {name:'Kilogramo-fuerza',   factor:9.80665},
+      'dyn':    {name:'Dina (dyn)',          factor:1e-5},
+      'ozf':    {name:'Onza-fuerza (ozf)',  factor:0.278014},
+    }
+  },
+  conc_chem:{
+    name:'Concentración química',
+    units:{
+      'mol/L':  {name:'Molar (mol/L)',       factor:1},
+      'mmol/L': {name:'Milimolar (mM)',      factor:0.001},
+      'umol/L': {name:'Micromolar (μM)',     factor:1e-6},
+      'nmol/L': {name:'Nanomolar (nM)',      factor:1e-9},
+      'pmol/L': {name:'Picomolar (pM)',      factor:1e-12},
+      'mol/m3': {name:'mol/m³',             factor:0.001},
+      'meq/L':  {name:'mEq/L',              factor:0.001},
+    }
+  },
+};
+
+// Conversión especial de temperatura
+function convertTemp(val,from,to){
+  // Primero a Celsius
+  let c;
+  if(from==='C') c=val;
+  else if(from==='F') c=(val-32)*5/9;
+  else if(from==='K') c=val-273.15;
+  else if(from==='R') c=(val-491.67)*5/9;
+  // De Celsius al destino
+  if(to==='C') return c;
+  if(to==='F') return c*9/5+32;
+  if(to==='K') return c+273.15;
+  if(to==='R') return (c+273.15)*9/5;
+  return c;
+}
+
+function updateConvUI(){
+  let cat=document.getElementById('conv-cat').value;
+  let units=CONV_UNITS[cat].units;
+  let keys=Object.keys(units);
+  let fromSel=document.getElementById('conv-from');
+  let toSel=document.getElementById('conv-to');
+  fromSel.innerHTML=keys.map(k=>`<option value="${k}">${units[k].name}</option>`).join('');
+  toSel.innerHTML=keys.map(k=>`<option value="${k}">${units[k].name}</option>`).join('');
+  // Default: segunda unidad seleccionada en "a"
+  if(keys.length>1) toSel.value=keys[1];
+
+  // Quick conversions
+  let quick=getQuickConversions(cat);
+  document.getElementById('conv-quick').innerHTML=quick.map(q=>
+    `<span class="tag tag-math" onclick="setConvExample(${q.val},'${q.from}','${q.to}')">${q.label}</span>`
+  ).join('');
+
+  runConvert();
+}
+
+function getQuickConversions(cat){
+  const Q={
+    length:[
+      {val:1,from:'m',to:'ft',label:'1 m → ft'},
+      {val:1,from:'km',to:'mi',label:'1 km → mi'},
+      {val:1,from:'in',to:'cm',label:'1 in → cm'},
+      {val:1,from:'ly',to:'km',label:'1 año luz → km'},
+    ],
+    mass:[
+      {val:1,from:'kg',to:'lb',label:'1 kg → lb'},
+      {val:1,from:'oz',to:'g',label:'1 oz → g'},
+      {val:70,from:'kg',to:'lb',label:'70 kg → lb'},
+    ],
+    temp:[
+      {val:100,from:'C',to:'F',label:'100°C → °F'},
+      {val:37,from:'C',to:'F',label:'37°C → °F'},
+      {val:0,from:'C',to:'K',label:'0°C → K'},
+      {val:98.6,from:'F',to:'C',label:'98.6°F → °C'},
+    ],
+    time:[
+      {val:1,from:'h',to:'s',label:'1 h → s'},
+      {val:1,from:'d',to:'h',label:'1 día → h'},
+      {val:1,from:'yr',to:'d',label:'1 año → días'},
+    ],
+    volume:[
+      {val:1,from:'L',to:'gal',label:'1 L → gal'},
+      {val:1,from:'gal',to:'L',label:'1 gal → L'},
+      {val:250,from:'mL',to:'fl_oz',label:'250 mL → fl oz'},
+    ],
+    speed:[
+      {val:100,from:'km/h',to:'mph',label:'100 km/h → mph'},
+      {val:1,from:'mach',to:'km/h',label:'1 Mach → km/h'},
+      {val:30,from:'m/s',to:'km/h',label:'30 m/s → km/h'},
+    ],
+    energy:[
+      {val:1,from:'kcal',to:'kJ',label:'1 kcal → kJ'},
+      {val:1,from:'kWh',to:'kJ',label:'1 kWh → kJ'},
+      {val:1,from:'eV',to:'J',label:'1 eV → J'},
+    ],
+    pressure:[
+      {val:1,from:'atm',to:'Pa',label:'1 atm → Pa'},
+      {val:1,from:'bar',to:'atm',label:'1 bar → atm'},
+      {val:760,from:'torr',to:'atm',label:'760 torr → atm'},
+    ],
+    conc_chem:[
+      {val:1,from:'mol/L',to:'mmol/L',label:'1 M → mM'},
+      {val:0.001,from:'mol/L',to:'umol/L',label:'1 mM → μM'},
+    ],
+    area:[{val:1,from:'ha',to:'ac',label:'1 ha → ac'},{val:1,from:'m2',to:'ft2',label:'1 m² → ft²'}],
+    power:[{val:1,from:'hp',to:'kW',label:'1 hp → kW'},{val:1,from:'kW',to:'BTU/h',label:'1 kW → BTU/h'}],
+    data:[{val:1,from:'GB',to:'MB',label:'1 GB → MB'},{val:1,from:'TB',to:'GB',label:'1 TB → GB'}],
+    angle:[{val:180,from:'deg',to:'rad',label:'180° → rad'},{val:1,from:'rad',to:'deg',label:'1 rad → °'}],
+    force:[{val:1,from:'N',to:'lbf',label:'1 N → lbf'},{val:1,from:'kgf',to:'N',label:'1 kgf → N'}],
+  };
+  return Q[cat]||[];
+}
+
+function setConvExample(val,from,to){
+  document.getElementById('conv-value').value=val;
+  document.getElementById('conv-from').value=from;
+  document.getElementById('conv-to').value=to;
+  runConvert();
+}
+
+function swapConv(){
+  let f=document.getElementById('conv-from');
+  let t=document.getElementById('conv-to');
+  let tmp=f.value;f.value=t.value;t.value=tmp;
+  runConvert();
+}
+
+function runConvert(){
+  let val=Number(document.getElementById('conv-value').value);
+  let from=document.getElementById('conv-from').value;
+  let to=document.getElementById('conv-to').value;
+  let cat=document.getElementById('conv-cat').value;
+  let units=CONV_UNITS[cat].units;
+
+  if(isNaN(val)||!from||!to){
+    document.getElementById('conv-result').innerHTML='Ingresá un valor para convertir';
+    document.getElementById('conv-table-card').style.display='none';
+    return;
+  }
+
+  let result;
+  if(cat==='temp'){
+    result=convertTemp(val,from,to);
+  } else {
+    let factorFrom=units[from].factor;
+    let factorTo=units[to].factor;
+    result=val*factorFrom/factorTo;
+  }
+
+  let fromName=units[from].name;
+  let toName=units[to].name;
+
+  // Formatear resultado
+  let fmtResult;
+  if(Math.abs(result)>=1e6||Math.abs(result)<1e-4&&result!==0){
+    fmtResult=result.toExponential(6);
+  } else {
+    fmtResult=parseFloat(result.toFixed(8)).toString();
+  }
+
+  let resEl=document.getElementById('conv-result');
+  resEl.innerHTML=`
+    <b style="color:var(--math)">${CONV_UNITS[cat].name}</b><br><br>
+    <div style="text-align:center;padding:10px 0">
+      <div style="font-size:15px;color:var(--muted);font-family:var(--mono)">${val} ${fromName}</div>
+      <div style="font-size:28px;color:var(--muted);margin:4px 0">=</div>
+      <div style="font-size:30px;font-family:var(--mono);font-weight:700;color:var(--math)">${fmtResult}</div>
+      <div style="font-size:15px;color:var(--muted);font-family:var(--mono);margin-top:4px">${toName}</div>
+    </div>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('${fmtResult}')">Copiar</button>
+  `;
+  resEl.className='result-box ok-math';
+
+  // Tabla completa — convertir a todas las unidades
+  let allKeys=Object.keys(units);
+  let tableHTML=allKeys.map(k=>{
+    let r;
+    if(cat==='temp') r=convertTemp(val,from,k);
+    else r=val*units[from].factor/units[k].factor;
+    let fmtR=Math.abs(r)>=1e6||Math.abs(r)<1e-4&&r!==0?r.toExponential(4):parseFloat(r.toFixed(6)).toString();
+    let isSelected=k===to;
+    return`<tr style="${isSelected?'background:rgba(56,189,248,.06)':''}">
+      <td style="color:var(--muted)">${units[k].name}</td>
+      <td style="font-family:var(--mono);color:${isSelected?'var(--math)':'var(--text)'};font-weight:${isSelected?'700':'400'}">${fmtR}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('conv-table').innerHTML=`<table class="tbl"><thead><tr><th>Unidad</th><th>Valor</th></tr></thead><tbody>${tableHTML}</tbody></table>`;
+  document.getElementById('conv-table-card').style.display='block';
+}
 
 <script>
 // ═══════════════════════════════════════════════
@@ -3476,7 +3858,9 @@ window.onload=()=>{
   addFn('Math.sin(x)');
   addFn('x**2');
   updatePhysUI();
+  updateConvUI();
 };
+
 </script>
 
 </body>
